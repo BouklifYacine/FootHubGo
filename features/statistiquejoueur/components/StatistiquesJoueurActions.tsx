@@ -3,7 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { PencilIcon, Trash2, Loader2 } from "lucide-react";
 import FormulaireStatistiquesJoueur from "./FormulaireStatistiquesJoueur";
-import { Evenement } from "../../evenements/(types)/EvenementsResponse";
+import { Evenement } from "@/features/evenements/types/EvenementsTypes";
+
 
 interface StatistiquesJoueurActionsProps {
   evenement: Evenement;

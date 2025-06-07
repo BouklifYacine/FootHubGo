@@ -36,4 +36,12 @@ export interface StatistiqueEvenement {
     // detailMatchs: DetailMatch[];
   }
 
-
+  export interface StatistiqueJoueur {
+  id: string;
+  buts: number;
+  passesdécisive: number;
+  minutesJouees: number;
+  note: number;
+  titulaire: boolean;
+  poste: string;
+}

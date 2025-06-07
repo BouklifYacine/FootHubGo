@@ -15,7 +15,7 @@ import { authClient } from "@/lib/auth-client";
 import { useStatistiqueJoueur } from "../hooks/useStatistiquesjoueur";
 
 const BlockStats = () => {
-const { data: session } = authClient.useSession()
+  const { data: session } = authClient.useSession();
 
   const sessionID = session?.user?.id || "";
 
@@ -38,7 +38,9 @@ const { data: session } = authClient.useSession()
       <div className="flex flex-col md:flex-row justify-center gap-6 lg:gap-12 items-center p-4">
         <div className="bloc1 rounded-2xl w-full md:w-72 bg-white border border-gray-300 shadow-sm space-y-4 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-md font-medium tracking-tight text-gray-500">Buts</p>
+            <p className="text-md font-medium tracking-tight text-gray-500">
+              Buts
+            </p>
             <span className="block md:hidden text-gray-600">
               <IoFootball size={30} />
             </span>
@@ -57,7 +59,9 @@ const { data: session } = authClient.useSession()
 
         <div className="bloc1 rounded-2xl w-full md:w-72 bg-white border border-gray-300 shadow-sm space-y-4 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-md font-medium tracking-tight text-gray-500">Passes</p>
+            <p className="text-md font-medium tracking-tight text-gray-500">
+              Passes
+            </p>
             <span className="block md:hidden text-gray-600">
               <TbPlayFootball size={30} />
             </span>
@@ -76,7 +80,9 @@ const { data: session } = authClient.useSession()
 
         <div className="bloc1 rounded-2xl w-full md:w-72 bg-white border border-gray-300 shadow-sm space-y-4 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-md font-medium tracking-tight text-gray-500">TOTAL-GA</p>
+            <p className="text-md font-medium tracking-tight text-gray-500">
+              TOTAL-GA
+            </p>
             <span className="block md:hidden text-gray-600">
               <ChartNoAxesColumnIncreasing size={30} />
             </span>
@@ -95,7 +101,9 @@ const { data: session } = authClient.useSession()
 
         <div className="bloc1 rounded-2xl w-full md:w-72 bg-white border border-gray-300 shadow-sm space-y-4 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-md font-medium tracking-tight text-gray-500">GA/90</p>
+            <p className="text-md font-medium tracking-tight text-gray-500">
+              GA/90
+            </p>
             <span className="block md:hidden text-gray-600">
               <Award size={30} />
             </span>
@@ -114,7 +122,9 @@ const { data: session } = authClient.useSession()
 
         <div className="bloc1 rounded-2xl w-full md:w-72 bg-white border border-gray-300 shadow-sm space-y-4 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-md font-medium tracking-tight text-gray-500">NoteMoyenne</p>
+            <p className="text-md font-medium tracking-tight text-gray-500">
+              NoteMoyenne
+            </p>
             <span className="block md:hidden text-gray-600">
               <ChartNoAxesCombined size={30} />
             </span>
@@ -131,7 +141,7 @@ const { data: session } = authClient.useSession()
           <p className="text-gray-500 text-sm">Cette saison</p>
         </div>
       </div>
-      
+
       {/* Graphique radar des statistiques du joueur */}
       <RadarGraph />
     </>
