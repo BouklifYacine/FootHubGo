@@ -9,3 +9,10 @@ export type CodeInvitationType = {
 };
 
 export type RejoindreEquipeInput = z.infer<typeof RejoindreEquipeSchema>;
+
+
+
+export interface CodeInvitationResponse {
+  message: string;
+  codeInvitation?: string;
+}
