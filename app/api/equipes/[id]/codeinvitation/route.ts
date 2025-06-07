@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/prisma";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 interface RouteParams {
@@ -8,7 +9,9 @@ interface RouteParams {
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers() 
+})
   const idUtilisateur = session?.user?.id;
 
   try {

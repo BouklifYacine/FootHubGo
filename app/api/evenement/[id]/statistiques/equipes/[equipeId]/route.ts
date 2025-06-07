@@ -1,8 +1,9 @@
 import { StatistiqueEquipeSchema } from "@/app/(schema)/SchemaStatistique";
+import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import dayjs from "dayjs";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from '@/auth';
+
 
 interface RouteParams {
   params: {

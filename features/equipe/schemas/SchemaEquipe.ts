@@ -38,4 +38,4 @@ export const RejoindreEquipeSchema = z.object({
     .regex(/^\d+$/, "Le code d'invitation doit contenir uniquement des chiffres")
 });
 
-export type RejoindreEquipeInput = z.infer<typeof RejoindreEquipeSchema>;
+

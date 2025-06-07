@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma";
 import { auth } from "@/auth";
+import { headers } from "next/headers";
 
 export async function GET(
   request: NextRequest,
@@ -8,7 +9,9 @@ export async function GET(
 ) {
   const { id } = await params;
   
-  const session = await auth();
+  const session = await auth.api.getSession({
+    headers: await headers() 
+})
   const idUtilisateur = session?.user?.id;
   
   console.log("ID d'équipe reçu:", id);

@@ -1,6 +1,7 @@
+import { ChangementDonneeJoueur } from "@/features/equipe/schemas/SchemaEquipe";
 import { prisma } from "@/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import { ChangementDonneeJoueur } from "@/app/(schema)/SchemaEquipe";
+
 
 interface RouteParams {
   params: { id: string; membreid: string };
