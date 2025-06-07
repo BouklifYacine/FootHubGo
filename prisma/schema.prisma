@@ -29,6 +29,12 @@ model User {
   updatedAt        DateTime
   sessions         Session[]
   accounts         Account[]
+  // Champs ajoutés pour le football
+  roleEquipe       RoleEquipe  @default(SANSCLUB)
+  AunClub          AunClub     @default(NON)
+  membreEquipe     MembreEquipe?
+  presences        Presence[]
+  statsJoueur      StatistiqueJoueur[]
 
   @@unique([email])
   @@map("user")
@@ -42,21 +48,6 @@ model Abonnement {
   datedebut DateTime       @default(now())
   datefin   DateTime       @updatedAt
   user      User           @relation(fields: [userId], references: [id])
-}
-
-enum Roles {
-  Admin
-  utilisateur
-}
-
-enum Plan {
-  free
-  pro
-}
-
-enum PlanAbonnement {
-  mois
-  année
 }
 
 model Session {
@@ -102,4 +93,170 @@ model Verification {
   updatedAt  DateTime?
 
   @@map("verification")
+}
+
+// ==============================================
+// MODÈLES SPÉCIFIQUES AU FOOTBALL (AJOUTS)
+// ==============================================
+
+model Equipe {
+  id             String   @id @default(cuid())
+  nom            String
+  description    String?
+  logoUrl        String?
+  dateCreation   DateTime @default(now())
+  codeInvitation String?
+
+  membres     MembreEquipe[]
+  evenements  Evenement[]
+  statsEquipe StatistiqueEquipe[]
+}
+
+model MembreEquipe {
+  id           String       @id @default(cuid())
+  role         RoleEquipe   @default(JOUEUR)
+  posteJoueur  PosteJoueur?
+  dateAdhesion DateTime     @default(now())
+
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String @unique
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId String
+}
+
+model Evenement {
+  id            String        @id @default(cuid())
+  titre         String
+  description   String?
+  lieu          String?
+  typeEvenement TypeEvenement @default(ENTRAINEMENT)
+  dateDebut     DateTime
+  dateCreation  DateTime      @default(now())
+
+  equipe      Equipe              @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId    String
+  presences   Presence[]
+  statsJoueur StatistiqueJoueur[]
+  statEquipe  StatistiqueEquipe?
+
+  @@index([equipeId])
+}
+
+model Presence {
+  id           String         @id @default(cuid())
+  statut       StatutPresence @default(EN_ATTENTE)
+  dateCreation DateTime       @default(now())
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  evenementId String
+
+  @@unique([userId, evenementId])
+}
+
+model StatistiqueJoueur {
+  id             String @id @default(cuid())
+  buts           Int    @default(0)
+  passesdécisive Int    @default(0)
+  note           Float  @default(6.0)
+  minutesJouees  Int    @default(0) 
+
+  titulaire      Boolean     @default(false)
+  poste          PosteJoueur
+  dateCreation   DateTime    @default(now())
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  evenement      Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  evenementId    String
+
+  @@unique([userId, evenementId])
+}
+
+model StatistiqueEquipe {
+  id String @id @default(cuid())
+
+  resultatMatch ResultatMatch
+  butsMarques   Int           @default(0)
+  butsEncaisses Int           @default(0)
+  cleanSheet    Boolean       @default(false)
+  tirsTotal     Int?
+  tirsCadres    Int?
+
+  domicile     Boolean     @default(true)
+  competition  competition @default(CHAMPIONNAT)
+  adversaire   String
+  dateCreation DateTime    @default(now())
+
+  equipe      Equipe     @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId    String
+  evenement   Evenement? @relation(fields: [evenementId], references: [id])
+  evenementId String?    @unique
+
+  @@index([equipeId])
+}
+
+// ==============================================
+// ENUMS (AJOUTS SPÉCIFIQUES AU FOOTBALL)
+// ==============================================
+
+enum RoleEquipe {
+  SANSCLUB
+  ENTRAINEUR
+  JOUEUR
+}
+
+enum PosteJoueur {
+  GARDIEN
+  DEFENSEUR
+  MILIEU
+  ATTAQUANT
+}
+
+enum TypeEvenement {
+  MATCH
+  ENTRAINEMENT
+}
+
+enum StatutPresence {
+  EN_ATTENTE
+  PRESENT
+  ABSENT
+  INCERTAIN
+}
+
+enum ResultatMatch {
+  VICTOIRE
+  DEFAITE
+  MATCH_NUL
+}
+
+enum competition {
+  CHAMPIONNAT
+  COUPE
+}
+
+enum AunClub {
+  OUI
+  NON
+}
+
+// ==============================================
+// ENUMS EXISTANTS (CONSERVÉS)
+// ==============================================
+
+enum Roles {
+  Admin
+  utilisateur
+}
+
+enum Plan {
+  free
+  pro
+}
+
+enum PlanAbonnement {
+  mois
+  année
 }
