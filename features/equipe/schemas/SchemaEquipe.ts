@@ -39,3 +39,6 @@ export const RejoindreEquipeSchema = z.object({
 });
 
 
+export type ModifierEquipeInputs = z.infer<typeof CreationEquipeSchema>;
+
+export type CreationEquipeInputs = z.infer<typeof CreationEquipeSchema>;
