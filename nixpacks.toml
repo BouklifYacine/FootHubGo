@@ -1,0 +1,23 @@
+[phases.setup]
+nixPkgs = ["nodejs_20", "openssl"]
+nixLibs = ["gcc-unwrapped", "libuuid", "libGL"]
+nixOverlays = ["https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.gz"]
+nixpkgsArchive = "ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7"
+aptPkgs = ["curl", "wget"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = ["npm ci"]
+cacheDirectories = ["/root/.npm"]
+paths = ["/app/node_modules/.bin"]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = ["npm run build"]
+cacheDirectories = [".next/cache", "node_modules/.cache"]
+
+[start]
+cmd = "npm run start"
+
+[variables]
+NODE_ENV = "production"

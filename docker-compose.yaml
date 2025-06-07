@@ -1,0 +1,41 @@
+
+
+services:
+  db:
+    container_name: devgo-prod-db
+    image: postgres:16-alpine
+    restart: always
+    env_file:
+      - .env.production.local
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-devgo}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    container_name: devgo-prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nextjs-projet-boilerplate-prod:latest
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production.local
+    # Utilisation de la base de données Neon en production
+    # environment:
+    #   - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-devgo}
+
+volumes:
+  db_data:

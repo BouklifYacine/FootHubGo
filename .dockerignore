@@ -1,0 +1,64 @@
+# Dépendances
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Fichiers de build
+.next
+out
+dist
+build
+
+# Fichiers de développement
+.git
+.gitignore
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+logs
+
+# Tests et coverage
+tests
+test
+coverage
+.nyc_output
+
+# Documentation
+*.md
+README*
+CHANGELOG*
+LICENSE*
+
+# Fichiers temporaires
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Docker
+.dockerignore
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# Fichiers de cache
+.cache
+.parcel-cache
+.eslintcache
+
+# Fichiers de sauvegarde
+*.bak
+*.backup
+
+# Ne pas ignorer ces fichiers pour la production
+!next.config.ts
+!prisma
+!public
