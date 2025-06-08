@@ -7,14 +7,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Test {
-  id        String   @id @default(cuid())
-  name      String
-  createdAt DateTime @default(now())
-}
+// ==============================================
+// MODÈLES CORE
+// ==============================================
 
 model User {
-  id               String      @id
+  id               String      @id @default(cuid())
   name             String      @unique
   email            String
   emailVerified    Boolean
@@ -29,16 +27,185 @@ model User {
   updatedAt        DateTime
   sessions         Session[]
   accounts         Account[]
-  // Champs ajoutés pour le football
-  roleEquipe       RoleEquipe  @default(SANSCLUB)
-  AunClub          AunClub     @default(NON)
-  membreEquipe     MembreEquipe?
   presences        Presence[]
   statsJoueur      StatistiqueJoueur[]
+  
+  // Relations améliorées
+  memberships      Membership[]
+  demandesAdhesion DemandeAdhesion[]
+  blessures        Blessure[]
+  finances         Finance[]
+  
+  // Système de favoris simplifié
+  joueursFavoris  User[]   @relation("JoueursFavoris")
+  favorisPar      User[]   @relation("JoueursFavoris")
+  clubsFavoris    Equipe[] @relation("ClubsFavoris")
+
+  // Relations sondages
+  sondagesCrees    Sondage[]
+  reponsesSondages ReponseSondage[]
 
   @@unique([email])
   @@map("user")
 }
+
+model Equipe {
+  id             String   @id @default(cuid())
+  nom            String
+  description    String?
+  logoUrl        String?
+  dateCreation   DateTime @default(now())
+  codeInvitation String?
+  
+  // Nouveaux champs
+  statut       StatutClub  @default(PUBLIC)
+  niveau       NiveauClub  @default(LOISIR)
+  
+  // Relations
+  membres     Membership[]
+  evenements  Evenement[]
+  statsEquipe StatistiqueEquipe[]
+  demandes    DemandeAdhesion[]
+  finances    Finance[]
+  blessures   Blessure[]
+  sondages    Sondage[]
+
+  // Relation inverse pour les favoris
+  dansFavorisDe  User[]   @relation("ClubsFavoris")
+
+  @@map("equipe")
+}
+
+// ==============================================
+// MODÈLES DE RELATIONS ET FONCTIONNALITÉS
+// ==============================================
+
+model Membership {
+  id         String     @id @default(cuid())
+  role       RoleEquipe @default(JOUEUR)
+  poste      PosteJoueur?
+  isLicensed Boolean    @default(false)
+  joinedAt   DateTime   @default(now())
+  
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String
+  equipe   Equipe @relation(fields: [equipeId], references: [id])
+  equipeId String
+
+  @@map("membership")
+}
+
+model DemandeAdhesion {
+  id          String   @id @default(cuid())
+  poste       PosteJoueur
+  motivation  String
+  dispo       String?
+  statut      StatutDemande @default(EN_ATTENTE)
+  createdAt   DateTime @default(now())
+  
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+  equipe    Equipe @relation(fields: [equipeId], references: [id])
+  equipeId  String
+
+  @@map("demande_adhesion")
+}
+
+model Blessure {
+  id          String   @id @default(cuid())
+  type        String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  isRecurring Boolean  @default(false)
+  
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+  equipe    Equipe @relation(fields: [equipeId], references: [id])
+  equipeId  String
+
+  @@map("blessure")
+}
+
+model Finance {
+  id          String   @id @default(cuid())
+  montant     Float
+  type        TypeFinance
+  description String
+  isPaid      Boolean @default(false)
+  dateEcheance DateTime?
+  
+  user      User   @relation(fields: [userId], references: [id])
+  userId    String
+  equipe    Equipe @relation(fields: [equipeId], references: [id])
+  equipeId  String
+
+  @@map("finance")
+}
+
+model Evenement {
+  id            String        @id @default(cuid())
+  titre         String
+  description   String?
+  lieu          String?
+  typeEvenement TypeEvenement @default(ENTRAINEMENT)
+  dateDebut     DateTime
+  dateCreation  DateTime      @default(now())
+  
+  // Nouveaux champs
+  adversaire   String?  // Pour les matchs
+  locationData Json?    // { lat: 48.8566, lng: 2.3522 }
+  weatherData  Json?    // Cache météo
+
+  equipe      Equipe              @relation(fields: [equipeId], references: [id])
+  equipeId    String
+  presences   Presence[]
+  statsJoueur StatistiqueJoueur[]
+  statEquipe  StatistiqueEquipe?
+
+  @@index([equipeId])
+  @@map("evenement")
+}
+
+// ==============================================
+// MODÈLES SONDAGES
+// ==============================================
+
+model Sondage {
+  id          String     @id @default(cuid())
+  question    String
+  options     String[]   // Ex: ["Oui", "Non", "Peut-être"]
+  isMulti     Boolean    @default(false)
+  expiresAt   DateTime?
+  createdAt   DateTime   @default(now())
+  
+  // Relations
+  createur    User   @relation(fields: [createurId], references: [id])
+  createurId  String
+  equipe      Equipe @relation(fields: [equipeId], references: [id])
+  equipeId    String
+  
+  reponses    ReponseSondage[]
+
+  @@map("sondage")
+}
+
+model ReponseSondage {
+  id          String     @id @default(cuid())
+  choix       String
+  createdAt   DateTime   @default(now())
+  
+  utilisateur User   @relation(fields: [utilisateurId], references: [id])
+  utilisateurId String
+  sondage     Sondage @relation(fields: [sondageId], references: [id])
+  sondageId   String
+
+  @@map("reponse_sondage")
+}
+
+// ==============================================
+// MODÈLES EXISTANTS (CONSERVÉS)
+// ==============================================
 
 model Abonnement {
   id        String         @id @default(cuid())
@@ -48,6 +215,8 @@ model Abonnement {
   datedebut DateTime       @default(now())
   datefin   DateTime       @updatedAt
   user      User           @relation(fields: [userId], references: [id])
+  
+  @@map("abonnement")
 }
 
 model Session {
@@ -95,64 +264,18 @@ model Verification {
   @@map("verification")
 }
 
-// ==============================================
-// MODÈLES SPÉCIFIQUES AU FOOTBALL (AJOUTS)
-// ==============================================
-
-model Equipe {
-  id             String   @id @default(cuid())
-  nom            String
-  description    String?
-  logoUrl        String?
-  dateCreation   DateTime @default(now())
-  codeInvitation String?
-
-  membres     MembreEquipe[]
-  evenements  Evenement[]
-  statsEquipe StatistiqueEquipe[]
-}
-
-model MembreEquipe {
-  id           String       @id @default(cuid())
-  role         RoleEquipe   @default(JOUEUR)
-  posteJoueur  PosteJoueur?
-  dateAdhesion DateTime     @default(now())
-
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String @unique
-  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade)
-  equipeId String
-}
-
-model Evenement {
-  id            String        @id @default(cuid())
-  titre         String
-  description   String?
-  lieu          String?
-  typeEvenement TypeEvenement @default(ENTRAINEMENT)
-  dateDebut     DateTime
-  dateCreation  DateTime      @default(now())
-
-  equipe      Equipe              @relation(fields: [equipeId], references: [id], onDelete: Cascade)
-  equipeId    String
-  presences   Presence[]
-  statsJoueur StatistiqueJoueur[]
-  statEquipe  StatistiqueEquipe?
-
-  @@index([equipeId])
-}
-
 model Presence {
   id           String         @id @default(cuid())
   statut       StatutPresence @default(EN_ATTENTE)
   dateCreation DateTime       @default(now())
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id])
   userId      String
-  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  evenement   Evenement @relation(fields: [evenementId], references: [id])
   evenementId String
 
   @@unique([userId, evenementId])
+  @@map("presence")
 }
 
 model StatistiqueJoueur {
@@ -161,17 +284,17 @@ model StatistiqueJoueur {
   passesdécisive Int    @default(0)
   note           Float  @default(6.0)
   minutesJouees  Int    @default(0) 
-
   titulaire      Boolean     @default(false)
   poste          PosteJoueur
   dateCreation   DateTime    @default(now())
 
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user           User      @relation(fields: [userId], references: [id])
   userId         String
-  evenement      Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  evenement      Evenement @relation(fields: [evenementId], references: [id])
   evenementId    String
 
   @@unique([userId, evenementId])
+  @@map("statistique_joueur")
 }
 
 model StatistiqueEquipe {
@@ -189,17 +312,34 @@ model StatistiqueEquipe {
   adversaire   String
   dateCreation DateTime    @default(now())
 
-  equipe      Equipe     @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipe      Equipe     @relation(fields: [equipeId], references: [id])
   equipeId    String
   evenement   Evenement? @relation(fields: [evenementId], references: [id])
   evenementId String?    @unique
 
   @@index([equipeId])
+  @@map("statistique_equipe")
 }
 
 // ==============================================
-// ENUMS (AJOUTS SPÉCIFIQUES AU FOOTBALL)
+// ENUMS
 // ==============================================
+
+// Existants
+enum Roles {
+  Admin
+  utilisateur
+}
+
+enum Plan {
+  free
+  pro
+}
+
+enum PlanAbonnement {
+  mois
+  année
+}
 
 enum RoleEquipe {
   SANSCLUB
@@ -237,26 +377,27 @@ enum competition {
   COUPE
 }
 
-enum AunClub {
-  OUI
-  NON
+// Nouveaux enums
+enum StatutClub {
+  PUBLIC
+  PRIVE
+  INVITATION
 }
 
-// ==============================================
-// ENUMS EXISTANTS (CONSERVÉS)
-// ==============================================
-
-enum Roles {
-  Admin
-  utilisateur
+enum NiveauClub {
+  DEPARTEMENTAL
+  REGIONAL
+  NATIONAL
+  LOISIR
 }
 
-enum Plan {
-  free
-  pro
+enum StatutDemande {
+  EN_ATTENTE
+  ACCEPTEE
+  REFUSEE
 }
 
-enum PlanAbonnement {
-  mois
-  année
+enum TypeFinance {
+  COTISATION
+  DEPENSE
 }
