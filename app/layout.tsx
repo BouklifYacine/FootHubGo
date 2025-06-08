@@ -13,8 +13,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "FootyGogo",
-  description: "FootyGogo la boilerplate NextJS idéale pour vos projets full stack",
+  title: "Foothubgo",
+  description: "Avec Foothubgo gérez votre club de football amateur de manière professionnelle",
 };
 
 export default function RootLayout({
