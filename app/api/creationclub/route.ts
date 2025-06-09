@@ -6,11 +6,11 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  // 1. Vérification de la session utilisateur
-  //   const session = await auth.api.getSession({
-  //     headers: await headers(),
-  //   });
-  const userId = "LLdPDfbyN52t1QgG7gjj3pZr76BTdbW5";
+//   const session = await auth.api.getSession({
+//     headers: await headers(),
+//   });
+//   const userId = session?.user.id;
+    const userId = "Ll4DUDp3JWKDJvhGorreUad4dXdbzTC9";
 
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
   const codeInvitation = await hashElement(resetCode);
@@ -22,7 +22,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 2. Validation du schéma
   const body = await request.json();
   const validation = SchemaCreationClub.safeParse(body);
 
@@ -35,7 +34,7 @@ export async function POST(request: NextRequest) {
 
   const { nom, description, NiveauClub } = validation.data;
 
-  // A changer pour la version premium plus tard et permettre max 3 clubs avec mode payant 
+  // A changer pour la version premium plus tard et permettre max 3 clubs avec mode payant
   const MembreEquipeExistant = await prisma.membreEquipe.findFirst({
     where: { userId },
   });
@@ -47,7 +46,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // A changer pour la version premium plus tard et permettre d'etre entraineur de plusieurs clubs max 3  
+  // A changer pour la version premium plus tard et permettre d'etre entraineur de plusieurs clubs max 3
   const EstCoach = await prisma.membreEquipe.findFirst({
     where: {
       userId,
@@ -62,7 +61,6 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 5. Vérification de l'unicité du nom du club
   const ClubExistant = await prisma.equipe.findFirst({
     where: {
       nom: {
@@ -79,10 +77,8 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // 6. Création du club dans une transaction
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // Création du club
       const NouveauClub = await tx.equipe.create({
         data: {
           nom,
@@ -93,7 +89,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Ajout de l'utilisateur comme entraîneur
       await tx.membreEquipe.create({
         data: {
           role: "ENTRAINEUR",

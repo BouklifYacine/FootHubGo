@@ -57,7 +57,6 @@ model Equipe {
   dateCreation   DateTime @default(now())
   codeInvitation String?
 
-  // Nouveaux champs
   statut StatutClub @default(PUBLIC)
   niveau NiveauClub @default(LOISIR)
 
@@ -87,9 +86,9 @@ model MembreEquipe {
   isLicensed Boolean      @default(false)
   joinedAt   DateTime     @default(now())
 
-  user     User   @relation(fields: [userId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id])
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId String
 
   @@map("MembreEquipe")
@@ -103,9 +102,9 @@ model DemandeAdhesion {
   statut     StatutDemande @default(EN_ATTENTE)
   createdAt  DateTime      @default(now())
 
-  user     User   @relation(fields: [userId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id])
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId String
 
   @@map("demande_adhesion")
@@ -119,9 +118,9 @@ model Blessure {
   endDate     DateTime
   isRecurring Boolean  @default(false)
 
-  user     User   @relation(fields: [userId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id])
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId String
 
   @@map("blessure")
@@ -135,9 +134,9 @@ model Finance {
   isPaid       Boolean     @default(false)
   dateEcheance DateTime?
 
-  user     User   @relation(fields: [userId], references: [id])
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id])
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId String
 
   @@map("finance")
@@ -152,12 +151,11 @@ model Evenement {
   dateDebut     DateTime
   dateCreation  DateTime      @default(now())
 
-  // Nouveaux champs
-  adversaire   String? // Pour les matchs
-  locationData Json? // { lat: 48.8566, lng: 2.3522 }
-  weatherData  Json? // Cache météo
+  adversaire   String?
+  locationData Json?
+  weatherData  Json?
 
-  equipe      Equipe              @relation(fields: [equipeId], references: [id])
+  equipe      Equipe              @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId    String
   presences   Presence[]
   statsJoueur StatistiqueJoueur[]
@@ -174,15 +172,14 @@ model Evenement {
 model Sondage {
   id        String    @id @default(cuid())
   question  String
-  options   String[] // Ex: ["Oui", "Non", "Peut-être"]
+  options   String[]
   isMulti   Boolean   @default(false)
   expiresAt DateTime?
   createdAt DateTime  @default(now())
 
-  // Relations
-  createur   User   @relation(fields: [createurId], references: [id])
+  createur   User   @relation(fields: [createurId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   createurId String
-  equipe     Equipe @relation(fields: [equipeId], references: [id])
+  equipe     Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId   String
 
   reponses ReponseSondage[]
@@ -195,9 +192,9 @@ model ReponseSondage {
   choix     String
   createdAt DateTime @default(now())
 
-  utilisateur   User    @relation(fields: [utilisateurId], references: [id])
+  utilisateur   User    @relation(fields: [utilisateurId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   utilisateurId String
-  sondage       Sondage @relation(fields: [sondageId], references: [id])
+  sondage       Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   sondageId     String
 
   @@map("reponse_sondage")
@@ -214,7 +211,7 @@ model Abonnement {
   periode   PlanAbonnement
   datedebut DateTime       @default(now())
   datefin   DateTime       @updatedAt
-  user      User           @relation(fields: [userId], references: [id])
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
 
   @@map("abonnement")
 }
@@ -269,9 +266,9 @@ model Presence {
   statut       StatutPresence @default(EN_ATTENTE)
   dateCreation DateTime       @default(now())
 
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   userId      String
-  evenement   Evenement @relation(fields: [evenementId], references: [id])
+  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   evenementId String
 
   @@unique([userId, evenementId])
@@ -288,9 +285,9 @@ model StatistiqueJoueur {
   poste           PosteJoueur
   dateCreation    DateTime    @default(now())
 
-  user        User      @relation(fields: [userId], references: [id])
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   userId      String
-  evenement   Evenement @relation(fields: [evenementId], references: [id])
+  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   evenementId String
 
   @@unique([userId, evenementId])
@@ -312,9 +309,9 @@ model StatistiqueEquipe {
   adversaire   String
   dateCreation DateTime    @default(now())
 
-  equipe      Equipe     @relation(fields: [equipeId], references: [id])
+  equipe      Equipe     @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId    String
-  evenement   Evenement? @relation(fields: [evenementId], references: [id])
+  evenement   Evenement? @relation(fields: [evenementId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   evenementId String?    @unique
 
   @@index([equipeId])
