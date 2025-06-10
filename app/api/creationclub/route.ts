@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
 //     headers: await headers(),
 //   });
 //   const userId = session?.user.id;
-    const userId = "Ll4DUDp3JWKDJvhGorreUad4dXdbzTC9";
+    const userId = "Lm9B28oAI4ShwdFuVDgGevzPedyHcppb";
 
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
   const codeInvitation = await hashElement(resetCode);
