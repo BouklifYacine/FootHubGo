@@ -12,7 +12,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const { id } = await params;
 
   try {
-    const userId = "Ll4DUDp3JWKDJvhGorreUad4dXdbzTC9";
+    const userId = "Lm9B28oAI4ShwdFuVDgGevzPedyHcppb";
 
     if (!userId) {
       return NextResponse.json(
@@ -40,11 +40,11 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     }
 
     const nouveauCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const codeInvitation = await hashElement(nouveauCode);
+ 
 
     const equipeMiseAJour = await prisma.equipe.update({
       where: { id: id },
-      data: { codeInvitation },
+      data: { codeInvitation : nouveauCode },
     });
 
     return NextResponse.json({
