@@ -1,35 +1,33 @@
 import { auth } from "@/auth";
 import { SchemaCreationClub } from "@/features/creationclub/schemas/SchemaCreationClub";
-import { hashElement } from "@/lib/argon2";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import z from "zod";
 
-export async function POST(request: NextRequest) {
-//   const session = await auth.api.getSession({
-//     headers: await headers(),
-//   });
-//   const userId = session?.user.id;
-    const userId = "Lm9B28oAI4ShwdFuVDgGevzPedyHcppb";
+type schema = z.infer<typeof SchemaCreationClub>;
+
+export async function CreationClubAction(data: schema) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  const userId = session?.user.id;
 
   const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const codeInvitation = await hashElement(resetCode);
 
   if (!userId) {
-    return NextResponse.json(
-      { message: "Vous devez être connecté pour créer un club" },
-      { status: 401 }
-    );
+    return {
+      success: false,
+      message: "Vous devez être connecté pour créer un club",
+    };
   }
 
-  const body = await request.json();
-  const validation = SchemaCreationClub.safeParse(body);
+  const validation = SchemaCreationClub.safeParse(data);
 
   if (!validation.success) {
-    return NextResponse.json(
-      { message: validation.error.errors[0].message },
-      { status: 400 }
-    );
+    return {
+      success: false,
+      message: validation.error.errors[0].message,
+    };
   }
 
   const { nom, description, NiveauClub } = validation.data;
@@ -40,10 +38,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (MembreEquipeExistant) {
-    return NextResponse.json(
-      { message: "Vous êtes déjà membre d'un club" },
-      { status: 403 }
-    );
+    return {
+      success: false,
+      message: "Vous etes déja membre d'un club",
+    };
   }
 
   // A changer pour la version premium plus tard et permettre d'etre entraineur de plusieurs clubs max 3
@@ -55,10 +53,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (EstCoach) {
-    return NextResponse.json(
-      { message: "Vous êtes déjà entraîneur d'un autre club" },
-      { status: 403 }
-    );
+    return {
+      success: false,
+      message: "Vous êtes déjà entraîneur d'un autre club",
+    };
   }
 
   const ClubExistant = await prisma.equipe.findFirst({
@@ -71,10 +69,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (ClubExistant) {
-    return NextResponse.json(
-      { message: "Un club avec ce nom existe déjà" },
-      { status: 409 }
-    );
+    return {
+      success: false,
+      message: "Un club avec ce nom existe déja",
+    };
   }
 
   try {
@@ -85,7 +83,7 @@ export async function POST(request: NextRequest) {
           description,
           niveau: NiveauClub,
           dateCreation: new Date(),
-          codeInvitation,
+          codeInvitation: resetCode,
         },
       });
 
@@ -101,12 +99,11 @@ export async function POST(request: NextRequest) {
       return NouveauClub;
     });
 
-    return NextResponse.json(result, { status: 201 });
+    return {
+      success: true,
+      message: `Bravo vous avez créer le club ${result.nom}`,
+    };
   } catch (error) {
     console.error("Erreur lors de la création du club:", error);
-    return NextResponse.json(
-      { message: "Erreur lors de la création du club" },
-      { status: 500 }
-    );
   }
 }
