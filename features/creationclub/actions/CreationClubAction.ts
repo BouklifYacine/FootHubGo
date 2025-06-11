@@ -1,3 +1,5 @@
+"use server"
+
 import { auth } from "@/auth";
 import { SchemaCreationClub } from "@/features/creationclub/schemas/SchemaCreationClub";
 import { prisma } from "@/prisma";
