@@ -1,4 +1,4 @@
-import { hashElement } from "@/lib/argon2";
+
 import { prisma } from "@/prisma";
 import { NextRequest, NextResponse } from "next/server";
 

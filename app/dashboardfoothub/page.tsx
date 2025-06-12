@@ -1,9 +1,10 @@
-import { BoutonAjouter } from "@/components/Boutons/BoutonAjouter";
-import { InputBouton } from "@/components/Inputs/InputBouton";
+
+import { InputBouton } from "@/features/rejoindreclub/components/InputBouton";
 import { MiddlewareUtilisateurNonConnecte } from "../(middleware)/MiddlewareUtilisateurNonConnecte";
 import { prisma } from "@/prisma";
 import { auth } from "@/auth";
 import { headers } from "next/headers";
+import { BoutonAjouter } from "@/features/creationclub/components/BoutonAjouter";
 
 export default async function Dashboardfoothub() {
   await MiddlewareUtilisateurNonConnecte();
@@ -33,7 +34,7 @@ export default async function Dashboardfoothub() {
           ) : (
             <InputBouton
               texte="Rejoindre un club"
-              placeholder="Code Invitation"
+              placeholder="123456"
             />
           )}
         </div>
