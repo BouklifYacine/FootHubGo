@@ -1,11 +1,14 @@
 import { Equipe, MembreEquipe, User } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 
-export type MembreEquipeWithUser = MembreEquipe & { user: User };
+export type MembreEquipeWithUser = MembreEquipe & {
+  user: Pick<User, "name" | "image">;
+};
+
 export type InfosClubApiResponse = {
   equipe: Equipe;
   membres: MembreEquipeWithUser[];
-  role: string; //
+  role: string;
 };
 
 export function useInfosClub() {

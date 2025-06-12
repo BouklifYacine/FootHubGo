@@ -32,6 +32,8 @@ function BlockEffectif() {
     }
   };
 
+  console.log(data?.membres);
+
   const code = data?.equipe.codeInvitation;
   const entraineur = data?.role === "ENTRAINEUR";
   return (
@@ -70,7 +72,10 @@ function BlockEffectif() {
                   aria-label="Créer ou régénérer le code"
                 >
                   {entraineur && (
-                    <Button onClick={CreerCodeInvitation} disabled={PendingCreationCode}>
+                    <Button
+                      onClick={CreerCodeInvitation}
+                      disabled={PendingCreationCode}
+                    >
                       <CircleFadingPlus className="w-5 h-5 text-amber-400" />
                     </Button>
                   )}
@@ -94,8 +99,17 @@ function BlockEffectif() {
           </div>
         </div>
 
-        <BoutonSupprimerClub equipeid={data?.equipe.id || ""}></BoutonSupprimerClub>
+        <BoutonSupprimerClub
+          equipeid={data?.equipe.id || ""}
+        ></BoutonSupprimerClub>
+
+        <div></div>
+
+    
       </div>
+        {data?.membres.map((m) => <div key={m.id}>
+          <p>{m.user.name}</p>
+        </div>)}
     </div>
   );
 }
