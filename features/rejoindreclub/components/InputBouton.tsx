@@ -34,7 +34,7 @@ export function InputBouton({ texte, placeholder }: Props) {
     const result = await mutation.mutateAsync(data);
     if (result.success) {
       reset();
-      router.push("/");
+      router.push("/dashboardfoothub/effectif");
     }
   };
 

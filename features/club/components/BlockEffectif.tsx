@@ -11,14 +11,24 @@ import { CircleFadingPlus } from "lucide-react";
 import React from "react";
 import { useInfosClub } from "../hooks/useinfosclub";
 import { useSupprimerCodeInvitation } from "@/features/codeinvitation/hooks/useSupprimerCodeInvitation";
+import { useCreerouGenererCodeInvitation } from "@/features/codeinvitation/hooks/useCreerouGenererCodeInvitation";
+import BoutonSupprimerClub from "./BoutonSupprimerClub";
 
 function BlockEffectif() {
   const { data, isLoading } = useInfosClub();
   const { mutate, isPending } = useSupprimerCodeInvitation();
+  const { mutate: MutationCreationCode, isPending: PendingCreationCode } =
+    useCreerouGenererCodeInvitation();
 
   const SupprimerCodeInvitation = () => {
     if (data?.equipe.id) {
       mutate(data?.equipe.id);
+    }
+  };
+
+  const CreerCodeInvitation = () => {
+    if (data?.equipe.id) {
+      MutationCreationCode(data?.equipe.id);
     }
   };
 
@@ -60,7 +70,9 @@ function BlockEffectif() {
                   aria-label="Créer ou régénérer le code"
                 >
                   {entraineur && (
-                    <CircleFadingPlus className="w-5 h-5 text-amber-400" />
+                    <Button onClick={CreerCodeInvitation} disabled={PendingCreationCode}>
+                      <CircleFadingPlus className="w-5 h-5 text-amber-400" />
+                    </Button>
                   )}
                 </Button>
               </TooltipTrigger>
@@ -81,6 +93,8 @@ function BlockEffectif() {
             confiance.
           </div>
         </div>
+
+        <BoutonSupprimerClub equipeid={data?.equipe.id || ""}></BoutonSupprimerClub>
       </div>
     </div>
   );

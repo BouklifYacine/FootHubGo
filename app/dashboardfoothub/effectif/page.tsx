@@ -8,6 +8,7 @@ async function Effectif() {
   return (
     <>
       <BlockEffectif></BlockEffectif>
+      
     </>
   );
 }
