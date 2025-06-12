@@ -92,6 +92,7 @@ model MembreEquipe {
   equipeId String
 
   @@map("MembreEquipe")
+  @@unique([userId, equipeId])
 }
 
 model DemandeAdhesion {

@@ -1,5 +1,6 @@
 import { MiddlewareUtilisateurNonConnecte } from "@/app/(middleware)/MiddlewareUtilisateurNonConnecte";
 import { auth } from "@/auth";
+import BlockEffectif from "@/features/club/components/BlockEffectif";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 import React from "react";
@@ -22,9 +23,11 @@ async function Effectif() {
   },
 });
 
-const equipeUser = user?.MembreEquipe[0]
+const infosequipe = user?.MembreEquipe[0]
 
-  return <div>Effectif</div>;
+
+  return <>
+  <BlockEffectif infosequipe={infosequipe}></BlockEffectif></>;
 }
 
 export default Effectif;

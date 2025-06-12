@@ -1,5 +1,3 @@
-"use client";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,11 +9,16 @@ import {
 import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
-function BoutonCopier() {
+interface BoutonCopierProps {
+  value: string;
+}
+
+function BoutonCopier({ value }: BoutonCopierProps) {
   const [copied, setCopied] = useState<boolean>(false);
 
   const handleCopy = async () => {
     try {
+      await navigator.clipboard.writeText(value);
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch (err) {
