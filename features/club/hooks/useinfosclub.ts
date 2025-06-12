@@ -5,6 +5,7 @@ export type MembreEquipeWithUser = MembreEquipe & { user: User };
 export type InfosClubApiResponse = {
   equipe: Equipe;
   membres: MembreEquipeWithUser[];
+  role: string; //
 };
 
 export function useInfosClub() {

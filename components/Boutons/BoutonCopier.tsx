@@ -10,7 +10,7 @@ import { Check, Copy } from "lucide-react";
 import { useState } from "react";
 
 interface BoutonCopierProps {
-  value: string;
+  value: string | null | undefined;
 }
 
 function BoutonCopier({ value }: BoutonCopierProps) {

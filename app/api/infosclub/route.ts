@@ -31,5 +31,6 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     equipe: membre.equipe,
     membres,
+    role : membre.role
   });
 }
