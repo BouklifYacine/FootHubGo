@@ -59,7 +59,7 @@ function BoutonAjouter({ texte }: Props) {
       onSuccess: () => {
         reset();
         setOpen(false); // Ferme la modal seulement si succès
-        router.push("/");
+        router.push("/dashboardfoothub");
       },
     });
   }

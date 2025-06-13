@@ -107,10 +107,12 @@ function BlockEffectif() {
 
     
       </div>
-        {data?.membres.map((m) => <div key={m.id}>
-          <p>{m.user.name}</p>
-        </div>)}
+
+       
     </div>
+
+
+    
   );
 }
 
