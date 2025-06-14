@@ -32,10 +32,9 @@ function BlockEffectif() {
     }
   };
 
-  console.log(data?.membres);
-
-  const code = data?.equipe.codeInvitation;
   const entraineur = data?.role === "ENTRAINEUR";
+  const code = data?.equipe.codeInvitation;
+
   return (
     <div className="md:flex-row gap-4 w-full flex flex-col">
       <div className="flex-1 border border-amber-300 rounded-lg shadow p-6 min-h-[140px]">
@@ -63,28 +62,21 @@ function BlockEffectif() {
               </span>
             )}
             <BoutonCopier value={code} />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="hover:bg-amber-100"
-                  aria-label="Créer ou régénérer le code"
-                >
-                  {entraineur && (
-                    <Button
-                      onClick={CreerCodeInvitation}
-                      disabled={PendingCreationCode}
-                    >
-                      <CircleFadingPlus className="w-5 h-5 text-amber-400" />
-                    </Button>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Créer ou régénérer le code</p>
-              </TooltipContent>
-            </Tooltip>
+            {entraineur && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={CreerCodeInvitation}
+                    disabled={PendingCreationCode}
+                  >
+                    <CircleFadingPlus className="w-5 h-5 text-amber-400" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Créer ou régénérer le code</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
             {entraineur && (
               <BoutonSupprimer
                 supprimer={SupprimerCodeInvitation}
@@ -98,21 +90,15 @@ function BlockEffectif() {
             confiance.
           </div>
         </div>
-
-        <BoutonSupprimerClub
-          equipeid={data?.equipe.id || ""}
-        ></BoutonSupprimerClub>
+        {entraineur && (
+          <BoutonSupprimerClub
+            equipeid={data?.equipe.id || ""}
+          ></BoutonSupprimerClub>
+        )}
 
         <div></div>
-
-    
       </div>
-
-       
     </div>
-
-
-    
   );
 }
 

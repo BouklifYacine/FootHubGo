@@ -10,7 +10,7 @@ const BoutonConnexionProviders = () => {
   const GoogleConnexion = async () => {
     const data = await authClient.signIn.social({
       provider: "google",
-      callbackURL:'/'
+      callbackURL:'/dashboardfoothub'
     });
     return data;
   };
@@ -18,7 +18,7 @@ const BoutonConnexionProviders = () => {
   const GithubConnexion = async () => {
     const data = await authClient.signIn.social({
       provider: "github",
-      callbackURL: "/"
+      callbackURL: "/dashboardfoothub"
     });
 
     return data;

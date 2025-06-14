@@ -2,7 +2,7 @@ import { Equipe, MembreEquipe, User } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 
 export type MembreEquipeWithUser = MembreEquipe & {
-  user: Pick<User, "name" | "image">;
+  user: Pick<User, "name" | "image" | "email">;
 };
 
 export type InfosClubApiResponse = {
