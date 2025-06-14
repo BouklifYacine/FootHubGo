@@ -1,16 +1,16 @@
 import { Button } from "@/components/ui/button";
-import { Trash } from "lucide-react";
+import {  Trash2 } from "lucide-react";
 
 interface Props {
   supprimer : () => void
-  disabled? : boolean
+  disabled : boolean
 }
 
 function BoutonSupprimer({supprimer, disabled} : Props) {
   return (
-    <Button variant="destructive" onClick={supprimer} disabled={disabled}>
-      <Trash
-        className=" opacity-60"
+    <Button className="bg-red-500 text-white hover:bg-red-600 cursor-pointer" onClick={supprimer} disabled={disabled}>
+      <Trash2
+       className=" text-white "
         size={16}
         strokeWidth={2}
         aria-hidden="true"
