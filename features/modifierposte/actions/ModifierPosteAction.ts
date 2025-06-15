@@ -1,3 +1,4 @@
+"use server"
 import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
@@ -6,7 +7,7 @@ import { SchemaModifierPoste } from "../schemas/SchemaModifierPoste";
 
 type schema = z.infer<typeof SchemaModifierPoste>;
 
-export async function ModifierRoleAction(id: string, data: schema) {
+export async function ModifierPosteAction(id: string, data: schema) {
   try {
     const session = await auth.api.getSession({
       headers: await headers(),
