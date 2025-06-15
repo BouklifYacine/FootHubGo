@@ -11,6 +11,7 @@ import {
   PosteType,
   useModifierPosteClub,
 } from "@/features/modifierposte/hook/useModifierPoste";
+import { useQuitterClub } from "@/features/quitterclub/hook/useQuitterClub";
 
 function Listemembreequipe() {
   const { data, isLoading } = useInfosClub();
@@ -20,9 +21,14 @@ function Listemembreequipe() {
     useModifierRoleClub();
   const { mutate: modifierPoste, isPending: isPendingPoste } =
     useModifierPosteClub();
+     const { mutate, isPending: isPendingQuitterClub } = useQuitterClub();
   const { data: session } = authClient.useSession();
   const sessionId = session?.user.id;
   const estEntraineur = data?.role === "ENTRAINEUR";
+
+    const QuitterClubOnClick = () => {
+     mutate();
+  };
 
   if (isLoading) return <p>Chargement...</p>;
 
@@ -49,6 +55,8 @@ function Listemembreequipe() {
             <div className="flex-1 min-w-0">
               <p className="font-medium truncate">{m.user.name}</p>
               <p className="text-sm text-gray-500 truncate">{m.user.email}</p>
+              <p>{m.isLicensed === true ? "oui" : "non"}</p>
+              <p>{m.userId}</p>
             </div>
             <div className="flex items-center gap-2">
               {peutModifier ? (
@@ -119,6 +127,13 @@ function Listemembreequipe() {
                   disabled={isPendingSuppression}
                 />
               )}
+
+              {estUtilisateurActuel &&   <BoutonSupprimer
+                supprimer={QuitterClubOnClick}
+                disabled={isPendingQuitterClub}
+              />}
+
+           
             </div>
           </div>
         );
