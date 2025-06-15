@@ -1,4 +1,3 @@
-// components/TableauEffectif.tsx
 "use client";
 import {
   Table,
@@ -11,16 +10,19 @@ import {
 import Image from "next/image";
 import { CircleCheck, CircleX, Loader2 } from "lucide-react";
 import { BoutonSupprimer } from "@/components/Boutons/BoutonSupprimer";
-import { MembreEquipe, User } from "@prisma/client";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { BoutonSupprimerTexte } from "@/components/Boutons/BoutonSupprimerTexte";
-
-// types/membre.d.ts
-export type MembreEquipeWithUser = MembreEquipe & {
-  user: Pick<User, "name" | "image" | "email">;
-};
-
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { MembreEquipeWithUser } from "../hooks/useinfosclub";
 interface TableauEffectifProps {
   membres: MembreEquipeWithUser[];
   estEntraineur: boolean;
@@ -48,15 +50,14 @@ export function TableauEffectif({
   isPendingSuppression,
   isPendingQuitter,
 }: TableauEffectifProps) {
-
-    const QuitterClub = () => {
-        onQuitter()
-    }
+  const QuitterClub = () => {
+    onQuitter();
+  };
   return (
     <div className="overflow-x-auto mt-10">
       <Table >
         <TableHead>
-          <TableRow>
+          <TableRow >
             <TableHeadCell className="p-4">
               <Checkbox />
             </TableHeadCell>
@@ -76,6 +77,9 @@ export function TableauEffectif({
             <TableHeadCell className="text-black dark:text-white">
               Licencié
             </TableHeadCell>
+               <TableHeadCell className="text-black dark:text-white">
+              Rejoins le 
+            </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
               Actions
             </TableHeadCell>
@@ -91,7 +95,7 @@ export function TableauEffectif({
             return (
               <TableRow
                 key={m.id}
-                className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                className=" "
               >
                 <TableCell className="p-4">
                   <Checkbox />
@@ -112,17 +116,28 @@ export function TableauEffectif({
                 <TableCell>
                   {peutModifier ? (
                     <div className="relative">
-                      <select
+                      <Select
                         value={m.role}
-                        onChange={(e) =>
-                          onModifierRole(m.userId, e.target.value)
+                        onValueChange={(value) =>
+                          onModifierRole(m.userId, value)
                         }
-                        disabled={isPendingRole}
-                        className="block w-full p-2 text-sm border rounded-md shadow-sm focus:ring focus:ring-opacity-50"
+                        disabled={isPendingPoste}
                       >
-                        <option value="JOUEUR">Joueur</option>
-                        <option value="ENTRAINEUR">Entraîneur</option>
-                      </select>
+                        <SelectTrigger className="w-[160px] border border-black text-black dark:border-white dark:text-white ">
+                          <SelectValue
+                            placeholder="Choisir un poste"
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Roles</SelectLabel>
+                            <SelectItem value="JOUEUR">Joueur</SelectItem>
+                            <SelectItem value="ENTRAINEUR">
+                              Entraîneur
+                            </SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
                       {isPendingRole && (
                         <div className="absolute inset-y-0 right-0 flex items-center pr-2">
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -130,7 +145,9 @@ export function TableauEffectif({
                       )}
                     </div>
                   ) : (
-                    <Badge className={`${m.role === "ENTRAINEUR"? "bg-emerald-500 text-white" : "bg-sky-500 text-white"}`}>
+                    <Badge
+                      className={`text-md ${m.role === "ENTRAINEUR" ? "bg-emerald-500 text-white" : "bg-sky-500 text-white"}`}
+                    >
                       {" "}
                       {m.role === "ENTRAINEUR" ? "Entraîneur" : "Joueur"}
                     </Badge>
@@ -139,23 +156,38 @@ export function TableauEffectif({
                 <TableCell>
                   {peutModifier ? (
                     <div className="relative">
-                      <select
-                        value={m.poste || ""}
-                        onChange={(e) =>
-                          onModifierPoste(m.userId, e.target.value)
-                        }
-                        disabled={isPendingPoste}
-                        className="block w-full p-2 text-sm border rounded-md shadow-sm focus:ring focus:ring-opacity-50"
-                      >
-                        <option value="GARDIEN">Gardien</option>
-                        <option value="DEFENSEUR">Défenseur</option>
-                        <option value="MILIEU">Milieu</option>
-                        <option value="ATTAQUANT">Attaquant</option>
-                      </select>
-                      {isPendingPoste && (
-                        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        </div>
+                      {m.role === "ENTRAINEUR" ? (
+                        <span className="text-black dark:text-white">
+                          Sans poste
+                        </span>
+                      ) : (
+                        <Select
+                          value={m.poste || ""}
+                          onValueChange={(value) =>
+                            onModifierPoste(m.userId, value)
+                          }
+                          disabled={isPendingPoste}
+                        >
+                          <SelectTrigger className="w-[160px] border border-black text-black dark:border-white dark:text-white ">
+                            <SelectValue
+                              placeholder="Choisir un poste"
+                              className="placeholder:text-yellow-500"
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              <SelectLabel>Postes</SelectLabel>
+                              <SelectItem value="GARDIEN">Gardien</SelectItem>
+                              <SelectItem value="DEFENSEUR">
+                                Défenseur
+                              </SelectItem>
+                              <SelectItem value="MILIEU">Milieu</SelectItem>
+                              <SelectItem value="ATTAQUANT">
+                                Attaquant
+                              </SelectItem>
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
                       )}
                     </div>
                   ) : (
@@ -164,8 +196,7 @@ export function TableauEffectif({
                     </span>
                   )}
                 </TableCell>
-                {/* border-red-800 bg-red-200 text-red-800 */}
-
+               
                 <TableCell>
                   {" "}
                   <Badge
@@ -180,6 +211,15 @@ export function TableauEffectif({
                     {m.isLicensed ? "Oui" : "Non"}{" "}
                   </Badge>
                 </TableCell>
+             <TableCell className="text-black dark:text-white">
+  {m.joinedAt 
+    ? new Date(m.joinedAt).toLocaleDateString('fr-FR', {
+        day: 'numeric',
+        month: 'numeric',
+        year: 'numeric'
+      }).toLowerCase()
+    : "N/A"}
+</TableCell>
                 <TableCell>
                   {afficherSupprimer && (
                     <BoutonSupprimer
@@ -192,10 +232,7 @@ export function TableauEffectif({
                       onClick={QuitterClub}
                       disabled={isPendingQuitter}
                       texte="Quitter Club"
-                      
                     />
-                      
-                  
                   )}
                 </TableCell>
               </TableRow>
