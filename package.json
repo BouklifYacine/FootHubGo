@@ -10,7 +10,7 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && flowbite-react patch"
   },
   "dependencies": {
     "@auth/core": "^0.37.4",

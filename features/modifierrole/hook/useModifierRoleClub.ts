@@ -3,7 +3,7 @@ import { ModifierRoleAction } from "../actions/ModifierRoleAction";
 import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
 import toast from "react-hot-toast";
 
-type RoleType = "ENTRAINEUR" | "JOUEUR";
+export type RoleType = "ENTRAINEUR" | "JOUEUR";
 
 interface ModifierRoleparam {
   id: string;

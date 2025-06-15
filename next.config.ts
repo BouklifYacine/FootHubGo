@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import withFlowbiteReact from "flowbite-react/plugin/nextjs";
 
 console.log("BUILD – DATABASE_URL:", process.env.DATABASE_URL);
 
@@ -12,4 +13,4 @@ const nextConfig: NextConfig = {
   output : "standalone"
 };
 
-export default nextConfig;
+export default withFlowbiteReact(nextConfig);

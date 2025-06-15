@@ -34,7 +34,7 @@ function BoutonModifierClub() {
   const { data: clubData } = useInfosClub();
   const [open, setOpen] = useState(false);
   const { mutate, isPending } = useModifierInfosClub();
-  
+
   const {
     register,
     handleSubmit,
@@ -48,18 +48,21 @@ function BoutonModifierClub() {
       nom: clubData?.equipe.nom,
       description: clubData?.equipe.description || "",
       niveau: clubData?.equipe.niveau,
-    }
+    },
   });
 
   function onSubmit(data: FormData) {
     if (!clubData?.equipe.id) return;
-    
-    mutate({ clubId: clubData.equipe.id, clubData: data }, {
-      onSuccess: () => {
-        setOpen(false);
-        reset()
-      },
-    });
+
+    mutate(
+      { clubId: clubData.equipe.id, clubData: data },
+      {
+        onSuccess: () => {
+          setOpen(false);
+          reset();
+        },
+      }
+    );
   }
 
   if (!clubData || clubData.role !== "ENTRAINEUR") return null;
@@ -67,11 +70,7 @@ function BoutonModifierClub() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          
-       
-          className="rounded-xl border border-white"
-        >
+        <Button className="rounded-xl border border-white">
           <Pencil size={16} />
         </Button>
       </DialogTrigger>
@@ -141,17 +140,14 @@ function BoutonModifierClub() {
               </p>
             )}
           </div>
-          
+
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <DialogClose asChild>
               <Button type="button" variant="outline">
                 Annuler
               </Button>
             </DialogClose>
-            <Button
-              type="submit"
-              disabled={isPending}
-            >
+            <Button type="submit" disabled={isPending}>
               {isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </DialogFooter>
