@@ -13,10 +13,12 @@ import { useInfosClub } from "../hooks/useinfosclub";
 import { useSupprimerCodeInvitation } from "@/features/codeinvitation/hooks/useSupprimerCodeInvitation";
 import { useCreerouGenererCodeInvitation } from "@/features/codeinvitation/hooks/useCreerouGenererCodeInvitation";
 import BoutonSupprimerClub from "./BoutonSupprimerClub";
+import { BoutonModifierClub } from "@/features/modifierinfosclub/components/BoutonModifierClub";
 
 function BlockEffectif() {
   const { data, isLoading } = useInfosClub();
   const { mutate, isPending } = useSupprimerCodeInvitation();
+
   const { mutate: MutationCreationCode, isPending: PendingCreationCode } =
     useCreerouGenererCodeInvitation();
 
@@ -38,7 +40,10 @@ function BlockEffectif() {
   return (
     <div className="md:flex-row gap-4 w-full flex flex-col">
       <div className="flex-1 border border-amber-300 rounded-lg shadow p-6 min-h-[140px]">
-        <p>Salut </p>
+        <p> {data?.equipe.nom} </p>
+        <p> {data?.equipe.niveau} </p>
+        <p> {data?.equipe.description} </p>
+        {data?.role === "ENTRAINEUR" && <BoutonModifierClub />}
       </div>
       <div className="flex-1 bg-white rounded-lg shadow p-6 min-h-[140px]">
         {/* Bloc 2 : Ajoute tes infos ici */}
@@ -95,8 +100,6 @@ function BlockEffectif() {
             equipeid={data?.equipe.id || ""}
           ></BoutonSupprimerClub>
         )}
-
-        
 
         <div></div>
       </div>

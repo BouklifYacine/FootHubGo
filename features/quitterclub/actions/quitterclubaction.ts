@@ -31,7 +31,7 @@ export async function quitterClubAction() {
 
     if (membre.role === "ENTRAINEUR") {
       const nbEntraineurs = await prisma.membreEquipe.count({
-        where: { 
+        where: {
           equipeId: membre.equipeId,
           role: "ENTRAINEUR",
         },
@@ -67,7 +67,6 @@ export async function quitterClubAction() {
       success: true,
       message: "Vous avez quitté le club avec succès.",
     };
-
   } catch (error) {
     console.error("Erreur lors de la sortie du club:", error);
     return {

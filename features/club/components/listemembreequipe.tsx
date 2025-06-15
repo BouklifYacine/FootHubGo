@@ -15,13 +15,10 @@ import { useQuitterClub } from "@/features/quitterclub/hook/useQuitterClub";
 
 function Listemembreequipe() {
   const { data, isLoading } = useInfosClub();
-  const { mutate: supprimer, isPending: isPendingSuppression } =
-    useSupprimerJoueurClub();
-  const { mutate: modifierRole, isPending: isPendingRole } =
-    useModifierRoleClub();
-  const { mutate: modifierPoste, isPending: isPendingPoste } =
-    useModifierPosteClub();
-     const { mutate, isPending: isPendingQuitterClub } = useQuitterClub();
+  const { mutate: supprimer, isPending: isPendingSuppression } = useSupprimerJoueurClub();
+  const { mutate: modifierRole, isPending: isPendingRole } = useModifierRoleClub();
+  const { mutate: modifierPoste, isPending: isPendingPoste } = useModifierPosteClub();
+  const { mutate, isPending: isPendingQuitterClub } = useQuitterClub();
   const { data: session } = authClient.useSession();
   const sessionId = session?.user.id;
   const estEntraineur = data?.role === "ENTRAINEUR";

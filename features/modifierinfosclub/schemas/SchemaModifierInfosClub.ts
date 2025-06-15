@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-// On définit les valeurs possibles pour nos enums
 const niveauClubValues = ["DEPARTEMENTAL", "REGIONAL", "NATIONAL", "LOISIR"] as const;
-// const statutClubValues = ["PUBLIC", "PRIVE", "INVITATION"] as const;
 
 export const SchemaModifierInfosClub = z
   .object({
@@ -16,7 +14,8 @@ export const SchemaModifierInfosClub = z
       .string()
       .min(10, "La description doit faire au moins 10 caractères.")
       .max(300, "La description ne peut pas dépasser 300 caractères.")
-      .optional(), // Permet de ne pas inclure ce champ
+      .optional()
+      .or(z.literal("")), // Permet une chaîne vide sur l'input
 
     niveau: z.enum(niveauClubValues).optional(),
 
