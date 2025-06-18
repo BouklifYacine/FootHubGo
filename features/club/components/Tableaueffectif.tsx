@@ -55,9 +55,9 @@ export function TableauEffectif({
   };
   return (
     <div className="overflow-x-auto mt-10">
-      <Table >
+      <Table>
         <TableHead>
-          <TableRow >
+          <TableRow>
             <TableHeadCell className="p-4">
               <Checkbox />
             </TableHeadCell>
@@ -77,8 +77,8 @@ export function TableauEffectif({
             <TableHeadCell className="text-black dark:text-white">
               Licencié
             </TableHeadCell>
-               <TableHeadCell className="text-black dark:text-white">
-              Rejoins le 
+            <TableHeadCell className="text-black dark:text-white">
+              Rejoins le
             </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
               Actions
@@ -93,21 +93,26 @@ export function TableauEffectif({
             const peutModifier = estEntraineur && !estUtilisateurActuel;
 
             return (
-              <TableRow
-                key={m.id}
-                className=" "
-              >
+              <TableRow key={m.id} className=" ">
                 <TableCell className="p-4">
                   <Checkbox />
                 </TableCell>
                 <TableCell>
-                  <Image
-                    src={m.user.image || "/default-avatar.png"}
-                    width={40}
-                    height={40}
-                    alt={m.user.name}
-                    className="rounded-full"
-                  />
+                  {m.user.image ? (
+                    <Image
+                      src={m.user.image}
+                      width={40}
+                      height={40}
+                      alt={m.user.name}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700">
+                      <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
+                        {m.user.name?.charAt(0).toUpperCase() || "?"}
+                      </span>
+                    </div>
+                  )}
                 </TableCell>
                 <TableCell className="text-black dark:text-white">
                   {m.user.name}
@@ -124,9 +129,7 @@ export function TableauEffectif({
                         disabled={isPendingPoste}
                       >
                         <SelectTrigger className="w-[160px] border border-black text-black dark:border-white dark:text-white ">
-                          <SelectValue
-                            placeholder="Choisir un poste"
-                          />
+                          <SelectValue placeholder="Choisir un poste" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
@@ -196,7 +199,7 @@ export function TableauEffectif({
                     </span>
                   )}
                 </TableCell>
-               
+
                 <TableCell>
                   {" "}
                   <Badge
@@ -211,15 +214,17 @@ export function TableauEffectif({
                     {m.isLicensed ? "Oui" : "Non"}{" "}
                   </Badge>
                 </TableCell>
-             <TableCell className="text-black dark:text-white">
-  {m.joinedAt 
-    ? new Date(m.joinedAt).toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'numeric',
-        year: 'numeric'
-      }).toLowerCase()
-    : "N/A"}
-</TableCell>
+                <TableCell className="text-black dark:text-white">
+                  {m.joinedAt
+                    ? new Date(m.joinedAt)
+                        .toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "numeric",
+                          year: "numeric",
+                        })
+                        .toLowerCase()
+                    : "N/A"}
+                </TableCell>
                 <TableCell>
                   {afficherSupprimer && (
                     <BoutonSupprimer
