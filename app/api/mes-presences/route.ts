@@ -1,21 +1,25 @@
-import { prisma } from "@/prisma";
-import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { prisma } from "@/prisma";
+import { headers } from "next/headers";
+import { NextResponse } from "next/server";
+
 
 export async function GET() {
   try {
-    // Récupérer la session de l'utilisateur connecté
-    const session = await auth();
+    //   const session = await auth.api.getSession({
+    //     headers: await headers(),
+    //   });
     
-    // Vérifier si l'utilisateur est connecté
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { message: "Vous devez être connecté pour accéder à vos présences" },
-        { status: 401 }
-      );
-    }
+    // if (!session?.user?.id) {
+    //   return NextResponse.json(
+    //     { message: "Vous devez être connecté pour accéder à vos présences" },
+    //     { status: 401 }
+    //   );
+    // }
 
-    const idUtilisateur = session.user.id;
+    // const idUtilisateur = session.user.id;
+
+       const idUtilisateur = "WXy4jylVHogXq4omfvR0gaGPuYdospk0"
 
     // Récupérer toutes les présences de l'utilisateur
     const presences = await prisma.presence.findMany({

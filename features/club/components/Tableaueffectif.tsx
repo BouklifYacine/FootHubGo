@@ -101,10 +101,10 @@ export function TableauEffectif({
                   {m.user.image ? (
                     <Image
                       src={m.user.image}
-                      width={40}
-                      height={40}
+                      width={35}
+                      height={35}
                       alt={m.user.name}
-                      className="rounded-full"
+                      className="rounded-full "
                     />
                   ) : (
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700">

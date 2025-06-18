@@ -91,8 +91,8 @@ model MembreEquipe {
   equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId String
 
-  @@map("MembreEquipe")
   @@unique([userId, equipeId])
+  @@map("MembreEquipe")
 }
 
 model DemandeAdhesion {
@@ -144,23 +144,21 @@ model Finance {
 }
 
 model Evenement {
-  id            String        @id @default(cuid())
+  id            String              @id @default(cuid())
   titre         String
   description   String?
   lieu          String?
-  typeEvenement TypeEvenement @default(ENTRAINEMENT)
+  typeEvenement TypeEvenement       @default(ENTRAINEMENT) // Maintenant avec 3 valeurs
   dateDebut     DateTime
-  dateCreation  DateTime      @default(now())
-
-  adversaire   String?
-  locationData Json?
-  weatherData  Json?
-
-  equipe      Equipe              @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  equipeId    String
-  presences   Presence[]
-  statsJoueur StatistiqueJoueur[]
-  statEquipe  StatistiqueEquipe?
+  dateCreation  DateTime            @default(now())
+  adversaire    String? // Reste optionnel
+  locationData  Json?
+  weatherData   Json?
+  equipe        Equipe              @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId      String
+  presences     Presence[]
+  statsJoueur   StatistiqueJoueur[]
+  statEquipe    StatistiqueEquipe?
 
   @@index([equipeId])
   @@map("evenement")
@@ -353,15 +351,15 @@ enum PosteJoueur {
 }
 
 enum TypeEvenement {
-  MATCH
   ENTRAINEMENT
+  CHAMPIONNAT // Fusion type + compétition
+  COUPE
 }
 
 enum StatutPresence {
   EN_ATTENTE
   PRESENT
   ABSENT
-  INCERTAIN
 }
 
 enum ResultatMatch {
