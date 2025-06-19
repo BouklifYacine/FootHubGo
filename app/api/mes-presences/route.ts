@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
+const userId = "Ll4DUDp3JWKDJvhGorreUad4dXdbzTC9";
 
 export async function GET() {
   try {
@@ -78,3 +79,4 @@ export async function GET() {
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 } 
+

@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       const totalMatchs = statsEquipe.length;
       const victoires = statsEquipe.filter(stat => stat.resultatMatch === "VICTOIRE").length;
       const defaites = statsEquipe.filter(stat => stat.resultatMatch === "DEFAITE").length;
-      const nuls = statsEquipe.filter(stat => stat.resultatMatch === "MATCH_NUL").length;
+      const nuls = statsEquipe.filter(stat => stat.resultatMatch === "NUL").length;
       const butsMarques = statsEquipe.reduce((sum, stat) => sum + stat.butsMarques, 0);
       const butsEncaisses = statsEquipe.reduce((sum, stat) => sum + stat.butsEncaisses, 0);
       const differenceDeButsGlobale = butsMarques - butsEncaisses;
