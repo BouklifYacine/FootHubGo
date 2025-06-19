@@ -7,13 +7,60 @@ import { NextRequest, NextResponse } from "next/server";
 
 const userId = "Lm9B28oAI4ShwdFuVDgGevzPedyHcppb";
 
-export async function GET(request: NextRequest) {
-  if (!userId) {
+export async function GET(req: NextRequest) {
+  // 1. Auth
+  // const session = await auth();
+  // if (!session) {
+  //   return NextResponse.json(
+  //     { message: "Vous devez être connecté." },
+  //     { status: 401 }
+  //   );
+  // }
+  // const userId = session.user.id;
+
+  // 2. Récupérer l'équipe
+  const membership = await prisma.membreEquipe.findFirst({
+    where: { userId },
+    select: { equipeId: true },
+  });
+  if (!membership) {
     return NextResponse.json(
-      { message: "Vous devez etre connecté" },
-      { status: 400 }
+      { message: "Vous n'appartenez à aucune équipe." },
+      { status: 404 }
     );
   }
+  const equipeId = membership.equipeId;
+
+  const qp = req.nextUrl.searchParams;
+  const page = Math.max(1, parseInt(qp.get("page") || "1", 10));
+  const pageSize = Math.min( 50, Math.max(1, parseInt(qp.get("pageSize") || "10", 10))
+  );
+  const skip = (page - 1) * pageSize;
+
+  // 4. Requête
+  const [events, total] = await prisma.$transaction([
+    prisma.evenement.findMany({
+      where: { equipeId },
+      orderBy: { dateDebut: "asc" },
+      skip,
+      take: pageSize,
+    }),
+    prisma.evenement.count({ where: { equipeId } }),
+  ]);
+
+  // 5. Réponse
+  return NextResponse.json(
+    {
+      events,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+      },
+    },
+    { status: 200 }
+  );
 }
 
 export async function POST(request: NextRequest) {
