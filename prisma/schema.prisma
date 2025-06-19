@@ -100,7 +100,7 @@ model DemandeAdhesion {
   poste      PosteJoueur
   motivation String
   dispo      String?
-  statut     StatutDemande @default(EN_ATTENTE)
+  statut     StatutDemande @default(ATTENTE)
   createdAt  DateTime      @default(now())
 
   user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
@@ -262,7 +262,7 @@ model Verification {
 
 model Presence {
   id           String         @id @default(cuid())
-  statut       StatutPresence @default(EN_ATTENTE)
+  statut       StatutPresence @default(ATTENTE)
   dateCreation DateTime       @default(now())
 
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
@@ -357,7 +357,7 @@ enum TypeEvenement {
 }
 
 enum StatutPresence {
-  EN_ATTENTE
+  ATTENTE
   PRESENT
   ABSENT
 }
@@ -365,7 +365,7 @@ enum StatutPresence {
 enum ResultatMatch {
   VICTOIRE
   DEFAITE
-  MATCH_NUL
+  NUL
 }
 
 enum competition {
@@ -388,7 +388,7 @@ enum NiveauClub {
 }
 
 enum StatutDemande {
-  EN_ATTENTE
+  ATTENTE
   ACCEPTEE
   REFUSEE
 }
