@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const userId = "Lm9B28oAI4ShwdFuVDgGevzPedyHcppb";
+const userId = "Ll4DUDp3JWKDJvhGorreUad4dXdbzTC9";
 
 export async function GET(req: NextRequest) {
   // 1. Auth

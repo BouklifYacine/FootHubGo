@@ -9,11 +9,7 @@ export const CreationEvenementSchema = z
     dateDebut: z.coerce
       .date()
       .refine((d) => !isNaN(d.getTime()), "Date invalide"),
-    typeEvenement: z.enum([
-      "ENTRAINEMENT",
-      "CHAMPIONNAT",
-      "COUPE",
-    ]),
+    typeEvenement: z.enum(["ENTRAINEMENT", "CHAMPIONNAT", "COUPE"]),
     lieu: z.string().min(3).optional(),
     adversaire: z.string().min(3).optional(),
   })
@@ -23,16 +19,19 @@ export const CreationEvenementSchema = z
       if (evt.adversaire) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Le champ adversaire ne doit pas être présent pour un entraînement.",
+          message:
+            "Le champ adversaire ne doit pas être présent pour un entraînement.",
           path: ["adversaire"], // Associe l'erreur au champ 'adversaire'
         });
       }
-    } else { // Sinon, c'est un match (CHAMPIONNAT ou COUPE)
+    } else {
+      // Sinon, c'est un match (CHAMPIONNAT ou COUPE)
       // L'adversaire est obligatoire pour les matchs.
       if (!evt.adversaire) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Le champ adversaire est obligatoire pour un match (CHAMPIONNAT ou COUPE).",
+          message:
+            "Le champ adversaire est obligatoire pour un match (CHAMPIONNAT ou COUPE).",
           path: ["adversaire"], // Associe l'erreur au champ 'adversaire'
         });
       }
