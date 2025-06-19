@@ -78,7 +78,7 @@ const data = {
     },
     {
       title: "Evenements",
-      url: "#",
+      url: "/dashboardfoothub/evenements",
       icon: Calendar,
       // items: [
       //   {
