@@ -9,17 +9,7 @@ function ListeEvenement() {
       <BoutonCreerEvenement></BoutonCreerEvenement>
       <div className="flex gap-7 flex-wrap items-center ">
         <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
-        <CardEvenement></CardEvenement>
+     
      
       </div>
     </div>
