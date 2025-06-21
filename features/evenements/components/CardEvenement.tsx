@@ -13,13 +13,16 @@ import { useEvenements } from "../hooks/useEvenements";
 import dayjs from "dayjs";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { useSupprimerEvenement } from "../hooks/useSupprimerEvenement";
+import { usePresenceEvenementJoueur } from "../hooks/usePresenceEvenementJoueur";
 
 function CardEvenement() {
   const { data } = useEvenements();
   const { data: infosdata } = useInfosClub();
-  const {mutate, isPending} =  useSupprimerEvenement()
+  const { mutate, isPending } = useSupprimerEvenement();
+  const { mutate: MutationPresenceJoueur, isPending: PresenceJoueurPending } =
+    usePresenceEvenementJoueur();
   const entraineur = infosdata?.role === "ENTRAINEUR";
-  
+
   return (
     <>
       {data?.evenements.map((e) => (
@@ -44,7 +47,12 @@ function CardEvenement() {
                 <DropdownMenuContent className="w-40" align="center">
                   <DropdownMenuItem>Modifier </DropdownMenuItem>
 
-                  <DropdownMenuItem onClick={() => mutate(e.id)} disabled={isPending}>Supprimer</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => mutate(e.id)}
+                    disabled={isPending}
+                  >
+                    Supprimer
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -65,7 +73,12 @@ function CardEvenement() {
             {entraineur ? (
               <div className="w-[140px] my-9 mx-4  "></div>
             ) : (
-              <SelectPresence className={entraineur ? "invisible" : ""} />
+              <SelectPresence
+                id={e.id}
+                MutationPresenceJoueur={MutationPresenceJoueur}
+                Pending={PresenceJoueurPending}
+                className={entraineur ? "invisible" : ""}
+              />
             )}
             <Badge className="text-green-700 bg-green-200 text-sm mr-3 rounded-md border border-green-700">
               {e.typeEvenement}{" "}

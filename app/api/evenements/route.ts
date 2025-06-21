@@ -60,15 +60,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // 1. Récupérer l'utilisateur connecté
-  //   const session = await auth();
-  //   const userId = session?.user?.id;
+   const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-  // Vérification d'authentification
+  const userId = session?.user.id;
+
   if (!userId) {
     return NextResponse.json(
       { message: "Vous devez être connecté pour créer un événement." },
-      { status: 401 } // 401 Unauthorized est plus approprié ici
+      { status: 401 } 
     );
   }
 

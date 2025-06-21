@@ -26,3 +26,14 @@ export interface EvenementsAPI{
     evenements : Evenements[]; 
     pagination : Pagination
 }
+
+export interface ReponseModifierPresenceAPI {
+    success : boolean ,
+    message: string,
+    presence: {
+    statut: $Enums.StatutPresence;
+    id: string;
+    userId: string;
+    dateCreation: Date;
+    evenementId: string;}
+}
