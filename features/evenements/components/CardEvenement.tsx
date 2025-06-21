@@ -27,7 +27,7 @@ function CardEvenement() {
           <div className="flex flex-col items-start">
             <div className="flex items-center  justify-between w-full ">
               <h1 className="text-xl md:text-3xl mb-4 mt-4 ml-4 font-bold text-black dark:text-white tracking-tighter">
-                {e.adversaire || "aucune équipe"}
+                {e.adversaire || e.titre}
               </h1>
 
               <DropdownMenu>

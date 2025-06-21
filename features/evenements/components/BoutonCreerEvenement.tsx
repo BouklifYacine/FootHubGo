@@ -1,18 +1,23 @@
+"use client";
 
+import { Button } from "@/components/ui/button";
+import { Calendar } from "lucide-react";
+import { useRouter } from "next/navigation";
 
+export function BoutonCreerEvenement() {
+  const router = useRouter();
 
-import { Button } from 'flowbite-react/components/Button'
-import { CirclePlus } from 'lucide-react'
-import React from 'react'
+  const handleClick = () => {
+    router.push("/dashboardfoothub/evenements/creer");
+  };
 
-function BoutonCreerEvenement() {
   return (
-    <>
-     <div className="mb-6">
-            <Button className=" "> Créer un évenement  <CirclePlus size={20} className='ml-2' /></Button>
-          </div>
-    </>
-  )
+    <Button 
+      onClick={handleClick}
+      className="flex items-center gap-2 mb-4"
+    >
+      <Calendar size={16} />
+      Créer un événement
+    </Button>
+  );
 }
-
-export default BoutonCreerEvenement
