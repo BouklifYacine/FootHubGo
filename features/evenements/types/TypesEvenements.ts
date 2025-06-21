@@ -11,29 +11,31 @@ export interface Evenements {
   typeEvenement: $Enums.TypeEvenement;
   dateDebut: Date;
   adversaire: string | null;
+  statutPresence: $Enums.StatutPresence;
   locationData: JsonValue | null;
   weatherData: JsonValue | null;
 }
 
 export interface Pagination {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
 }
 
-export interface EvenementsAPI{
-    evenements : Evenements[]; 
-    pagination : Pagination
+export interface EvenementsAPI {
+  evenements: Evenements[];
+  pagination: Pagination;
 }
 
 export interface ReponseModifierPresenceAPI {
-    success : boolean ,
-    message: string,
-    presence: {
+  success: boolean;
+  message: string;
+  presence: {
     statut: $Enums.StatutPresence;
     id: string;
     userId: string;
     dateCreation: Date;
-    evenementId: string;}
+    evenementId: string;
+  };
 }

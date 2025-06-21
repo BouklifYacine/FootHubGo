@@ -12,7 +12,6 @@ export async function GET(req: NextRequest) {
 
   const userId = session?.user.id;
 
-  // 2. Récupérer l'équipe
   const MembreEquipe = await prisma.membreEquipe.findFirst({
     where: { userId },
     select: { equipeId: true },
@@ -33,21 +32,29 @@ export async function GET(req: NextRequest) {
   );
   const skip = (page - 1) * pageSize;
 
-  // 4. Requête
   const [evenements, total] = await prisma.$transaction([
     prisma.evenement.findMany({
       where: { equipeId },
       orderBy: { dateDebut: "asc" },
       skip,
       take: pageSize,
+      include: {
+        presences: {
+          where: { userId },
+          select: { statut: true },
+        },
+      },
     }),
     prisma.evenement.count({ where: { equipeId } }),
   ]);
 
-  // 5. Réponse
   return NextResponse.json(
     {
-      evenements,
+      evenements: evenements.map((e) => ({
+        ...e,
+       statutPresence: e.presences[0]?.statut ?? "ATTENTE",
+      
+      })),
       pagination: {
         page,
         pageSize,

@@ -2,7 +2,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { EvenementsAPI } from "../types/TypesEvenements";
 
-
 export function useEvenements() {
   return useQuery<EvenementsAPI>({
     queryKey: ["evenements"],

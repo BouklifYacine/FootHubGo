@@ -9,8 +9,6 @@ function ListeEvenement() {
       <BoutonCreerEvenement></BoutonCreerEvenement>
       <div className="flex gap-7 flex-wrap items-center ">
         <CardEvenement></CardEvenement>
-     
-     
       </div>
     </div>
   );

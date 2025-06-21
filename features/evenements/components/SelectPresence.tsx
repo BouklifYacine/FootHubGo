@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import {
   Select,
@@ -8,29 +9,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { usePresenceEvenementJoueur } from "../hooks/usePresenceEvenementJoueur";
 
 type PresenceStatut = "ATTENTE" | "PRESENT" | "ABSENT";
 
 interface SelectPresenceProps {
   id: string;
-  MutationPresenceJoueur: (params: {
-    evenementid: string;
-    data: { statut: PresenceStatut };
-  }) => void;
-  Pending: boolean;
   className?: string;
+  value: PresenceStatut;
 }
 
-function SelectPresence({id,MutationPresenceJoueur,Pending,className = ""}: SelectPresenceProps) {
+function SelectPresence({ id, value, className = "" }: SelectPresenceProps) {
+  console.log(value)
+  const { mutate, isPending } = usePresenceEvenementJoueur();
   return (
     <Select
+    value={value}
       onValueChange={(value) =>
-        MutationPresenceJoueur({
+        mutate({
           evenementid: id,
           data: { statut: value as PresenceStatut },
         })
       }
-      disabled={Pending}
+      disabled={isPending}
     >
       <SelectTrigger
         className={`w-[140px] my-5 mx-4 border border-black dark:border-white ${className}`}
@@ -40,9 +41,15 @@ function SelectPresence({id,MutationPresenceJoueur,Pending,className = ""}: Sele
       <SelectContent>
         <SelectGroup>
           <SelectLabel>Choisis une présence</SelectLabel>
-          <SelectItem value="ATTENTE">En Attente</SelectItem>
-          <SelectItem value="ABSENT">Absent</SelectItem>
-          <SelectItem value="PRESENT">Présent</SelectItem>
+          <SelectItem value="ATTENTE" className="text-orange-500 ">
+            En Attente
+          </SelectItem>
+          <SelectItem value="ABSENT" className="text-red-500 ">
+            Absent
+          </SelectItem>
+          <SelectItem value="PRESENT" className="text-green-500">
+            Présent{" "}
+          </SelectItem>
         </SelectGroup>
       </SelectContent>
     </Select>

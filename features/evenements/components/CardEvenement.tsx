@@ -13,14 +13,11 @@ import { useEvenements } from "../hooks/useEvenements";
 import dayjs from "dayjs";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { useSupprimerEvenement } from "../hooks/useSupprimerEvenement";
-import { usePresenceEvenementJoueur } from "../hooks/usePresenceEvenementJoueur";
 
 function CardEvenement() {
-  const { data } = useEvenements();
+  const { data, isLoading } = useEvenements();
   const { data: infosdata } = useInfosClub();
   const { mutate, isPending } = useSupprimerEvenement();
-  const { mutate: MutationPresenceJoueur, isPending: PresenceJoueurPending } =
-    usePresenceEvenementJoueur();
   const entraineur = infosdata?.role === "ENTRAINEUR";
 
   return (
@@ -65,7 +62,7 @@ function CardEvenement() {
 
               <div className="flex gap-2 ">
                 <House />
-                <p>{e.lieu || "Lieu non indiqué"} </p>
+                <p>{e.lieu || "Lieu non indiqué"}  </p>
               </div>
             </div>
           </div>
@@ -73,12 +70,7 @@ function CardEvenement() {
             {entraineur ? (
               <div className="w-[140px] my-9 mx-4  "></div>
             ) : (
-              <SelectPresence
-                id={e.id}
-                MutationPresenceJoueur={MutationPresenceJoueur}
-                Pending={PresenceJoueurPending}
-                className={entraineur ? "invisible" : ""}
-              />
+             <SelectPresence id={e.id} value={e.statutPresence} className="..." />
             )}
             <Badge className="text-green-700 bg-green-200 text-sm mr-3 rounded-md border border-green-700">
               {e.typeEvenement}{" "}
