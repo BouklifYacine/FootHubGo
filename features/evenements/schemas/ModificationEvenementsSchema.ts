@@ -8,7 +8,7 @@ export const ModifierEvenementSchema = z
       .max(35, "Le titre ne peut pas dépasser 35 caractères")
       .optional(),
     dateDebut: z
-      .string() // on reçoit en JSON une string ISO
+      .date() 
       .transform((s) => new Date(s))
       .refine((d) => d instanceof Date && !isNaN(d.getTime()), {
         message: "Date invalide",
@@ -28,25 +28,27 @@ export const ModifierEvenementSchema = z
     message: "Au moins un champ doit être fourni pour la mise à jour",
   })
   .superRefine((evt, ctx) => {
-    if (evt.typeEvenement === "ENTRAINEMENT" && evt.adversaire !== undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["adversaire"],
-        message:
-          "Le champ adversaire ne doit pas être présent pour un entraînement.",
-      });
-    }
-    if (
-      evt.typeEvenement !== undefined &&
-      evt.typeEvenement !== "ENTRAINEMENT" &&
-      evt.adversaire === undefined
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["adversaire"],
-        message:
-          "Le champ adversaire est obligatoire pour un match (CHAMPIONNAT ou COUPE).",
-      });
+    // Si le type est un entraînement, l'adversaire est interdit.
+    if (evt.typeEvenement === "ENTRAINEMENT") {
+      if (evt.adversaire) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Le champ adversaire ne doit pas être présent pour un entraînement.",
+          path: ["adversaire"], // Associe l'erreur au champ 'adversaire'
+        });
+      }
+    } else {
+      // Sinon, c'est un match (CHAMPIONNAT ou COUPE)
+      // L'adversaire est obligatoire pour les matchs.
+      if (!evt.adversaire) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Le champ adversaire est obligatoire pour un match (CHAMPIONNAT ou COUPE).",
+          path: ["adversaire"], // Associe l'erreur au champ 'adversaire'
+        });
+      }
     }
   });
 

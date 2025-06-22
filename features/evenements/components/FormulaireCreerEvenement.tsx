@@ -53,18 +53,14 @@ export default function FormulaireCreerEvenement() {
   const dateDebut = watch("dateDebut");
 
   const onSubmit = (data: FormData) => {
- 
-    mutate(
-      { ...data },
-      {
-        onSuccess: () => {
-          reset();
-          router.refresh();
-          router.push("/dashboardfoothub/evenements");
-        },
-      }
-    );
-    console.log(data)
+    mutate(data, {
+      onSuccess: () => {
+        reset();
+        router.refresh();
+        router.push("/dashboardfoothub/evenements");
+      },
+    });
+    console.log(data);
   };
 
   return (
@@ -160,7 +156,7 @@ export default function FormulaireCreerEvenement() {
                 <DateTimePicker
                   value={dateDebut}
                   onChange={(selectedDateTime) => {
-                    setValue("dateDebut", selectedDateTime , {
+                    setValue("dateDebut", selectedDateTime, {
                       shouldValidate: true,
                     });
                   }}

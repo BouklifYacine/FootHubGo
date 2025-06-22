@@ -38,12 +38,6 @@ export function DateTimePicker({
     value ? format(value, "HH:mm") : "10:00"
   )
 
-  // React.useEffect(() => {
-  //   setSelectedDate(value)
-  //   if (value) {
-  //     setTimeValue(format(value, "HH:mm"))
-  //   }
-  // }, [value])
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
