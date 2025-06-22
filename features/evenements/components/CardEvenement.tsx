@@ -13,12 +13,18 @@ import { useEvenements } from "../hooks/useEvenements";
 import dayjs from "dayjs";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { useSupprimerEvenement } from "../hooks/useSupprimerEvenement";
+import { useRouter } from "next/navigation";
 
 function CardEvenement() {
+  const router = useRouter();
   const { data, isLoading } = useEvenements();
   const { data: infosdata } = useInfosClub();
   const { mutate, isPending } = useSupprimerEvenement();
   const entraineur = infosdata?.role === "ENTRAINEUR";
+
+  const handleModifier = (id: string) => {
+    router.push(`/dashboardfoothub/evenements/modifier/${id}`);
+  };
 
   return (
     <>
@@ -42,7 +48,9 @@ function CardEvenement() {
                   )}
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-40" align="center">
-                  <DropdownMenuItem>Modifier </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleModifier(e.id)}>
+                    Modifier 
+                  </DropdownMenuItem>
 
                   <DropdownMenuItem
                     onClick={() => mutate(e.id)}
