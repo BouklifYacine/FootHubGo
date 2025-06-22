@@ -32,8 +32,6 @@ export default function FormulaireCreerEvenement() {
   const router = useRouter();
   const { mutate, isPending } = useCreerEvenement();
 
-
-
   const {
     register,
     handleSubmit,
@@ -55,19 +53,18 @@ export default function FormulaireCreerEvenement() {
   const dateDebut = watch("dateDebut");
 
   const onSubmit = (data: FormData) => {
-    // Combine date et heure si besoin
-
-    // const dateObj = new Date(dateTimeISO);
-
+ 
     mutate(
-      {...data, }, // adapte selon ton backend
+      { ...data },
       {
         onSuccess: () => {
           reset();
+          router.refresh();
           router.push("/dashboardfoothub/evenements");
         },
       }
     );
+    console.log(data)
   };
 
   return (
@@ -163,7 +160,9 @@ export default function FormulaireCreerEvenement() {
                 <DateTimePicker
                   value={dateDebut}
                   onChange={(selectedDateTime) => {
-                    setValue("dateDebut", selectedDateTime, { shouldValidate: true });
+                    setValue("dateDebut", selectedDateTime , {
+                      shouldValidate: true,
+                    });
                   }}
                   placeholder="Sélectionner une date et heure"
                   error={!!errors.dateDebut}

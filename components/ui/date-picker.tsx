@@ -17,7 +17,7 @@ import {
 
 interface DateTimePickerProps {
   value?: Date
-  onChange?: (date: Date | undefined) => void
+  onChange?: (date: Date) => void
   placeholder?: string
   disabled?: boolean
   className?: string
@@ -38,12 +38,12 @@ export function DateTimePicker({
     value ? format(value, "HH:mm") : "10:00"
   )
 
-  React.useEffect(() => {
-    setSelectedDate(value)
-    if (value) {
-      setTimeValue(format(value, "HH:mm"))
-    }
-  }, [value])
+  // React.useEffect(() => {
+  //   setSelectedDate(value)
+  //   if (value) {
+  //     setTimeValue(format(value, "HH:mm"))
+  //   }
+  // }, [value])
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
@@ -96,7 +96,6 @@ export function DateTimePicker({
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
-              initialFocus
               captionLayout="dropdown"
               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
             />

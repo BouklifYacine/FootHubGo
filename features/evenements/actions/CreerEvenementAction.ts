@@ -5,6 +5,7 @@ import { CreationEvenementSchema } from "../schemas/CreationEvenementsSchema";
 import dayjs from "dayjs";
 import { prisma } from "@/prisma";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 
 type schema = z.infer<typeof CreationEvenementSchema>;
 
@@ -86,11 +87,13 @@ export async function CreerEvenementAction(data: schema) {
       },
     });
 
+    revalidatePath("/dashboardfoothub/evenements")
     return {
       success: true,
       message: "Événement créé avec succès !",
       evenement: nouvelEvenement,
     };
+    
   } catch (error) {
     console.error("Erreur lors de la création de l'événement :", error);
   }
