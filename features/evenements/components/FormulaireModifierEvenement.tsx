@@ -59,11 +59,11 @@ export default function FormulaireModifierEvenement({
   } = useForm<FormData>({
     resolver: zodResolver(ModifierEvenementSchema),
     defaultValues: {
-      titre: evenementInitial.titre || "",
+      titre: evenementInitial.titre ,
       typeEvenement: evenementInitial.typeEvenement,
       dateDebut: new Date(evenementInitial.dateDebut),
-      lieu: evenementInitial.lieu || "",
-      adversaire: evenementInitial.adversaire || "",
+      lieu: evenementInitial.lieu || null,
+      adversaire: evenementInitial.adversaire || null
     },
     mode: "onChange",
   });
