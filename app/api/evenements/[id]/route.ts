@@ -10,11 +10,12 @@ interface Props {
 export async function GET(request: NextRequest, { params }: Props) {
   const { id } = await params;
 
-  if (!id)
+  if (!id) {
     return NextResponse.json(
-      { message: "Id de l'évenement inexistant ou incorrect" },
+      { error: "ID de l'événement manquant" },
       { status: 400 }
     );
+  }
 
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -22,31 +23,60 @@ export async function GET(request: NextRequest, { params }: Props) {
 
   const userId = session?.user.id;
 
-  if (!userId)
+  if (!userId) {
     return NextResponse.json(
-      { message: "Vous devez vous connectez" },
+      { error: "Authentification requise" },
       { status: 401 }
     );
+  }
 
-  const membreEquipe = await prisma.membreEquipe.findUnique({
-    where: { id: userId },
-    select: { role: true },
-  });
-
-  if (!membreEquipe)
-    return NextResponse.json({
-      message: "Vous devez etre membre de l'équipe pour voir ses événements ",
+  try {
+    const evenementunique = await prisma.evenement.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        equipeId: true,
+      },
     });
 
-  const evenementUnique = await prisma.evenement.findUnique({
-    where: { id },
-  });
+    if (!evenementunique) {
+      return NextResponse.json(
+        { error: "Événement introuvable" },
+        { status: 404 }
+      );
+    }
 
-  if (!evenementUnique)
-    return NextResponse.json(
-      { message: "Cet evenement n'existe pas" },
-      { status: 400 }
-    );
+    const isMember = await prisma.membreEquipe.findFirst({
+      where: {
+        userId: userId,
+        equipeId: evenementunique.equipeId,
+      },
+    });
 
-    return NextResponse.json(evenementUnique)
+    if (!isMember) {
+      return NextResponse.json(
+        {
+          error:
+            "Accès refusé : vous n'êtes pas membre de l'équipe organisatrice",
+        },
+        { status: 403 }
+      );
+    }
+
+    const evenement = await prisma.evenement.findUnique({
+      where: { id },
+      select: {
+        titre: true,
+        typeEvenement: true,
+        dateDebut: true,
+        lieu: true,
+        adversaire: true,
+      },
+    });
+
+    return NextResponse.json(evenement);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
 }

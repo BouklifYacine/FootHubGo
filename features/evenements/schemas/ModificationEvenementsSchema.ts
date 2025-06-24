@@ -4,28 +4,24 @@ export const ModifierEvenementSchema = z
   .object({
     titre: z
       .string()
+      .min(1, "Le titre doit faire au moins 1 caractère")
       .min(3, "Le titre doit faire au moins 3 caractères")
       .max(35, "Le titre ne peut pas dépasser 35 caractères")
       .optional(),
-    dateDebut: z
-      .date() 
-      .transform((s) => new Date(s))
-      .refine((d) => d instanceof Date && !isNaN(d.getTime()), {
-        message: "Date invalide",
-      })
-      .optional(),
-    typeEvenement: z.enum(["ENTRAINEMENT", "CHAMPIONNAT", "COUPE"]).optional(),
+    dateDebut: z.coerce
+      .date()
+      .refine((d) => !isNaN(d.getTime()), "Date invalide"),
+    typeEvenement: z.enum(["ENTRAINEMENT", "CHAMPIONNAT", "COUPE"]),
     lieu: z
       .string()
-      .min(3, "Le lieu doit faire au moins 3 caractères")
+      .min(1, "Le titre doit faire au moins 1 caractère")
+      .min(3, "Le titre doit faire au moins 3 caractères")
       .optional(),
     adversaire: z
       .string()
-      .min(3, "L'adversaire doit faire au moins 3 caractères")
+      .min(1, "Le nom de l'adversaire doit faire au moins 1 caractère")
+      .min(3, "Le nom de l'adversaire doit faire au moins 3 caractères")
       .optional(),
-  })
-  .refine((data) => Object.keys(data).length > 0, {
-    message: "Au moins un champ doit être fourni pour la mise à jour",
   })
   .superRefine((evt, ctx) => {
     // Si le type est un entraînement, l'adversaire est interdit.
@@ -52,4 +48,4 @@ export const ModifierEvenementSchema = z
     }
   });
 
-export type ModifierEvenement = z.infer<typeof ModifierEvenementSchema>;
+export type CreateEventInput = z.infer<typeof ModifierEvenementSchema>;

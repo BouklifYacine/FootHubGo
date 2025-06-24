@@ -39,3 +39,13 @@ export interface ReponseModifierPresenceAPI {
     evenementId: string;
   };
 }
+
+export interface evenementUnique {
+  id: string,
+  titre: string;
+  lieu: string | null;
+  typeEvenement: $Enums.TypeEvenement;
+  dateDebut: Date;
+  adversaire: string | null;
+}
+

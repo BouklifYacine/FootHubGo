@@ -4,7 +4,7 @@ export const CreationEvenementSchema = z
   .object({
     titre: z
       .string()
-      .min(1, "Le titre doit faire au moins 3 caractères")
+      .min(1, "Le titre doit faire au moins 1 caractère")
       .min(3, "Le titre doit faire au moins 3 caractères")
       .max(35, "Le titre ne peut pas dépasser 35 caractères"),
     dateDebut: z.coerce
@@ -13,10 +13,14 @@ export const CreationEvenementSchema = z
     typeEvenement: z.enum(["ENTRAINEMENT", "CHAMPIONNAT", "COUPE"]),
     lieu: z
       .string()
-      .min(1, "Le titre doit faire au moins 3 caractères")
+      .min(1, "Le titre doit faire au moins 1 caractère")
       .min(3, "Le titre doit faire au moins 3 caractères")
       .optional(),
-    adversaire: z.string().min(3).optional(),
+    adversaire: z
+      .string()
+      .min(1, "Le nom de l'adversaire doit faire au moins 1 caractère")
+      .min(3,"Le nom de l'adversaire doit faire au moins 3 caractères")
+      .optional(),
   })
   .superRefine((evt, ctx) => {
     // Si le type est un entraînement, l'adversaire est interdit.

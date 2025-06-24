@@ -1,14 +1,35 @@
 "use client";
+
+import FormulaireModifierEvenement from "@/features/evenements/components/FormulaireModifierEvenement";
+import { useGetEvenementUnique } from "@/features/evenements/hooks/useGetEvenementUnique";
+import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
 
-export default function FormulaireModifierEvenement() {
+export default function PageModifierEvenement() {
   const params = useParams();
-  const id = params.id; // Récupère l'ID depuis l'URL
+  const id = String(params.id);
+  const {
+    data: evenement,
+    isLoading,
+    error,
+  } = useGetEvenementUnique(id);
 
-  return (
-    <div>
-      <h1>Modification de l'événement {id}</h1>
-      {/* Votre formulaire de modification ici */}
-    </div>
-  );
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin h-10 w-10" />
+      </div>
+    );
+  }
+
+  if (error || !evenement) {
+    return (
+      <div className="text-center p-10">
+        <h1 className="text-xl font-bold">Erreur</h1>
+        <p>L&apos;événement demandé n&apos;a pas pu être trouvé.</p>
+      </div>
+    );
+  }
+
+  return <FormulaireModifierEvenement evenementInitial={evenement} id={id} />;
 }
