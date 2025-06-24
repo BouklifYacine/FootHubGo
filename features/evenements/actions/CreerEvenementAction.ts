@@ -87,7 +87,6 @@ export async function CreerEvenementAction(data: schema) {
       },
     });
 
-    revalidatePath("/dashboardfoothub/evenements")
     return {
       success: true,
       message: "Événement créé avec succès !",

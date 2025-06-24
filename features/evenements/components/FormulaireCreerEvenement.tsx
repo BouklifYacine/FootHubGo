@@ -56,7 +56,6 @@ export default function FormulaireCreerEvenement() {
     mutate(data, {
       onSuccess: () => {
         reset();
-        router.refresh();
         router.push("/dashboardfoothub/evenements");
       },
     });
