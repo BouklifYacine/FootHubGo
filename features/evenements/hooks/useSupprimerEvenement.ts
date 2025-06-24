@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SupprimerEvenementAction } from "../actions/SupprimerEvenementAction";
-import { EvenementsAPI } from "../types/TypesEvenements";
+import { Evenements, EvenementsAPI } from "../types/TypesEvenements";
 import toast from "react-hot-toast";
 
 export function useSupprimerEvenement() {
@@ -18,6 +18,10 @@ export function useSupprimerEvenement() {
       const previousData = queryClient.getQueryData<EvenementsAPI>([
         "evenements",
       ]);
+      const previousEvenement = queryClient.getQueryData<Evenements>([
+        "evenements",
+        id,
+      ]);
 
       if (previousData) {
         queryClient.setQueryData(["evenements"], {
@@ -26,21 +30,29 @@ export function useSupprimerEvenement() {
         });
         return { previousData };
       }
+
+      if (previousEvenement) {
+        queryClient.setQueryData(["evenements", id], {
+          ...previousEvenement,
+        });
+        return { previousEvenement };
+      }
     },
 
     onSuccess: (data) => {
       toast.success(data.message);
     },
 
-     onError: (error, equipeId, context) => {
+    onError: (error, equipeId, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(["evenements"], context.previousData);
       }
 
       toast.error(error.message || "Échec de la suppression du joueur");
     },
-    onSettled: () => {
+    onSettled: (data, error,id) => {
       queryClient.invalidateQueries({ queryKey: ["evenements"] });
+      queryClient.invalidateQueries({ queryKey: ["evenements", id] });
     },
   });
 }
