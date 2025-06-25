@@ -14,6 +14,9 @@ import { useSupprimerCodeInvitation } from "@/features/codeinvitation/hooks/useS
 import { useCreerouGenererCodeInvitation } from "@/features/codeinvitation/hooks/useCreerouGenererCodeInvitation";
 import BoutonSupprimerClub from "./BoutonSupprimerClub";
 import { BoutonModifierClub } from "@/features/modifierinfosclub/components/BoutonModifierClub";
+import Image from "next/image";
+import GithubImage from "@/public/github-icon-2.svg";
+import { Badge } from "@/components/ui/badge";
 
 function BlockEffectif() {
   const { data, isLoading } = useInfosClub();
@@ -38,43 +41,73 @@ function BlockEffectif() {
   const code = data?.equipe.codeInvitation;
 
   return (
-    <div className="md:flex-row gap-4 w-full flex flex-col">
-      <div className="flex-1 border border-amber-300 rounded-lg shadow p-6 min-h-[140px]">
-        <p> {data?.equipe.nom} </p>
-        <p> {data?.equipe.niveau} </p>
-        <p> {data?.equipe.description} </p>
-        {data?.role === "ENTRAINEUR" && <BoutonModifierClub />}
+    <div className="flex justify-between items-center flex-col md:flex-row gap-4 p-5">
+      <div className="border border-blue-300 rounded-xl p-4 w-full md:w-xl flex flex-col   ">
+        <div className="flex flex-col">
+          <Image
+            src={GithubImage}
+            alt="photo profil"
+            width={40}
+            height={30}
+            className="mb-2.5"
+          ></Image>
+          <p className="md:text-4xl text-2xl font-bold tracking-tight">
+            {" "}
+            {data?.equipe.nom}{" "}
+          </p>
+          <p className="md:text-xl">
+            {" "}
+            Niveau : <Badge>{data?.equipe.niveau.toLowerCase()}</Badge>{" "}
+          </p>
+          {data?.equipe.description && (
+            <p className="text-black dark:text-gray-300 text-xs mt-2">
+              {" "}
+              Description : <br></br>
+              {data?.equipe.description}{" "}
+            </p>
+          )}
+        </div>
+
+        <div className=" flex justify-end gap-2">
+          {data?.role === "ENTRAINEUR" && <BoutonModifierClub />}
+          {entraineur && (
+            <BoutonSupprimerClub
+              equipeid={data?.equipe.id || ""}
+            ></BoutonSupprimerClub>
+          )}
+        </div>
       </div>
-      <div className="flex-1 bg-white rounded-lg shadow p-6 min-h-[140px]">
-        {/* Bloc 2 : Ajoute tes infos ici */}
-      </div>
-      <div className="flex-1 min-h-[200px] flex items-center justify-center">
-        <div className="relative w-full max-w-md bg-white/70 backdrop-blur-md border border-amber-200 rounded-2xl shadow-xl p-8 flex flex-col items-center bg-gradient-to-br from-amber-50 via-white to-amber-100">
+
+      <div className="flex items-center justify-center">
+        <div className="relative w-full max-w-md bg-blue/70 backdrop-blur-md border border-blue-300 rounded-2xl shadow-xl p-8 flex flex-col items-center ">
           {/* Titre */}
           <div className="mb-4 text-center">
-            <div className="text-amber-600 font-bold text-lg tracking-wide uppercase drop-shadow">
-              Code d'invitation du club
+            <div className="text-blue-600 font-bold text-xl tracking-wide uppercase drop-shadow">
+              Code d&apos;invitation du club
             </div>
-            <div className="mt-2 text-xs text-amber-500">
+           {code ?  <div className="mt-2 text-xs text-blue-500">
               Partage ce code pour inviter un membre dans ton club
-            </div>
+            </div> :  <div className="mt-2 text-xs text-blue-500">
+              Génère ton code d&apos;invitation pour aggrandir ton club !
+            </div>}
           </div>
           {/* Code + boutons */}
           <div className="flex items-center gap-3 mb-4">
             {code && (
-              <span className="font-mono text-2xl bg-amber-100/80 px-6 py-3 rounded-xl tracking-widest border border-amber-200 shadow-inner select-all transition-all duration-200">
+              <span className="font-mono text-2xl  px-6 py-3 rounded-xl tracking-widest border border-blue-200  ">
                 {code}
               </span>
             )}
-            <BoutonCopier value={code} />
+            {code && <BoutonCopier value={code} />}
             {entraineur && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
+                  <Button 
+                  className="cursor-pointer dark:bg-black bg-white border-gray-200 border hover:bg-white dark:border-gray-800"
                     onClick={CreerCodeInvitation}
                     disabled={PendingCreationCode}
                   >
-                    <CircleFadingPlus className="w-5 h-5 text-amber-400" />
+                    <CircleFadingPlus className="w-5 h-5 text-blue-600 dark:text-white" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -82,7 +115,7 @@ function BlockEffectif() {
                 </TooltipContent>
               </Tooltip>
             )}
-            {entraineur && (
+            {entraineur && code && (
               <BoutonSupprimer
                 supprimer={SupprimerCodeInvitation}
                 disabled={isPending}
@@ -90,16 +123,11 @@ function BlockEffectif() {
             )}
           </div>
           {/* Message d'aide */}
-          <div className="text-xs text-amber-400 mt-2">
+        {code &&   <div className="text-xs text-blue-600 mt-2">
             Ce code est confidentiel, ne le partage qu’aux personnes de
             confiance.
-          </div>
+          </div>}
         </div>
-        {entraineur && (
-          <BoutonSupprimerClub
-            equipeid={data?.equipe.id || ""}
-          ></BoutonSupprimerClub>
-        )}
 
         <div></div>
       </div>

@@ -30,7 +30,7 @@ export default function AlerteDIalogueIcone({
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button className="bg-red-500 text-white hover:bg-red-600 cursor-pointer">
-          Supprimer club
+          
           <Trash2></Trash2>
         </Button>
       </AlertDialogTrigger>

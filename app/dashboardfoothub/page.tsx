@@ -25,11 +25,9 @@ export default async function Dashboardfoothub() {
   return (
     <div className="mx-8">
       <div className="flex gap-8 flex-wrap justify-between items-center">
-        {MembreEquipe ? "" : <BoutonAjouter texte="Créer un club" />}
+        {MembreEquipe && <BoutonAjouter texte="Créer un club" />}
         <div className="flex items-center gap-2 rounded-2xl px-4 py-5">
-          {MembreEquipe ? (
-            ""
-          ) : (
+          {MembreEquipe && (
             <InputBouton texte="Rejoindre un club" placeholder="123456" />
           )}
         </div>

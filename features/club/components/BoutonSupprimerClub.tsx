@@ -18,7 +18,7 @@ function BoutonSupprimerClub({ equipeid }: Props) {
     <>
       <AlerteDIalogueIcone
         Titre="Voulez vous supprimer votre club?"
-        description="En cliquant sur confirmez vous allez supprimer votre club et toute ses données lié a ce club. Aucune récupération des informations ne sera possible."
+        description="En cliquant sur confirmez vous allez supprimer votre club et toute ses données. Aucune récupération des informations ne sera possible."
         supprimer={supprimerClub}
         disabled={isPending}
       ></AlerteDIalogueIcone>
