@@ -17,6 +17,7 @@ import { BoutonModifierClub } from "@/features/modifierinfosclub/components/Bout
 import Image from "next/image";
 import GithubImage from "@/public/github-icon-2.svg";
 import { Badge } from "@/components/ui/badge";
+import { BoutonDisabled } from "@/components/Boutons/BoutonDisabled";
 
 function BlockEffectif() {
   const { data, isLoading } = useInfosClub();
@@ -43,7 +44,7 @@ function BlockEffectif() {
   return (
     <div className="flex justify-between items-center flex-col md:flex-row gap-4 p-5">
       <div className="border border-blue-300 rounded-xl p-4 w-full md:w-xl flex flex-col   ">
-        <div className="flex flex-col">
+        <div className="flex flex-col ">
           <Image
             src={GithubImage}
             alt="photo profil"
@@ -85,11 +86,15 @@ function BlockEffectif() {
             <div className="text-blue-600 font-bold text-xl tracking-wide uppercase drop-shadow">
               Code d&apos;invitation du club
             </div>
-           {code ?  <div className="mt-2 text-xs text-blue-500">
-              Partage ce code pour inviter un membre dans ton club
-            </div> :  <div className="mt-2 text-xs text-blue-500">
-              Génère ton code d&apos;invitation pour aggrandir ton club !
-            </div>}
+            {code ? (
+              <div className="mt-2 text-xs text-blue-500">
+                Partage ce code pour inviter un membre dans ton club
+              </div>
+            ) : (
+              <div className="mt-2 text-xs text-blue-500">
+                Génère ton code d&apos;invitation pour aggrandir ton club !
+              </div>
+            )}
           </div>
           {/* Code + boutons */}
           <div className="flex items-center gap-3 mb-4">
@@ -102,13 +107,21 @@ function BlockEffectif() {
             {entraineur && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button 
-                  className="cursor-pointer dark:bg-black bg-white border-gray-200 border hover:bg-white dark:border-gray-800"
-                    onClick={CreerCodeInvitation}
-                    disabled={PendingCreationCode}
-                  >
-                    <CircleFadingPlus className="w-5 h-5 text-blue-600 dark:text-white" />
-                  </Button>
+                  {PendingCreationCode ? (
+                    <BoutonDisabled
+                      texte=""
+                      classnameButton=""
+                      classnameLoader=""
+                    ></BoutonDisabled>
+                  ) : (
+                    <Button
+                      className="cursor-pointer dark:bg-black bg-white border-gray-200 border hover:bg-white dark:border-gray-800"
+                      onClick={CreerCodeInvitation}
+                      disabled={PendingCreationCode}
+                    >
+                      <CircleFadingPlus className="w-5 h-5 text-blue-600 dark:text-white" />
+                    </Button>
+                  )}
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Créer ou régénérer le code</p>
@@ -123,10 +136,12 @@ function BlockEffectif() {
             )}
           </div>
           {/* Message d'aide */}
-        {code &&   <div className="text-xs text-blue-600 mt-2">
-            Ce code est confidentiel, ne le partage qu’aux personnes de
-            confiance.
-          </div>}
+          {code && (
+            <div className="text-xs text-blue-600 mt-2">
+              Ce code est confidentiel, ne le partage qu’aux personnes de
+              confiance.
+            </div>
+          )}
         </div>
 
         <div></div>
