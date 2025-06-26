@@ -23,12 +23,11 @@ export async function POST(request: NextRequest, { params }: Props) {
 
   if (!validation.success)
     return NextResponse.json(
-      { message: validation.error.errors[0].message },
+      { message: validation.error.issues[0].message},
       { status: 400 }
     );
 
   const {
-    adversaire,
     butsEncaisses,
     cleanSheet,
     butsMarques,
