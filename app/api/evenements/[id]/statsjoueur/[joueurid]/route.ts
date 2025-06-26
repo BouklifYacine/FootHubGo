@@ -127,10 +127,44 @@ export async function POST(request: NextRequest, { params }: Props) {
   if (statsjoueur)
     return NextResponse.json(
       {
-        message: "Des stats existent déja pour ce match et pour ce joueur",
+        message: "Des stats existent déja pour ce joueur",
       },
       { status: 400 }
     );
+
+  const statsequipeexistante = await prisma.statistiqueEquipe.findUnique({
+    where: { evenementId: id },
+    select: { butsMarques: true },
+  });
+
+  if (!statsequipeexistante)
+    return NextResponse.json(
+      {
+        message: "Vous devez inscrire les stats de l'équipe en premier",
+      },
+      { status: 400 }
+    );
+
+  const statstoutjoueur = await prisma.statistiqueJoueur.findMany({
+    where: { evenementId: id },
+    select: { buts: true, passesdecisive: true },
+  });
+
+  const totalButsJoueurs = statstoutjoueur
+    .map((j) => j.buts)
+    .reduce((acc, b) => acc + b, 0);
+  const totalPasseDecisivesJoueurs = statstoutjoueur
+    .map((j) => j.passesdecisive)
+    .reduce((acc, b) => acc + b, 0);
+
+  if (
+    totalButsJoueurs + buts > statsequipeexistante.butsMarques ||
+    totalPasseDecisivesJoueurs + passesdecisive >
+      statsequipeexistante.butsMarques
+  )
+    return NextResponse.json({
+      message : " Vos joueurs ont inscrit plus de buts ou passe décisives qu'il n'y en a eu dans le match"
+    }, {status : 400});
 
   await prisma.statistiqueJoueur.create({
     data: {
