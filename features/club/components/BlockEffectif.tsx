@@ -56,10 +56,10 @@ function BlockEffectif() {
             {" "}
             {data?.equipe.nom}{" "}
           </p>
-          <p className="md:text-xl">
-            {" "}
-            Niveau : <Badge>{data?.equipe.niveau.toLowerCase()}</Badge>{" "}
-          </p>
+          <div className="flex gap-2">
+            <p className="md:text-xl"> Niveau :</p>
+            <Badge className="rounded-xl">{data?.equipe.niveau.toLowerCase()}</Badge>
+          </div>
           {data?.equipe.description && (
             <p className="text-black dark:text-gray-300 text-xs mt-2">
               {" "}
