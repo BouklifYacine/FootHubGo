@@ -277,7 +277,7 @@ model Presence {
 model StatistiqueJoueur {
   id              String      @id @default(cuid())
   buts            Int         @default(0)
-  passesdécisive Int         @default(0)
+  passesdecisive Int         @default(0)
   note            Float       @default(6.0)
   minutesJouees   Int         @default(0)
   titulaire       Boolean     @default(false)

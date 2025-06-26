@@ -1,25 +1,25 @@
-import { AjouterStatsEquipeSchema } from "@/features/stats/statsequipe/schema/AjouterStatsEquipeSchema";
+import { AjouterStatsJoueurSchema } from "@/features/stats/statsjoueur/schema/AjouterStatsJoueurSchema";
 import { prisma } from "@/prisma";
 import dayjs from "dayjs";
 import { NextRequest, NextResponse } from "next/server";
 
 interface Props {
-  params: { id: string };
+  params: { id: string; joueurid: string };
 }
 
 const userId = "TcDbe9JkIpVJ4cnSSPZ2PQtNrrod8nPE";
 
 export async function POST(request: NextRequest, { params }: Props) {
-  const { id } = await params;
+  const { id, joueurid } = await params;
   const body = await request.json();
 
-  if (!id)
+  if (!id || !joueurid)
     return NextResponse.json(
-      { message: "Evenement inexistant ou incorrect" },
+      { message: "Evenement ou joueur inexistant ou incorrect" },
       { status: 400 }
     );
 
-  const validation = AjouterStatsEquipeSchema.safeParse(body);
+  const validation = AjouterStatsJoueurSchema.safeParse(body);
 
   if (!validation.success)
     return NextResponse.json(
@@ -27,16 +27,8 @@ export async function POST(request: NextRequest, { params }: Props) {
       { status: 400 }
     );
 
-  const {
-    butsEncaisses,
-    cleanSheet,
-    butsMarques,
-    competition,
-    domicile,
-    resultatMatch,
-    tirsCadres,
-    tirsTotal,
-  } = validation.data;
+  const { buts, minutesJouees, note, passesdecisive, poste, titulaire } =
+    validation.data;
 
   if (!userId)
     return NextResponse.json(
@@ -56,7 +48,8 @@ export async function POST(request: NextRequest, { params }: Props) {
   if (!estEntraineur)
     return NextResponse.json(
       {
-        message: "Vous devez etre entraineur pour ajouter des stats de matchs",
+        message:
+          "Vous devez etre entraineur pour ajouter des stats pour un joueur",
       },
       { status: 400 }
     );
@@ -67,8 +60,8 @@ export async function POST(request: NextRequest, { params }: Props) {
       dateDebut: true,
       typeEvenement: true,
       titre: true,
-      adversaire: true,
       equipeId: true,
+      presences: true,
     },
   });
 
@@ -98,49 +91,61 @@ export async function POST(request: NextRequest, { params }: Props) {
     );
   }
 
+  const joueurPresent = evenement.presences.find((i) => i.userId === joueurid);
+
+  const MembreJoueur = await prisma.membreEquipe.findFirst({
+    where: { userId: joueurid, equipeId: evenement.equipeId },
+    select: { role: true, userId: true, user: { select: { name: true } } },
+  });
+
+  if (joueurPresent?.statut !== "PRESENT" || MembreJoueur?.role !== "JOUEUR")
+    return NextResponse.json(
+      {
+        message:
+          "Ce joueur n'est pas présent sur cet événement et ou n'est pas un joueur",
+      },
+      { status: 400 }
+    );
+
   const debut = dayjs(evenement?.dateDebut);
   const limiteTempsEvenement = debut.add(3, "hour");
   const maintenant = dayjs();
 
-  if (maintenant.isBefore(limiteTempsEvenement))
-    return NextResponse.json(
-      {
-        message:
-          "Vous devez attendre 3 heures après le début de l'événement pour inscrire les statistiques",
-      },
-      { status: 400 }
-    );
+  // if (maintenant.isBefore(limiteTempsEvenement))
+  //   return NextResponse.json(
+  //     {
+  //       message:
+  //         "Vous devez attendre 3 heures après le début de l'événement pour inscrire les statistiques",
+  //     },
+  //     { status: 400 }
+  //   );
 
-  const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
-    where: { evenementId: id },
-    select: { resultatMatch: true },
+  const statsjoueur = await prisma.statistiqueJoueur.findFirst({
+    where: { evenementId: id, userId: joueurid },
   });
 
-  if (StatsEquipe?.resultatMatch)
+  if (statsjoueur)
     return NextResponse.json(
       {
-        message: "Des stats existent déja pour ce match",
+        message: "Des stats existent déja pour ce match et pour ce joueur",
       },
       { status: 400 }
     );
 
-  await prisma.statistiqueEquipe.create({
+  await prisma.statistiqueJoueur.create({
     data: {
-      adversaire: evenement.adversaire || "",
-      butsEncaisses,
-      cleanSheet,
-      butsMarques,
-      competition,
-      domicile,
-      resultatMatch,
-      tirsCadres,
-      tirsTotal,
-      equipeId: MembreEquipe.equipeId,
+      buts,
+      minutesJouees,
+      note,
+      passesdecisive,
+      poste,
+      titulaire,
+      userId: joueurid,
       evenementId: id,
     },
   });
 
   return NextResponse.json({
-    message: `Les stats pour l'évenement ${evenement.titre} ont été ajoutés`,
+    message: `Les stats pour le joueur ${MembreJoueur.user.name} ont été ajoutés`,
   });
 }
