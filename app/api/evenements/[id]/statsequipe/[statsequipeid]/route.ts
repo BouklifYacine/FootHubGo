@@ -87,9 +87,13 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       },
       { status: 400 }
     );
-
-  await prisma.statistiqueEquipe.delete({
-    where: { id: statsequipeid, equipeId: MembreEquipe.equipeId },
+  await prisma.$transaction(async (tx) => {
+    await tx.statistiqueEquipe.delete({
+      where: { id: statsequipeid, equipeId: MembreEquipe.equipeId },
+    });
+    await tx.statistiqueJoueur.deleteMany({
+      where: { evenementId: StatsEquipe.evenementId! },
+    });
   });
 
   return NextResponse.json({

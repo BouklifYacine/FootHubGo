@@ -111,14 +111,14 @@ export async function POST(request: NextRequest, { params }: Props) {
   const limiteTempsEvenement = debut.add(3, "hour");
   const maintenant = dayjs();
 
-  if (maintenant.isBefore(limiteTempsEvenement))
-    return NextResponse.json(
-      {
-        message:
-          "Vous devez attendre 3 heures après le début de l'événement pour inscrire les statistiques",
-      },
-      { status: 400 }
-    );
+  // if (maintenant.isBefore(limiteTempsEvenement))
+  //   return NextResponse.json(
+  //     {
+  //       message:
+  //         "Vous devez attendre 3 heures après le début de l'événement pour inscrire les statistiques",
+  //     },
+  //     { status: 400 }
+  //   );
 
   const statsjoueur = await prisma.statistiqueJoueur.findFirst({
     where: { evenementId: id, userId: joueurid },
