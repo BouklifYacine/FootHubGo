@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       const totalMatchs = statsJoueur.length;
       const matchsTitulaire = statsJoueur.filter((stat) => stat.titulaire).length; 
       const totalButs = statsJoueur.reduce((sum, stat) => sum + stat.buts, 0); 
-      const totalPasses = statsJoueur.reduce((sum, stat) => sum + stat.passesdécisive, 0); 
+      const totalPasses = statsJoueur.reduce((sum, stat) => sum + stat.passesdecisive, 0); 
       const GA = totalButs + totalPasses; 
 
       let tempsJeuTotal = 0;
