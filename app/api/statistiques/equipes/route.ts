@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
       const butsMarques = statsEquipe.reduce((sum, stat) => sum + stat.butsMarques, 0);
       const butsEncaisses = statsEquipe.reduce((sum, stat) => sum + stat.butsEncaisses, 0);
       const differenceDeButsGlobale = butsMarques - butsEncaisses;
+
       
       const points = (victoires * 3) + nuls;
       
