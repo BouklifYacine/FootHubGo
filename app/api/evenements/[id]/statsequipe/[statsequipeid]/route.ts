@@ -3,17 +3,17 @@ import { prisma } from "@/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 interface Props {
-  params: { id: string; evenementid: string };
+  params: { id: string; statsequipeid: string };
 }
 
 const userId = "TcDbe9JkIpVJ4cnSSPZ2PQtNrrod8nPE";
 
 export async function DELETE(request: NextRequest, { params }: Props) {
-  const { id, evenementid } = await params;
+  const { id, statsequipeid } = await params;
 
-  if (!id || !evenementid)
+  if (!id || !statsequipeid)
     return NextResponse.json(
-      { message: "Evenement inexistant ou incorrect" },
+      { message: "stats inexistant ou incorrect" },
       { status: 400 }
     );
 
@@ -35,7 +35,8 @@ export async function DELETE(request: NextRequest, { params }: Props) {
   if (!estEntraineur)
     return NextResponse.json(
       {
-        message: "Vous devez etre entraineur pour supprimer des stats de matchs",
+        message:
+          "Vous devez etre entraineur pour supprimer des stats de matchs",
       },
       { status: 400 }
     );
@@ -76,11 +77,10 @@ export async function DELETE(request: NextRequest, { params }: Props) {
   }
 
   const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
-    where: { evenementId: id },
-    select: { resultatMatch: true },
+    where: { id: statsequipeid },
   });
 
-  if (!StatsEquipe?.resultatMatch)
+  if (!StatsEquipe)
     return NextResponse.json(
       {
         message: "Les stats ne matchs n'existent pas ",
@@ -89,10 +89,10 @@ export async function DELETE(request: NextRequest, { params }: Props) {
     );
 
   await prisma.statistiqueEquipe.delete({
-    where: { evenementId: evenementid },
+    where: { id: statsequipeid, equipeId: MembreEquipe.equipeId },
   });
 
   return NextResponse.json({
-    message: `Les stats pour l'évenement ${evenement.titre} ont été ajoutés`,
+    message: `Les stats pour l'évenement ${evenement.titre} ont été supprimé`,
   });
 }
