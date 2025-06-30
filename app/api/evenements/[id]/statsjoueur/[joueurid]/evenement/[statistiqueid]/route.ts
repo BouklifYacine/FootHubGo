@@ -1,5 +1,7 @@
+import { auth } from "@/auth";
 import { ModifierStatsJoueurSchema } from "@/features/stats/statsjoueur/schema/ModifierStatsJoueurSchema";
 import { prisma } from "@/prisma";
+import { headers } from "next/headers";
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -7,10 +9,22 @@ interface Props {
   params: { id: string; joueurid: string; statistiqueid: string };
 }
 
-const userId = "TcDbe9JkIpVJ4cnSSPZ2PQtNrrod8nPE";
-
 export async function DELETE(request: NextRequest, { params }: Props) {
   const { id, joueurid, statistiqueid } = await params;
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const userId = session?.user.id;
+
+  if (!userId)
+    return NextResponse.json(
+      {
+        message: "L'user n'est pas connecté",
+      },
+      { status: 403 }
+    );
 
   if (!id || !joueurid || !statistiqueid)
     return NextResponse.json(
@@ -120,12 +134,16 @@ export async function PATCH(request: NextRequest, { params }: Props) {
   const { buts, minutesJouees, note, passesdecisive, poste, titulaire } =
     validation.data;
 
-  const userId = "TcDbe9JkIpVJ4cnSSPZ2PQtNrrod8nPE";
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const userId = session?.user.id;
 
   if (!userId)
     return NextResponse.json(
       {
-        message: "L'utilisateur n'est pas connecté",
+        message: "L'user n'est pas connecté",
       },
       { status: 403 }
     );
@@ -200,15 +218,15 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     );
 
   const ancienneStat = await prisma.statistiqueJoueur.findUnique({
-    where: { 
+    where: {
       id: statistiqueid,
       userId: joueurid,
-      evenementId: id 
+      evenementId: id,
     },
-    select: { 
+    select: {
       buts: true,
-      passesdecisive: true
-    }
+      passesdecisive: true,
+    },
   });
 
   if (!ancienneStat)
@@ -233,18 +251,19 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     );
 
   const TeamStats = await prisma.statistiqueJoueur.aggregate({
-    where: { 
+    where: {
       evenementId: id,
-      id: { not: statistiqueid } 
+      id: { not: statistiqueid },
     },
-    _sum: { 
-      buts: true, 
-      passesdecisive: true 
+    _sum: {
+      buts: true,
+      passesdecisive: true,
     },
   });
 
   const nouveauTotalButs = (TeamStats._sum.buts || 0) + buts!;
-  const nouveauTotalPasses = (TeamStats._sum.passesdecisive || 0) + passesdecisive!;
+  const nouveauTotalPasses =
+    (TeamStats._sum.passesdecisive || 0) + passesdecisive!;
 
   if (nouveauTotalButs > statsequipeexistante.butsMarques) {
     return NextResponse.json(

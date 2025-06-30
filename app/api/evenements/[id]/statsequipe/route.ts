@@ -1,15 +1,29 @@
+import { auth } from "@/auth";
 import { AjouterStatsEquipeSchema } from "@/features/stats/statsequipe/schema/AjouterStatsEquipeSchema";
 import { prisma } from "@/prisma";
 import dayjs from "dayjs";
+import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 interface Props {
   params: { id: string };
 }
 
-const userId = "TcDbe9JkIpVJ4cnSSPZ2PQtNrrod8nPE";
-
 export async function POST(request: NextRequest, { params }: Props) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const userId = session?.user.id;
+
+  if (!userId)
+    return NextResponse.json(
+      {
+        message: "L'user n'est pas connecté",
+      },
+      { status: 403 }
+    );
+
   const { id } = await params;
   const body = await request.json();
 
@@ -102,14 +116,14 @@ export async function POST(request: NextRequest, { params }: Props) {
   const limiteTempsEvenement = debut.add(3, "hour");
   const maintenant = dayjs();
 
-  // if (maintenant.isBefore(limiteTempsEvenement))
-  //   return NextResponse.json(
-  //     {
-  //       message:
-  //         "Vous devez attendre 3 heures après le début de l'événement pour inscrire les statistiques",
-  //     },
-  //     { status: 400 }
-  //   );
+  if (maintenant.isBefore(limiteTempsEvenement))
+    return NextResponse.json(
+      {
+        message:
+          "Vous devez attendre 3 heures après le début de l'événement pour inscrire les statistiques",
+      },
+      { status: 400 }
+    );
 
   const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
     where: { evenementId: id },

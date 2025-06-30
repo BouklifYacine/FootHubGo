@@ -1,13 +1,13 @@
+import { auth } from "@/auth";
 import { ModifierStatsEquipeSchema } from "@/features/stats/statsequipe/schema/ModifierStatsEquipeSchema";
 import { prisma } from "@/prisma";
+import { headers } from "next/headers";
 
 import { NextRequest, NextResponse } from "next/server";
 
 interface Props {
   params: { id: string; statsequipeid: string };
 }
-
-const userId = "TcDbe9JkIpVJ4cnSSPZ2PQtNrrod8nPE";
 
 export async function DELETE(request: NextRequest, { params }: Props) {
   const { id, statsequipeid } = await params;
@@ -18,13 +18,11 @@ export async function DELETE(request: NextRequest, { params }: Props) {
       { status: 400 }
     );
 
-  if (!userId)
-    return NextResponse.json(
-      {
-        message: "L'user n'est pas connecté",
-      },
-      { status: 403 }
-    );
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const userId = session?.user.id;
 
   const MembreEquipe = await prisma.membreEquipe.findFirst({
     where: { userId },
@@ -131,13 +129,11 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     tirsTotal,
   } = validation.data;
 
-  if (!userId)
-    return NextResponse.json(
-      {
-        message: "L'user n'est pas connecté",
-      },
-      { status: 403 }
-    );
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  const userId = session?.user.id;
 
   const MembreEquipe = await prisma.membreEquipe.findFirst({
     where: { userId },
@@ -191,12 +187,12 @@ export async function PATCH(request: NextRequest, { params }: Props) {
     );
   }
 
-const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
-  where: { 
-    id: statsequipeid,
-    evenementId: id // Garantit le lien entre stats et événement
-  }
-});
+  const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
+    where: {
+      id: statsequipeid,
+      evenementId: id, // Garantit le lien entre stats et événement
+    },
+  });
 
   if (!StatsEquipe)
     return NextResponse.json(
@@ -207,8 +203,8 @@ const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
     );
 
   await prisma.statistiqueEquipe.update({
-    where : {
-      id : statsequipeid
+    where: {
+      id: statsequipeid,
     },
     data: {
       adversaire: evenement.adversaire || "",
