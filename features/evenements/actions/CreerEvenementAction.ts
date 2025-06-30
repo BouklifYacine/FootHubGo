@@ -5,7 +5,6 @@ import { CreationEvenementSchema } from "../schemas/CreationEvenementsSchema";
 import dayjs from "dayjs";
 import { prisma } from "@/prisma";
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
 
 type schema = z.infer<typeof CreationEvenementSchema>;
 

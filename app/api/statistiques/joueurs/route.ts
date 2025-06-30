@@ -3,24 +3,21 @@ import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-interface Props {
-  params: { id: string };
-}
+export async function GET(request: NextRequest) {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
-export async function GET(request: NextRequest, { params }: Props) {
+  const userId = session?.user.id;
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-  
-    const userId = session?.user.id;
-  
-    if (!userId) return NextResponse.json({ message: "Vous devez être connecté pour créer un événement."}, {status : 403})
-    
-  const { id } = await params;
+  if (!userId)
+    return NextResponse.json(
+      { message: "Vous devez être connecté pour créer un événement." },
+      { status: 403 }
+    );
 
   const statsjoueur = await prisma.statistiqueJoueur.findMany({
-    where: { userId: id },
+    where: { userId: userId },
   });
 
   if (!statsjoueur)

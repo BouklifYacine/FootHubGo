@@ -81,3 +81,5 @@ export const AjouterStatsEquipeSchema = z
       });
     }
   });
+
+  export type SchemaAjouterStatsEquipe = z.infer<typeof AjouterStatsEquipeSchema>;
