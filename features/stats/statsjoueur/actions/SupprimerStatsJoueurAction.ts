@@ -1,28 +1,34 @@
 "use server";
+
 import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 
-export async function SupprimerStatsEquipeAction( id: string,statsequipeid: string) {
+export async function SupprimerStatsJoueurAction(
+  id: string,
+  joueurid: string,
+  statistiqueid: string
+) {
   try {
-    if (!id || !statsequipeid)
-      return {
-        success: false,
-        message: "Stats inexistantes ou incorrectes",
-      };
-
     const session = await auth.api.getSession({
       headers: await headers(),
     });
 
     const userId = session?.user.id;
 
-     if (!userId) {
-    return {
-      success: false,
-      message: "L'utilisateur n'est pas connecté",
-    };
-  }
+    if (!userId) {
+      return {
+        success: false,
+        message: "L'utilisateur n'est pas connecté",
+      };
+    }
+
+    if (!id || !joueurid || !statistiqueid) {
+      return {
+        success: false,
+        message: "Événement, joueur ou statistique inexistant ou incorrect",
+      };
+    }
 
     const MembreEquipe = await prisma.membreEquipe.findFirst({
       where: { userId },
@@ -31,11 +37,12 @@ export async function SupprimerStatsEquipeAction( id: string,statsequipeid: stri
 
     const estEntraineur = MembreEquipe?.role === "ENTRAINEUR";
 
-    if (!estEntraineur)
+    if (!estEntraineur) {
       return {
         success: false,
         message: "Vous devez être entraîneur pour supprimer des stats de matchs",
       };
+    }
 
     const evenement = await prisma.evenement.findUnique({
       where: { id },
@@ -47,20 +54,22 @@ export async function SupprimerStatsEquipeAction( id: string,statsequipeid: stri
       },
     });
 
-    if (!evenement)
+    if (!evenement) {
       return {
         success: false,
         message: "Événement indisponible",
       };
+    }
 
     const evenementEntrainement = evenement?.typeEvenement === "ENTRAINEMENT";
 
-    if (evenementEntrainement)
+    if (evenementEntrainement) {
       return {
         success: false,
         message:
           "Vous ne pouvez pas supprimer les stats d'un événement d'entraînement",
       };
+    }
 
     if (evenement.equipeId !== MembreEquipe.equipeId) {
       return {
@@ -69,23 +78,20 @@ export async function SupprimerStatsEquipeAction( id: string,statsequipeid: stri
       };
     }
 
-    const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
-      where: { id: statsequipeid },
+    const StatsJoueur = await prisma.statistiqueJoueur.findFirst({
+      where: { userId: joueurid, id: statistiqueid },
+      select: { buts: true },
     });
 
-    if (!StatsEquipe)
+    if (!StatsJoueur) {
       return {
         success: false,
-        message: "Les stats du match n'existent pas",
+        message: "Les stats de ce joueur n'existent pas",
       };
+    }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.statistiqueEquipe.delete({
-        where: { id: statsequipeid, equipeId: MembreEquipe.equipeId },
-      });
-      await tx.statistiqueJoueur.deleteMany({
-        where: { evenementId: StatsEquipe.evenementId! },
-      });
+    await prisma.statistiqueJoueur.delete({
+      where: { id: statistiqueid },
     });
 
     return {
@@ -96,7 +102,7 @@ export async function SupprimerStatsEquipeAction( id: string,statsequipeid: stri
     console.error(error);
     return {
       success: false,
-      message: "Erreur serveur lors de la suppression des statistiques",
+      message: "Erreur serveur lors de la suppression des statistiques du joueur",
     };
   }
 }

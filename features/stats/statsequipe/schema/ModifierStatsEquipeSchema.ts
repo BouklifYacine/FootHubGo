@@ -57,7 +57,7 @@ export const ModifierStatsEquipeSchema = z
       });
     }
 
-    if (resultatMatch === "DEFAITE" && butsMarques >= butsEncaisses) {
+    if (resultatMatch === "DEFAITE" && butsMarques !== undefined && butsEncaisses !== undefined && butsMarques >= butsEncaisses) {
       ctx.issues.push({
         code: "custom",
         message:
@@ -66,7 +66,7 @@ export const ModifierStatsEquipeSchema = z
       });
     }
 
-    if (cleanSheet && butsEncaisses > 0) {
+    if (cleanSheet && butsEncaisses !== undefined && butsEncaisses > 0) {
       ctx.issues.push({
         code: "custom",
         message:

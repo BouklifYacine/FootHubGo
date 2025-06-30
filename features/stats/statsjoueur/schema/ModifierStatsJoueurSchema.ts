@@ -23,3 +23,6 @@ export const ModifierStatsJoueurSchema = z
       .max(90, "Maximum 90 minutes ").optional(),
     titulaire: z.coerce.boolean(),
   })
+
+
+  export type TypeModifierStatsJoueurSchema = z.infer<typeof ModifierStatsJoueurSchema>

@@ -23,3 +23,5 @@ export const AjouterStatsJoueurSchema = z
       .max(90, "Maximum 90 minutes "),
     titulaire: z.coerce.boolean(),
   })
+
+  export type schemaAjouterStatsJoueurSchema = z.infer<typeof AjouterStatsJoueurSchema>
