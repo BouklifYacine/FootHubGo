@@ -1,6 +1,7 @@
 "use client";
 
 import CardEvenementID from "@/features/evenements/components/EvenementId/CardEvenementID";
+import TableauStatsJoueurEvenement from "@/features/evenements/components/EvenementId/TableauStatsJoueurEvenement";
 import { useGetEvenementStatistiqueUnique } from "@/features/evenements/hooks/useGetEvenementUnique";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -40,5 +41,6 @@ export default function EvenementIdPage() {
 
   return <>
   <CardEvenementID infosmatch={infosmatch}/>
+  <TableauStatsJoueurEvenement></TableauStatsJoueurEvenement>
   </>;
 }
