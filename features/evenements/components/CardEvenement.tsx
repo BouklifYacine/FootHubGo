@@ -18,7 +18,7 @@ import { useRouter } from "next/navigation";
 function CardEvenement() {
   const router = useRouter();
   const { data, isLoading } = useEvenements();
-  const { data: infosdata } = useInfosClub();
+  const { data: infosdata, isLoading : isLoadingInfosClub} = useInfosClub();
   const { mutate, isPending } = useSupprimerEvenement();
   const entraineur = infosdata?.role === "ENTRAINEUR";
 
@@ -49,8 +49,9 @@ function CardEvenement() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-40" align="center">
                   <DropdownMenuItem onClick={() => handleModifier(e.id)}>
-                    Modifier 
+                    Modifier
                   </DropdownMenuItem>
+                  
 
                   <DropdownMenuItem
                     onClick={() => mutate(e.id)}
@@ -60,17 +61,23 @@ function CardEvenement() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              
             </div>
 
             <div className="flex flex-col gap-2 mb-4 ml-4">
               <div className="flex gap-2  ">
                 <Calendar />
-                <p>{dayjs(e.dateDebut.toString()).format("DD/MM/YYYY")}</p>
+                <p>
+                  {dayjs(e.dateDebut.toString()).format(`DD/MM/YYYY `)}{" "}
+                  {dayjs(e.dateDebut.toString()).format(`H`)}
+                  {"h"}
+                  {dayjs(e.dateDebut.toString()).format(`mm`)}
+                </p>
               </div>
 
               <div className="flex gap-2 ">
                 <House />
-                <p>{e.lieu || "Lieu non indiqué"}  </p>
+                <p>{e.lieu || "Lieu non indiqué"} </p>
               </div>
             </div>
           </div>
@@ -78,9 +85,15 @@ function CardEvenement() {
             {entraineur ? (
               <div className="w-[140px] my-9 mx-4  "></div>
             ) : (
-             <SelectPresence id={e.id} value={e.statutPresence} className="..." />
+              <SelectPresence
+                id={e.id}
+                value={e.statutPresence}
+                className="..."
+              />
             )}
-            <Badge className="text-green-700 bg-green-200 text-sm mr-3 rounded-md border border-green-700">
+            <Badge
+              className={` text-sm mr-3 rounded-md border ${e.typeEvenement === "ENTRAINEMENT" ? "text-green-700 bg-green-200 border-green-700" : "text-blue-700 bg-blue-200 border-blue-700"}`}
+            >
               {e.typeEvenement}{" "}
               {e.typeEvenement === "ENTRAINEMENT" ? (
                 <TrafficCone size={20} className="ml-1" />

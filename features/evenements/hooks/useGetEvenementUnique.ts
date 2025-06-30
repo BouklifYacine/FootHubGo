@@ -1,9 +1,10 @@
 
 import { useQuery } from "@tanstack/react-query";
-import { evenementUnique } from "../types/TypesEvenements";
+import { EvenementComplet } from "../types/TypesEvenements";
+
 
 export function useGetEvenementUnique(id : string) {
-  return useQuery<evenementUnique>({
+  return useQuery<EvenementComplet>({
     queryKey: ["evenements", id],
     queryFn: async () => {
       const response = await fetch(`/api/evenements/${id}`);

@@ -40,7 +40,7 @@ export const ModifierStatsEquipeSchema = z
       tirsTotal,
     } = ctx.value;
 
-    if (resultatMatch === "VICTOIRE" && butsEncaisses >= butsMarques) {
+    if (resultatMatch === "VICTOIRE" && butsMarques !== undefined && butsEncaisses !== undefined && butsEncaisses >= butsMarques) {
       ctx.issues.push({
         code: "custom",
         message: "Résultat incorrect en cas de victoire",

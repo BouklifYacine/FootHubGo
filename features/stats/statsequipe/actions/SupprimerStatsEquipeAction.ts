@@ -3,9 +3,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 
-export async function SupprimerStatsEquipeAction( id: string,statsequipeid: string) {
+export async function SupprimerStatsEquipeAction( idevenement: string,statsequipeid: string) {
   try {
-    if (!id || !statsequipeid)
+    if (!idevenement || !statsequipeid)
       return {
         success: false,
         message: "Stats inexistantes ou incorrectes",
@@ -38,7 +38,7 @@ export async function SupprimerStatsEquipeAction( id: string,statsequipeid: stri
       };
 
     const evenement = await prisma.evenement.findUnique({
-      where: { id },
+      where: { id : idevenement },
       select: {
         typeEvenement: true,
         titre: true,

@@ -10,11 +10,11 @@ import { headers } from "next/headers";
 
 export async function ModifierStatsEquipeAction(
   data: SchemaModificationStatsEquipe,
-  id: string,
+  idevenement: string,
   statsequipeid: string
 ) {
   try {
-    if (!id || !statsequipeid)
+    if (!idevenement || !statsequipeid)
       return {
         success: false,
         message: "Événement inexistant ou incorrect",
@@ -59,7 +59,7 @@ export async function ModifierStatsEquipeAction(
       };
 
     const evenement = await prisma.evenement.findUnique({
-      where: { id },
+      where: { id : idevenement },
       select: {
         dateDebut: true,
         typeEvenement: true,
@@ -94,7 +94,7 @@ export async function ModifierStatsEquipeAction(
     const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
       where: {
         id: statsequipeid,
-        evenementId: id,
+        evenementId: idevenement,
       },
     });
 
@@ -119,7 +119,7 @@ export async function ModifierStatsEquipeAction(
         tirsCadres,
         tirsTotal,
         equipeId: MembreEquipe.equipeId,
-        evenementId: id,
+        evenementId: idevenement,
       },
     });
 

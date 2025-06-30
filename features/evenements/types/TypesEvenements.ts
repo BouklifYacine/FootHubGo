@@ -1,4 +1,4 @@
-import { $Enums } from "@prisma/client";
+import { $Enums, competition, PosteJoueur, ResultatMatch, StatutPresence, TypeEvenement } from "@prisma/client";
 import { JsonValue } from "@prisma/client/runtime/library";
 
 export interface Evenements {
@@ -40,12 +40,52 @@ export interface ReponseModifierPresenceAPI {
   };
 }
 
-export interface evenementUnique {
-  id: string,
+export interface EvenementComplet {
+  id: string;
   titre: string;
   lieu: string | null;
-  typeEvenement: $Enums.TypeEvenement;
+  typeEvenement: TypeEvenement;
   dateDebut: Date;
   adversaire: string | null;
+  presences: Presence[];
+  statsEquipe: StatistiqueEquipe | null;
+  statsJoueurs: StatsJoueur[];
+}
+
+export interface Presence {
+  idUtilisateur: string;
+  nom: string;
+  image: string | null;
+  poste: PosteJoueur | null;
+  statut: StatutPresence;
+}
+
+export interface StatsJoueur {
+  id: string;
+  idUtilisateur: string;
+  nom: string;
+  image: string | null;
+  buts: number;
+  passesdecisive: number;
+  note: number;
+  minutesJouees: number;
+  titulaire: boolean;
+  poste: PosteJoueur;
+}
+
+export interface StatistiqueEquipe {
+  id: string;
+  resultatMatch: ResultatMatch;
+  butsMarques: number;
+  butsEncaisses: number;
+  cleanSheet: boolean;
+  tirsTotal: number | null;
+  tirsCadres: number | null;
+  domicile: boolean;
+  competition: competition;
+  adversaire: string;
+  dateCreation: Date;
+  equipeId: string;
+  evenementId: string | null;
 }
 

@@ -91,7 +91,6 @@ export async function CreerEvenementAction(data: schema) {
       message: "Événement créé avec succès !",
       evenement: nouvelEvenement,
     };
-    
   } catch (error) {
     console.error("Erreur lors de la création de l'événement :", error);
   }

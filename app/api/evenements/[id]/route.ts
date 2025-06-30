@@ -7,12 +7,12 @@ interface Props {
   params: { id: string };
 }
 
-export async function GET(request: NextRequest, { params }: Props) {
-  const { id } = await params;
+export async function GET(requete: NextRequest, { params }: Props) {
+  const { id } = params;
 
   if (!id) {
     return NextResponse.json(
-      { error: "ID de l'événement manquant" },
+      { erreur: "ID de l'événement manquant" },
       { status: 400 }
     );
   }
@@ -21,62 +21,134 @@ export async function GET(request: NextRequest, { params }: Props) {
     headers: await headers(),
   });
 
-  const userId = session?.user.id;
+  const idUtilisateur = session?.user.id
 
-  if (!userId) {
+  if (!idUtilisateur) {
     return NextResponse.json(
-      { error: "Authentification requise" },
+      { erreur: "Authentification requise" },
       { status: 401 }
     );
   }
 
   try {
-    const evenementunique = await prisma.evenement.findUnique({
+    // Récupérer l'équipe liée à l'événement
+    const evenementAvecEquipe = await prisma.evenement.findUnique({
       where: { id },
       select: {
-        id: true,
-        equipeId: true,
-      },
+        equipeId: true
+      }
     });
 
-    if (!evenementunique) {
+    if (!evenementAvecEquipe) {
       return NextResponse.json(
-        { error: "Événement introuvable" },
+        { erreur: "Événement introuvable" },
         { status: 404 }
       );
     }
 
-    const isMember = await prisma.membreEquipe.findFirst({
+    // Vérifier que l'utilisateur est membre de l'équipe
+    const estMembre = await prisma.membreEquipe.findFirst({
       where: {
-        userId: userId,
-        equipeId: evenementunique.equipeId,
+        userId: idUtilisateur,
+        equipeId: evenementAvecEquipe.equipeId,
       },
     });
 
-    if (!isMember) {
+    if (!estMembre) {
       return NextResponse.json(
-        {
-          error:
-            "Accès refusé : vous n'êtes pas membre de l'équipe organisatrice",
-        },
+        { erreur: "Accès refusé : vous n'êtes pas membre de l'équipe" },
         { status: 403 }
       );
     }
 
+    // Récupération complète des données de l'événement
     const evenement = await prisma.evenement.findUnique({
       where: { id },
-      select: {
-        titre: true,
-        typeEvenement: true,
-        dateDebut: true,
-        lieu: true,
-        adversaire: true,
-      },
+      include: {
+        presences: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              }
+            }
+          }
+        },
+        statEquipe: true,
+        statsJoueur: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true
+              }
+            }
+          }
+        }
+      }
     });
 
-    return NextResponse.json(evenement);
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    if (!evenement) {
+      return NextResponse.json(
+        { erreur: "Événement introuvable" },
+        { status: 404 }
+      );
+    }
+
+
+    const membresEquipe = await prisma.membreEquipe.findMany({
+      where: { equipeId: evenementAvecEquipe.equipeId },
+      select: {
+        userId: true,
+        poste: true
+      }
+    });
+
+    const cartePostes = new Map(
+      membresEquipe.map(membre => [membre.userId, membre.poste])
+    );
+
+    const reponse = {
+      id: evenement.id,
+      titre: evenement.titre,
+      typeEvenement: evenement.typeEvenement,
+      dateDebut: evenement.dateDebut,
+      lieu: evenement.lieu,
+      adversaire: evenement.adversaire,
+
+      presences: evenement.presences.map(presence => ({
+        idUtilisateur: presence.user.id,
+        nom: presence.user.name,
+        image: presence.user.image,
+        poste: cartePostes.get(presence.user.id) || null,
+        statut: presence.statut
+      })),
+
+      statsEquipe: evenement.statEquipe,
+
+      statsJoueurs: evenement.statsJoueur.map(stats => ({
+        id: stats.id,
+        idUtilisateur: stats.user.id,
+        nom: stats.user.name,
+        image: stats.user.image,
+        buts: stats.buts,
+        passesdecisive: stats.passesdecisive,
+        note: stats.note,
+        minutesJouees: stats.minutesJouees,
+        titulaire: stats.titulaire,
+        poste: stats.poste
+      }))
+    };
+
+    return NextResponse.json(reponse);
+  } catch (erreur) {
+    console.error("Erreur lors de la récupération de l'événement:", erreur);
+    return NextResponse.json(
+      { erreur: "Erreur serveur lors du traitement de la requête" },
+      { status: 500 }
+    );
   }
 }
