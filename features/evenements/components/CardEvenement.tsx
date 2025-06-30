@@ -6,7 +6,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Calendar, Ellipsis, House, TrafficCone, Trophy } from "lucide-react";
+import {
+  Calendar,
+  ChartNoAxesCombined,
+  Ellipsis,
+  House,
+  TrafficCone,
+  Trophy,
+} from "lucide-react";
 import SelectPresence from "./SelectPresence";
 import { Badge } from "@/components/ui/badge";
 import { useEvenements } from "../hooks/useEvenements";
@@ -18,13 +25,17 @@ import { useRouter } from "next/navigation";
 function CardEvenement() {
   const router = useRouter();
   const { data, isLoading } = useEvenements();
-  const { data: infosdata, isLoading : isLoadingInfosClub} = useInfosClub();
+  const { data: infosdata, isLoading: isLoadingInfosClub } = useInfosClub();
   const { mutate, isPending } = useSupprimerEvenement();
   const entraineur = infosdata?.role === "ENTRAINEUR";
 
   const handleModifier = (id: string) => {
-    router.push(`/dashboardfoothub/evenements/modifier/${id}`);
+    router.push(`/dashboardfoothub/evenements/${id}/modifier`);
   };
+
+  const RoutingEvenementId = (id : string) => {
+    router.push(`/dashboardfoothub/evenements/${id}`);
+  }
 
   return (
     <>
@@ -36,32 +47,44 @@ function CardEvenement() {
                 {e.adversaire || e.titre}
               </h1>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  {entraineur ? (
-                    <Ellipsis
-                      size={25}
-                      className="text-white  dark:text-black mr-3 bg-black dark:bg-white rounded-3xl p-0.5 cursor-pointer"
-                    />
-                  ) : (
-                    ""
-                  )}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-40" align="center">
-                  <DropdownMenuItem onClick={() => handleModifier(e.id)}>
-                    Modifier
-                  </DropdownMenuItem>
-                  
+              <div className="flex">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    {entraineur ? (
+                      <Ellipsis
+                        size={25}
+                        className="text-white  dark:text-black mr-3 bg-black dark:bg-white rounded-3xl p-0.5 cursor-pointer"
+                      />
+                    ) : (
+                      ""
+                    )}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-40" align="center">
+                    <DropdownMenuItem onClick={() => handleModifier(e.id)}>
+                      Modifier
+                    </DropdownMenuItem>
 
-                  <DropdownMenuItem
-                    onClick={() => mutate(e.id)}
-                    disabled={isPending}
-                  >
-                    Supprimer
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              
+                    <DropdownMenuItem
+                      onClick={() => mutate(e.id)}
+                      disabled={isPending}
+                    >
+                      Supprimer
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    {entraineur && (
+                      <ChartNoAxesCombined
+                      onClick={() => RoutingEvenementId(e.id)}
+                        size={25}
+                        className="text-white  dark:text-black mr-3 bg-black dark:bg-white rounded-3xl p-0.5 cursor-pointer"
+                      />
+                    )}
+                  </DropdownMenuTrigger>
+                </DropdownMenu>
+              </div>
             </div>
 
             <div className="flex flex-col gap-2 mb-4 ml-4">

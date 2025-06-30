@@ -8,7 +8,7 @@ interface Props {
 }
 
 export async function GET(requete: NextRequest, { params }: Props) {
-  const { id } = params;
+  const { id } = await params;
 
   if (!id) {
     return NextResponse.json(
@@ -21,7 +21,7 @@ export async function GET(requete: NextRequest, { params }: Props) {
     headers: await headers(),
   });
 
-  const idUtilisateur = session?.user.id
+  const idUtilisateur = session?.user.id;
 
   if (!idUtilisateur) {
     return NextResponse.json(
@@ -31,12 +31,16 @@ export async function GET(requete: NextRequest, { params }: Props) {
   }
 
   try {
-    // Récupérer l'équipe liée à l'événement
     const evenementAvecEquipe = await prisma.evenement.findUnique({
       where: { id },
       select: {
-        equipeId: true
-      }
+        equipeId: true,
+        equipe: {
+          select: {
+            nom: true,
+          },
+        },
+      },
     });
 
     if (!evenementAvecEquipe) {
@@ -46,7 +50,6 @@ export async function GET(requete: NextRequest, { params }: Props) {
       );
     }
 
-    // Vérifier que l'utilisateur est membre de l'équipe
     const estMembre = await prisma.membreEquipe.findFirst({
       where: {
         userId: idUtilisateur,
@@ -60,8 +63,6 @@ export async function GET(requete: NextRequest, { params }: Props) {
         { status: 403 }
       );
     }
-
-    // Récupération complète des données de l'événement
     const evenement = await prisma.evenement.findUnique({
       where: { id },
       include: {
@@ -72,9 +73,9 @@ export async function GET(requete: NextRequest, { params }: Props) {
                 id: true,
                 name: true,
                 image: true,
-              }
-            }
-          }
+              },
+            },
+          },
         },
         statEquipe: true,
         statsJoueur: {
@@ -83,12 +84,12 @@ export async function GET(requete: NextRequest, { params }: Props) {
               select: {
                 id: true,
                 name: true,
-                image: true
-              }
-            }
-          }
-        }
-      }
+                image: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!evenement) {
@@ -98,17 +99,16 @@ export async function GET(requete: NextRequest, { params }: Props) {
       );
     }
 
-
     const membresEquipe = await prisma.membreEquipe.findMany({
       where: { equipeId: evenementAvecEquipe.equipeId },
       select: {
         userId: true,
-        poste: true
-      }
+        poste: true,
+      },
     });
 
     const cartePostes = new Map(
-      membresEquipe.map(membre => [membre.userId, membre.poste])
+      membresEquipe.map((membre) => [membre.userId, membre.poste])
     );
 
     const reponse = {
@@ -118,18 +118,19 @@ export async function GET(requete: NextRequest, { params }: Props) {
       dateDebut: evenement.dateDebut,
       lieu: evenement.lieu,
       adversaire: evenement.adversaire,
+      nomEquipe: evenementAvecEquipe.equipe.nom,
 
-      presences: evenement.presences.map(presence => ({
+      presences: evenement.presences.map((presence) => ({
         idUtilisateur: presence.user.id,
         nom: presence.user.name,
         image: presence.user.image,
         poste: cartePostes.get(presence.user.id) || null,
-        statut: presence.statut
+        statut: presence.statut,
       })),
 
       statsEquipe: evenement.statEquipe,
 
-      statsJoueurs: evenement.statsJoueur.map(stats => ({
+      statsJoueurs: evenement.statsJoueur.map((stats) => ({
         id: stats.id,
         idUtilisateur: stats.user.id,
         nom: stats.user.name,
@@ -139,8 +140,8 @@ export async function GET(requete: NextRequest, { params }: Props) {
         note: stats.note,
         minutesJouees: stats.minutesJouees,
         titulaire: stats.titulaire,
-        poste: stats.poste
-      }))
+        poste: stats.poste,
+      })),
     };
 
     return NextResponse.json(reponse);

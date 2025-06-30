@@ -47,6 +47,7 @@ export interface EvenementComplet {
   typeEvenement: TypeEvenement;
   dateDebut: Date;
   adversaire: string | null;
+  nomEquipe: string; 
   presences: Presence[];
   statsEquipe: StatistiqueEquipe | null;
   statsJoueurs: StatsJoueur[];
