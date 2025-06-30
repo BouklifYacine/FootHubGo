@@ -83,3 +83,5 @@ export const ModifierStatsEquipeSchema = z
       });
     }
   });
+
+  export type SchemaModificationStatsEquipe = z.infer<typeof ModifierStatsEquipeSchema>

@@ -9,10 +9,7 @@ import { prisma } from "@/prisma";
 import dayjs from "dayjs";
 import { headers } from "next/headers";
 
-export async function CreerStatsEquipeAction(
-  data: SchemaAjouterStatsEquipe,
-  id: string
-) {
+export async function CreerStatsEquipeAction(data: SchemaAjouterStatsEquipe,idEvenement: string) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -58,7 +55,7 @@ export async function CreerStatsEquipeAction(
   }
 
   const evenement = await prisma.evenement.findUnique({
-    where: { id },
+    where: { id: idEvenement },
     select: {
       dateDebut: true,
       typeEvenement: true,
@@ -102,7 +99,7 @@ export async function CreerStatsEquipeAction(
   }
 
   const deja = await prisma.statistiqueEquipe.findUnique({
-    where: { evenementId: id },
+    where: { evenementId: idEvenement },
     select: { resultatMatch: true },
   });
   if (deja?.resultatMatch) {
@@ -124,7 +121,7 @@ export async function CreerStatsEquipeAction(
       tirsCadres,
       tirsTotal,
       equipeId: membre.equipeId,
-      evenementId: id,
+      evenementId: idEvenement,
     },
   });
 
