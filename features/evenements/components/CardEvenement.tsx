@@ -29,6 +29,8 @@ function CardEvenement() {
   const { mutate, isPending } = useSupprimerEvenement();
   const entraineur = infosdata?.role === "ENTRAINEUR";
 
+  const dsfgdfg = data?.evenements.find((e) => e.typeEvenement === "ENTRAINEMENT")
+  
   const handleModifier = (id: string) => {
     router.push(`/dashboardfoothub/evenements/${id}/modifier`);
   };
@@ -40,6 +42,7 @@ function CardEvenement() {
   return (
     <>
       {data?.evenements.map((e) => (
+        
         <div className=" rounded-xl border border-gray-400 w-2xl" key={e.id}>
           <div className="flex flex-col items-start">
             <div className="flex items-center  justify-between w-full ">
@@ -75,7 +78,7 @@ function CardEvenement() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    {entraineur && (
+                    {entraineur && entraineur && e.typeEvenement === "ENTRAINEMENT" !== true && (
                       <ChartNoAxesCombined
                       onClick={() => RoutingEvenementId(e.id)}
                         size={25}

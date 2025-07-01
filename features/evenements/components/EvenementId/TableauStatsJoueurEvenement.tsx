@@ -12,46 +12,20 @@ import Image from "next/image";
 import { CircleCheck, CircleX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import City from "@/public/Logo_Manchester_City_2016.svg";
+import { StatsJoueur } from "../../types/TypesEvenements";
 
-// FAKE DATA
-const membres = [
-  {
-    id: "1",
-    user: {
-      name: "Kylian Mbappé",
-      image: City,
-    },
-    role: "JOUEUR",
-    poste: "ATTAQUANT",
-    isLicensed: true,
-    joinedAt: "2022-08-15",
-  },
-  {
-    id: "2",
-    user: {
-      name: "Lionel Messi",
-      image: City,
-    },
-    role: "JOUEUR",
-    poste: "MILIEU",
-    isLicensed: false,
-    joinedAt: "2023-01-10",
-  },
-  {
-    id: "3",
-    user: {
-      name: "Didier Deschamps",
-      image: "",
-    },
-    role: "ENTRAINEUR",
-    poste: "",
-    isLicensed: true,
-    joinedAt: "2021-05-20",
-  },
-];
+interface Props {
+  statsJoueur: StatsJoueur[] | undefined;
+}
 
-function TableauStatsJoueurEvenement() {
+const BadgeNote = (note: number) => {
+  if (5 >= note) return "bg-red-600";
+  else if (6 >= note) return "bg-orange-500";
+  else if (7 >= note) return "bg-green-400";
+  else return "bg-green-500"
+};
+
+function TableauStatsJoueurEvenement({ statsJoueur }: Props) {
   return (
     <div className="overflow-x-auto mt-10">
       <Table>
@@ -67,16 +41,22 @@ function TableauStatsJoueurEvenement() {
               Nom
             </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
-              Rôle
+              Buts
+            </TableHeadCell>
+            <TableHeadCell className="text-black dark:text-white">
+              Passes décisive
             </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
               Poste
             </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
-              Licencié
+              Titulaire
             </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
-              Rejoins le
+              Note
+            </TableHeadCell>
+            <TableHeadCell className="text-black dark:text-white">
+              Minutes jouées
             </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
               Actions
@@ -84,64 +64,67 @@ function TableauStatsJoueurEvenement() {
           </TableRow>
         </TableHead>
         <TableBody className="divide-y">
-          {membres.map((m) => (
+          {statsJoueur?.map((m) => (
             <TableRow key={m.id}>
               <TableCell className="p-4">
                 <Checkbox />
               </TableCell>
               <TableCell>
-                {m.user.image ? (
+                {m.image ? (
                   <Image
-                    src={m.user.image}
+                    src={m.image}
                     width={35}
                     height={35}
-                    alt={m.user.name}
+                    alt={m.nom}
                     className="rounded-full"
                   />
                 ) : (
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700">
                     <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                      {m.user.name?.charAt(0).toUpperCase() || "?"}
+                      {m.nom?.charAt(0).toUpperCase() || "?"}
                     </span>
                   </div>
                 )}
               </TableCell>
               <TableCell className="text-black dark:text-white">
-                {m.user.name}
+                {m.nom}
               </TableCell>
               <TableCell className="text-black dark:text-white">
-                {m.role}
+                {m.buts}
+              </TableCell>
+              <TableCell className="text-black dark:text-white">
+                {m.passesdecisive}
               </TableCell>
               <TableCell className="text-black dark:text-white">
                 {m.poste || "Sans poste"}
               </TableCell>
-              <TableCell>
+              <TableCell className="text-black dark:text-white">
                 <Badge
                   className={`rounded-md border text-md  ${
-                    m.isLicensed
+                    m.titulaire
                       ? "border-emerald-800 bg-emerald-100 text-emerald-800"
                       : "border-red-800 bg-red-200 text-red-800"
                   }`}
                 >
-                  {m.isLicensed ? (
+                  {m.titulaire ? (
                     <CircleCheck size={16} className="mr-1" />
                   ) : (
                     <CircleX size={16} className="mr-1" />
                   )}
-                  {m.isLicensed ? "Oui" : "Non"}
+                  {m.titulaire ? "Oui" : "Non"}
                 </Badge>
               </TableCell>
               <TableCell className="text-black dark:text-white">
-                {m.joinedAt
-                  ? new Date(m.joinedAt).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "numeric",
-                      year: "numeric",
-                    })
-                  : "N/A"}
+                <div className={`border rounded-md flex items-center justify-center w-10 ${BadgeNote(m.note)}`}>
+                  <p className="text-white"> {m.note}</p>
+                </div>
+              </TableCell>
+              <TableCell className="text-black dark:text-white">
+                <div className="bg-gray-700 dark:bg-black border rounded-md flex items-center justify-center w-10">
+                  <p className="text-white"> {m.minutesJouees}</p>
+                </div>
               </TableCell>
               <TableCell>
-                {/* Actions vides pour l'instant */}
                 <span className="text-gray-400 text-xs">-</span>
               </TableCell>
             </TableRow>

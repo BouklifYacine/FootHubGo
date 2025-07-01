@@ -9,18 +9,22 @@ import { useParams } from "next/navigation";
 export default function EvenementIdPage() {
   const params = useParams();
   const id = String(params.id);
-  const { data: evenement, isLoading, error } = useGetEvenementStatistiqueUnique(id);
+  const {
+    data: evenement,
+    isLoading,
+    error,
+  } = useGetEvenementStatistiqueUnique(id);
   const infosmatch = {
-    date : evenement?.dateDebut, 
-    lieu : evenement?.lieu,
-    adversaire : evenement?.adversaire, 
-    typeEvenement : evenement?.typeEvenement, 
-    titre : evenement?.titre,
-    score : evenement?.statsEquipe,
-    nomequipe : evenement?.nomEquipe
-  }
+    date: evenement?.dateDebut,
+    lieu: evenement?.lieu,
+    adversaire: evenement?.adversaire,
+    typeEvenement: evenement?.typeEvenement,
+    titre: evenement?.titre,
+    score: evenement?.statsEquipe,
+    nomequipe: evenement?.nomEquipe,
+  };
 
-
+  const statsJoueur = evenement?.statsJoueurs;
 
   if (isLoading) {
     return (
@@ -39,8 +43,16 @@ export default function EvenementIdPage() {
     );
   }
 
-  return <>
-  <CardEvenementID infosmatch={infosmatch}/>
-  <TableauStatsJoueurEvenement></TableauStatsJoueurEvenement>
-  </>;
+  return (
+    <>
+      <CardEvenementID infosmatch={infosmatch} />
+      {evenement.typeEvenement === "ENTRAINEMENT" ? (
+        <p>tg</p>
+      ) : (
+        <TableauStatsJoueurEvenement
+          statsJoueur={statsJoueur}
+        ></TableauStatsJoueurEvenement>
+      )}
+    </>
+  );
 }
