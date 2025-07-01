@@ -24,6 +24,8 @@ export default function EvenementIdPage() {
     nomequipe: evenement?.nomEquipe,
   };
 
+  const presences = evenement?.presences
+
   const statsJoueur = evenement?.statsJoueurs;
 
   if (isLoading) {
@@ -50,7 +52,7 @@ export default function EvenementIdPage() {
         <p>tg</p>
       ) : (
         <TableauStatsJoueurEvenement
-          statsJoueur={statsJoueur}
+          statsJoueur={statsJoueur} presences={presences}
         ></TableauStatsJoueurEvenement>
       )}
     </>
