@@ -53,7 +53,6 @@ function BoutonModifierClub() {
 
   function onSubmit(data: FormData) {
     if (!clubData?.equipe.id) return;
-
     mutate(
       { clubId: clubData.equipe.id, clubData: data },
       {

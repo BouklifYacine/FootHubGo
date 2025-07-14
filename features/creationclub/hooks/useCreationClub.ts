@@ -26,12 +26,7 @@ export function useCreationClub() {
     },
     onSuccess: (data) => {
       toast.dismiss();
-      if (data.success) {
-        toast.success(data.message || "Club créé avec succès");
-      } else {
-        toast.error(data.message || "Échec de la création du club");
-        queryClient.invalidateQueries({ queryKey: ["clubs"] });
-      }
+      toast.success(data.message || "Club créé avec succès");
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["clubs"] });
