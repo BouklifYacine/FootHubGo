@@ -18,6 +18,11 @@ interface Props {
     score: StatistiqueEquipe | null | undefined;
     nomequipe: string | undefined;
   };
+
+  IdStatsandEvent: {
+    idevenement: string | undefined;
+    statsid: string;
+  };
 }
 
 const BadgeResultat = (resultat: $Enums.ResultatMatch | null | undefined) => {
@@ -30,7 +35,7 @@ const BadgeResultat = (resultat: $Enums.ResultatMatch | null | undefined) => {
   }
 };
 
-function CardEvenementID({ infosmatch }: Props) {
+function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
   return (
     <div>
       <div className="mb-2">
@@ -59,10 +64,7 @@ function CardEvenementID({ infosmatch }: Props) {
                     {dayjs(infosmatch.date?.toString()).format("DD/MM/YYYY")}
                   </p>
                   <p className="flex items-center text-[10px] md:text-sm gap-1">
-                    <House
-                      size={14}
-                      className="md:w-5 md:h-5 w-3.5 h-3.5"
-                    />{" "}
+                    <House size={14} className="md:w-5 md:h-5 w-3.5 h-3.5" />{" "}
                     {infosmatch.lieu}
                   </p>
                   <p className="flex items-center text-[10px] md:text-sm gap-1">
@@ -70,8 +72,7 @@ function CardEvenementID({ infosmatch }: Props) {
                       size={14}
                       className="md:w-5 md:h-5 w-3.5 h-3.5"
                     />{" "}
-                    Début :{" "}
-                    {dayjs(infosmatch.date?.toString()).format("H")}
+                    Début : {dayjs(infosmatch.date?.toString()).format("H")}
                     {"h"}
                     {dayjs(infosmatch.date?.toString()).format("mm")}
                   </p>
@@ -123,10 +124,7 @@ function CardEvenementID({ infosmatch }: Props) {
             </div>
           </div>
           <div className="flex items-center justify-center gap-1 mt-2">
-            <Calendar
-              size={14}
-              className="md:w-5 md:h-5 w-3.5 h-3.5"
-            />
+            <Calendar size={14} className="md:w-5 md:h-5 w-3.5 h-3.5" />
             <p className="text-[10px] md:text-base">
               {dayjs(infosmatch.date?.toString()).format("DD/MM/YYYY")}
             </p>

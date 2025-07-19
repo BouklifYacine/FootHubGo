@@ -24,9 +24,15 @@ export default function EvenementIdPage() {
     nomequipe: evenement?.nomEquipe,
   };
 
-  const presences = evenement?.presences
+  const presences = evenement?.presences;
 
   const statsJoueur = evenement?.statsJoueurs;
+
+  const IdStatsandEvent = {
+    idevenement: evenement?.statsEquipe?.id,
+    statsid: id,
+  };
+
 
   if (isLoading) {
     return (
@@ -47,12 +53,13 @@ export default function EvenementIdPage() {
 
   return (
     <>
-      <CardEvenementID infosmatch={infosmatch} />
+      <CardEvenementID infosmatch={infosmatch}  IdStatsandEvent={IdStatsandEvent}/>
       {evenement.typeEvenement === "ENTRAINEMENT" ? (
         <p>tg</p>
       ) : (
         <TableauStatsJoueurEvenement
-          statsJoueur={statsJoueur} presences={presences}
+          statsJoueur={statsJoueur}
+          presences={presences}
         ></TableauStatsJoueurEvenement>
       )}
     </>

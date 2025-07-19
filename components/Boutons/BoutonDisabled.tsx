@@ -1,6 +1,5 @@
-// Ton composant BoutonDisabled
-// Fichier: '@/components/Boutons/BoutonDisabled.tsx'
-'use client' // Ajouté, car il utilise des composants clients (Button, LoaderCircle)
+
+'use client' 
 
 import { Button } from "@/components/ui/button";
 import { LoaderCircle } from "lucide-react";

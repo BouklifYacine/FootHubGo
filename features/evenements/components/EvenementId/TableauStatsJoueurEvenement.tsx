@@ -37,7 +37,7 @@ function TableauStatsJoueurEvenement({ statsJoueur, presences }: Props) {
   
   return (
     <div className="overflow-x-auto mt-10">
-      <Button onClick={GererAffichage} className="mb-2"> {affichage ? "Tableau Stats" : "Tableau présence"} </Button>
+      <Button onClick={GererAffichage} className="mb-4"> {affichage ? "Tableau Stats" : "Tableau présence"} </Button>
 
       {affichage ? (
         <Table>
