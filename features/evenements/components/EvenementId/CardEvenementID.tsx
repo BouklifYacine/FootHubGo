@@ -20,8 +20,8 @@ interface Props {
   };
 
   IdStatsandEvent: {
-    idevenement: string | undefined;
-    statsid: string;
+    idstatsequipe: string | undefined;
+    eventid: string;
   };
 }
 

@@ -18,9 +18,9 @@ export function useSupprimerStatsEquipe() {
       return result;
     },
 
-    onMutate: async ({ eventId, statsEquipeId }: MutationParams) => {
+    onMutate: async ({ eventId }: MutationParams) => {
       await queryClient.cancelQueries({
-        queryKey: ["statistique", eventId, statsEquipeId],
+        queryKey: ["statistique", eventId],
       });
 
       const previousEvent = queryClient.getQueryData<EvenementComplet>([
@@ -29,7 +29,6 @@ export function useSupprimerStatsEquipe() {
       ]);
 
       if (previousEvent) {
-        // Création d'une copie mise à jour sans les stats supprimées
         const updatedEvent: EvenementComplet = {
           ...previousEvent,
           statsEquipe: null,
@@ -37,7 +36,7 @@ export function useSupprimerStatsEquipe() {
         };
 
         queryClient.setQueryData<EvenementComplet>(
-          ["statistique", eventId, statsEquipeId],
+          ["statistique", eventId],
           updatedEvent
         );
       }
@@ -52,7 +51,7 @@ export function useSupprimerStatsEquipe() {
     onError: (error, variables, context) => {
       if (context?.previousEvent) {
         queryClient.setQueryData(
-          ["statistique", variables.eventId, variables.statsEquipeId],
+          ["statistique", variables.eventId],
           context.previousEvent
         );
       }
@@ -63,10 +62,7 @@ export function useSupprimerStatsEquipe() {
 
     onSettled: (data, error, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["statistique", variables.eventId, variables.statsEquipeId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["evenements"],
+        queryKey: ["statistique", variables.eventId],
       });
     },
   });
