@@ -33,7 +33,6 @@ export default function EvenementIdPage() {
     statsid: id,
   };
 
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -53,7 +52,10 @@ export default function EvenementIdPage() {
 
   return (
     <>
-      <CardEvenementID infosmatch={infosmatch}  IdStatsandEvent={IdStatsandEvent}/>
+      <CardEvenementID
+        infosmatch={infosmatch}
+        IdStatsandEvent={IdStatsandEvent}
+      />
       {evenement.typeEvenement === "ENTRAINEMENT" ? (
         <p>tg</p>
       ) : (
