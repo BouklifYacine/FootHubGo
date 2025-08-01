@@ -6,7 +6,10 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { AlarmClock, Calendar, CalendarDays, House } from "lucide-react";
 import dayjs from "dayjs";
-import { BoutonCreerStatsEquipe } from "./BoutonCreerStatsEquipe";
+import { BoutonCreerStatsEquipe } from "@/features/stats/statsequipe/components/BoutonCreerStatsEquipe";
+import { useSupprimerStatsEquipe } from "@/features/stats/statsequipe/hooks/useSupprimerStatsEquipe";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   infosmatch: {
@@ -35,13 +38,30 @@ const BadgeResultat = (resultat: $Enums.ResultatMatch | null | undefined) => {
   }
 };
 
+function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
+  const { mutate, isPending } = useSupprimerStatsEquipe();
 
-function CardEvenementID({ infosmatch,IdStatsandEvent }: Props) {
+  const DeleteStatsTeamOnClick = () => {
+    if (!IdStatsandEvent.eventid) {
+      toast.error("ID d'événement manquant");
+      return;
+    }
+    mutate({
+      eventId: IdStatsandEvent.eventid,
+      statsEquipeId: IdStatsandEvent.idstatsequipe!,
+    });
+  };
 
   return (
     <div>
       <div className="mb-2">
-        <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} />
+  
+        {IdStatsandEvent.idstatsequipe ?  <Button
+            onClick={DeleteStatsTeamOnClick}
+            disabled={isPending}
+          >
+            {"Supprimer Stats"}
+          </Button> :  <BoutonCreerStatsEquipe  eventid={IdStatsandEvent.eventid} />}
       </div>
 
       <div className="">
