@@ -35,11 +35,13 @@ const BadgeResultat = (resultat: $Enums.ResultatMatch | null | undefined) => {
   }
 };
 
-function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
+
+function CardEvenementID({ infosmatch,IdStatsandEvent }: Props) {
+
   return (
     <div>
       <div className="mb-2">
-        <BoutonCreerStatsEquipe />
+        <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} />
       </div>
 
       <div className="">

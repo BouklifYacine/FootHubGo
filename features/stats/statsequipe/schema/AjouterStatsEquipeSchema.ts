@@ -1,4 +1,4 @@
-import * as z from "zod/v4";
+import * as z from "zod";
 
 const enumsResultat = ["VICTOIRE", "DEFAITE", "NUL"] as const;
 const enumsCompetition = ["CHAMPIONNAT", "COUPE"] as const;
@@ -7,28 +7,24 @@ export const AjouterStatsEquipeSchema = z
   .object({
     resultatMatch: z.enum(enumsResultat),
     cleanSheet: z.coerce.boolean(),
-    butsMarques: z
-      .number()
+    butsMarques: z.coerce.number()  
       .min(0, "Rentrez le nombre de buts")
       .max(99, "Maximum 99 buts"),
-    butsEncaisses: z
-      .number()
+    butsEncaisses: z.coerce.number()  
       .min(0, "Rentrez le nombre de buts")
       .max(99, "Maximum 99 buts"),
     domicile: z.coerce.boolean(),
-    tirsTotal: z
-      .number()
-      .min(0, "Rentrez le nombre de buts")
+    tirsTotal: z.coerce.number() 
+      .min(0, "Rentrez le nombre de tirs")
       .max(99, "Maximum 99 tirs")
       .optional(),
-    tirsCadres: z
-      .number()
-      .min(0, "Rentrez le nombre de buts")
+    tirsCadres: z.coerce.number() 
+      .min(0, "Rentrez le nombre de tirs")
       .max(99, "Maximum 99 tirs")
       .optional(),
     competition: z.enum(enumsCompetition),
   })
-  .check((ctx) => {
+  .superRefine((data, ctx) => {
     const {
       butsEncaisses,
       butsMarques,
@@ -36,50 +32,57 @@ export const AjouterStatsEquipeSchema = z
       resultatMatch,
       tirsCadres,
       tirsTotal,
-    } = ctx.value;
+    } = data;
+
 
     if (resultatMatch === "VICTOIRE" && butsEncaisses >= butsMarques) {
-      ctx.issues.push({
-        code: "custom",
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
         message: "Résultat incorrect en cas de victoire",
-        input: butsEncaisses,
+        path: ["butsEncaisses"],
       });
     }
 
     if (resultatMatch === "NUL" && butsMarques !== butsEncaisses) {
-      ctx.issues.push({
-        code: "custom",
-        message:
-          "Si match nul le nombre de buts encaissés et marqués doivent etre égaux",
-        input: ctx.value.butsEncaisses,
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Si match nul, le nombre de buts encaissés et marqués doivent être égaux",
+        path: ["butsEncaisses"],
       });
     }
 
     if (resultatMatch === "DEFAITE" && butsMarques >= butsEncaisses) {
-      ctx.issues.push({
-        code: "custom",
-        message:
-          "Vous ne pouvez pas avoir plus de buts marqués que encaissés en cas de défaites",
-        input: butsMarques,
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous ne pouvez pas avoir plus de buts marqués qu'encaissés en cas de défaite",
+        path: ["butsMarques"],
       });
     }
 
     if (cleanSheet && butsEncaisses > 0) {
-      ctx.issues.push({
-        code: "custom",
-        message:
-          "Vous ne pouvez pas avoir de buts encaissés en cas de cleansheet",
-        input: cleanSheet,
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous ne pouvez pas avoir de buts encaissés en cas de clean sheet",
+        path: ["cleanSheet"],
       });
     }
 
-    if (tirsTotal != null && tirsCadres != null && tirsCadres > tirsTotal) {
-      ctx.issues.push({
-        code: "custom",
-        message: "Vous ne pouvez pas avoir plus de tirs cadrés que de tirs",
-        input: tirsTotal,
+
+  if (!cleanSheet && butsEncaisses === 0) {
+     ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Cochez le champ Clean Sheet",
+        path: ["cleanSheet"],
+      });
+  }
+
+    if (tirsTotal !== undefined && tirsCadres !== undefined && tirsCadres > tirsTotal) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous ne pouvez pas avoir plus de tirs cadrés que de tirs totaux",
+        path: ["tirsCadres"],
       });
     }
   });
 
-  export type SchemaAjouterStatsEquipe = z.infer<typeof AjouterStatsEquipeSchema>;
+export type SchemaAjouterStatsEquipe = z.infer<typeof AjouterStatsEquipeSchema>;
