@@ -14,15 +14,9 @@ interface Props {
   };
 }
 
-
-
-function TableauStatsJoueurEvenement({
-  statsJoueur,
-  presences,
-  IdStatsandEvent,
-}: Props) {
+function TableauStatsJoueurEvenement({ statsJoueur, presences, IdStatsandEvent}: Props) {
   const [affichage, setAffichage] = useState(false);
-
+  
   const GererAffichage = () => {
     setAffichage(!affichage);
   };
@@ -44,6 +38,7 @@ function TableauStatsJoueurEvenement({
         <ArrayPlayerStatusEventId
           presences={presences}
           statsteamid={IdStatsandEvent}
+           statsJoueur={statsJoueur}
         ></ArrayPlayerStatusEventId>
       )}
     </div>

@@ -185,7 +185,7 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             <Checkbox
               id="titulaire"
               checked={watch("titulaire")}
-              onCheckedChange={(v) => setValue("titulaire", v)}
+             onCheckedChange={(checked) => setValue("titulaire", !!checked)}
             />
             <Label htmlFor="titulaire">Titulaire</Label>
             {errors.titulaire && (

@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 import {
   Table,
   TableBody,
@@ -8,86 +8,96 @@ import {
   TableRow,
 } from "flowbite-react";
 import Image from "next/image";
-import { Checkbox } from "@/components/ui/checkbox"
-import { Presence } from '@/features/evenements/types/TypesEvenements';
-import { ModalButtonAddPlayerStats } from '../../statsjoueur/components/ModalButtonAddPlayerStats';
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Presence,
+  StatsJoueur,
+} from "@/features/evenements/types/TypesEvenements";
+import { ModalButtonAddPlayerStats } from "../../statsjoueur/components/ModalButtonAddPlayerStats";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   presences: Presence[] | undefined;
-  statsteamid : { 
+  statsteamid: {
     idstatsequipe: string | undefined;
     eventid: string;
-  } 
+  };
+  statsJoueur: StatsJoueur[] | undefined;
 }
 
-function ArrayPlayerStatusEventId({presences, statsteamid} : Props) {
-
+function ArrayPlayerStatusEventId({
+  presences,
+  statsteamid,
+  statsJoueur,
+}: Props) {
   return (
-    <>
-      <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeadCell className="p-4">
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeadCell className="p-4">
+            <Checkbox />
+          </TableHeadCell>
+          <TableHeadCell>Avatar</TableHeadCell>
+          <TableHeadCell>Nom</TableHeadCell>
+          <TableHeadCell>Poste</TableHeadCell>
+          <TableHeadCell>Status</TableHeadCell>
+          <TableHeadCell>Actions</TableHeadCell>
+        </TableRow>
+      </TableHead>
+      <TableBody className="divide-y">
+        {presences?.map((m) => {
+          // Vérifie si ce joueur a déjà une stat
+          const hasStats = statsJoueur?.some(
+            (s) => s.idUtilisateur === m.idUtilisateur
+          );
+
+          console.log(hasStats);
+          return (
+            <TableRow key={m.idUtilisateur}>
+              <TableCell className="p-4">
                 <Checkbox />
-              </TableHeadCell>
-              <TableHeadCell className="text-black dark:text-white">
-                Avatar
-              </TableHeadCell>
-              <TableHeadCell className="text-black dark:text-white">
-                Nom
-              </TableHeadCell>
-              <TableHeadCell className="text-black dark:text-white">
-                Poste
-              </TableHeadCell>
-              <TableHeadCell className="text-black dark:text-white">
-                Status
-              </TableHeadCell>
-               <TableHeadCell className="text-black dark:text-white">
-                Actions
-              </TableHeadCell>
-            </TableRow>
-          </TableHead>
-          <TableBody className="divide-y">
-            {presences?.map((m) => (
-              <TableRow key={m.idUtilisateur}>
-                <TableCell className="p-4">
-                  <Checkbox />
-                </TableCell>
-                <TableCell>
-                  {m.image ? (
-                    <Image
-                      src={m.image}
-                      width={35}
-                      height={35}
-                      alt={m.nom}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700">
-                      <span className="text-lg font-medium text-gray-700 dark:text-gray-300">
-                        {m.nom?.charAt(0).toUpperCase() || "?"}
-                      </span>
+              </TableCell>
+              <TableCell>
+                {m.image ? (
+                  <Image
+                    src={m.image}
+                    width={35}
+                    height={35}
+                    alt={m.nom}
+                    className="rounded-full"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300">
+                    <span className="text-lg font-medium text-gray-700">
+                      {m.nom?.charAt(0).toUpperCase() || "?"}
+                    </span>
+                  </div>
+                )}
+              </TableCell>
+              <TableCell>{m.nom}</TableCell>
+              <TableCell>{m.poste || "ENTRAINEUR"}</TableCell>
+              <TableCell>{m.statut}</TableCell>
+              <TableCell>
+                {statsteamid.idstatsequipe && m.poste ? (
+                  hasStats ? (
+                    <div className="flex gap-2">
+<Button></Button>
+<Button></Button>
                     </div>
-                  )}
-                </TableCell>
-                <TableCell className="text-black dark:text-white">
-                  {m.nom}
-                </TableCell>
-                <TableCell className="text-black dark:text-white">
-                  {m.poste ? m.poste : "ENTRAINEUR"}
-                </TableCell>
-                <TableCell className="text-black dark:text-white">
-                  {m.statut}
-                </TableCell>
-                 <TableCell className="text-black dark:text-white">
-                 {statsteamid.idstatsequipe && m.poste &&  <ModalButtonAddPlayerStats playerid={m.idUtilisateur} eventid={statsteamid.eventid}></ModalButtonAddPlayerStats> }
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-    </>
-  )
+                  ) : (
+                    <ModalButtonAddPlayerStats
+                      playerid={m.idUtilisateur}
+                      eventid={statsteamid.eventid}
+                    />
+                  )
+                ) : null}
+              </TableCell>
+            </TableRow>
+          );
+        })}
+      </TableBody>
+    </Table>
+  );
 }
 
-export default ArrayPlayerStatusEventId
+export default ArrayPlayerStatusEventId;
