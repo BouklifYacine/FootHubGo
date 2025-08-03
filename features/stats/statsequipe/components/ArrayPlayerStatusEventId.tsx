@@ -10,13 +10,18 @@ import {
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox"
 import { Presence } from '@/features/evenements/types/TypesEvenements';
-
+import { ModalButtonAddPlayerStats } from '../../statsjoueur/components/ModalButtonAddPlayerStats';
 
 interface Props {
   presences: Presence[] | undefined;
+  statsteamid : { 
+    idstatsequipe: string | undefined;
+    eventid: string;
+  } 
 }
 
-function ArrayPlayerStatusEventId({presences} : Props) {
+function ArrayPlayerStatusEventId({presences, statsteamid} : Props) {
+
   return (
     <>
       <Table>
@@ -36,6 +41,9 @@ function ArrayPlayerStatusEventId({presences} : Props) {
               </TableHeadCell>
               <TableHeadCell className="text-black dark:text-white">
                 Status
+              </TableHeadCell>
+               <TableHeadCell className="text-black dark:text-white">
+                Actions
               </TableHeadCell>
             </TableRow>
           </TableHead>
@@ -70,6 +78,9 @@ function ArrayPlayerStatusEventId({presences} : Props) {
                 </TableCell>
                 <TableCell className="text-black dark:text-white">
                   {m.statut}
+                </TableCell>
+                 <TableCell className="text-black dark:text-white">
+                 {statsteamid.idstatsequipe && m.poste &&  <ModalButtonAddPlayerStats playerid={m.idUtilisateur} eventid={statsteamid.eventid}></ModalButtonAddPlayerStats> }
                 </TableCell>
               </TableRow>
             ))}
