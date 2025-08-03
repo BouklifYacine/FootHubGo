@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { auth } from "@/auth";
 import {
@@ -15,163 +15,167 @@ export async function AjouterStatsJoueurAction(
   joueurid: string
 ) {
   try {
-    if (!id || !joueurid)
+    if (!id || !joueurid) {
       return {
         success: false,
         message: "Événement ou joueur inexistant ou incorrect",
       };
-
+    }
     const validation = AjouterStatsJoueurSchema.safeParse(data);
-
-    if (!validation.success)
+    if (!validation.success) {
       return {
         success: false,
         message: validation.error.issues[0].message,
       };
-
+    }
     const { buts, minutesJouees, note, passesdecisive, poste, titulaire } =
       validation.data;
 
-    const session = await auth.api.getSession({
-      headers: await headers(),
-    });
-
+    const session = await auth.api.getSession({ headers: await headers() });
     const userId = session?.user.id;
-
     if (!userId) {
       return {
         success: false,
         message: "L'utilisateur n'est pas connecté",
       };
     }
-
-    const MembreEquipe = await prisma.membreEquipe.findFirst({
+    const membre = await prisma.membreEquipe.findFirst({
       where: { userId },
       select: { role: true, equipeId: true },
     });
-
-    const estEntraineur = MembreEquipe?.role === "ENTRAINEUR";
-
-    if (!estEntraineur)
+    if (membre?.role !== "ENTRAINEUR") {
       return {
         success: false,
         message:
           "Vous devez être entraîneur pour ajouter des stats pour un joueur",
       };
+    }
 
     const evenement = await prisma.evenement.findUnique({
       where: { id },
       select: {
         dateDebut: true,
         typeEvenement: true,
-        titre: true,
         equipeId: true,
         presences: true,
       },
     });
-
-    if (!evenement)
-      return {
-        success: false,
-        message: "Événement indisponible",
-      };
-
-    const evenementEntrainement = evenement?.typeEvenement === "ENTRAINEMENT";
-
-    if (evenementEntrainement)
+    if (!evenement) {
+      return { success: false, message: "Événement indisponible" };
+    }
+    if (evenement.typeEvenement === "ENTRAINEMENT") {
       return {
         success: false,
         message:
           "Vous ne pouvez pas ajouter de stats pour des événements d'entraînement",
       };
-
-    if (evenement.equipeId !== MembreEquipe.equipeId) {
+    }
+    if (evenement.equipeId !== membre.equipeId) {
       return {
         success: false,
         message: "Cet événement n'appartient pas à votre équipe",
       };
     }
 
-    const joueurPresent = evenement.presences.find((i) => i.userId === joueurid);
-
-    const MembreJoueur = await prisma.membreEquipe.findFirst({
+    const presence = evenement.presences.find((p) => p.userId === joueurid);
+    const membreJoueur = await prisma.membreEquipe.findFirst({
       where: { userId: joueurid, equipeId: evenement.equipeId },
-      select: { role: true, userId: true, user: { select: { name: true } } },
+      select: { role: true, user: { select: { name: true } } },
     });
-
-    if (joueurPresent?.statut !== "PRESENT" || MembreJoueur?.role !== "JOUEUR")
+    if (presence?.statut !== "PRESENT" || membreJoueur?.role !== "JOUEUR") {
       return {
         success: false,
         message:
           "Ce joueur n'est pas présent à cet événement ou n'est pas un joueur",
       };
+    }
 
-    const debut = dayjs(evenement?.dateDebut);
-    const limiteTempsEvenement = debut.add(3, "hour");
-    const maintenant = dayjs();
-
-    if (maintenant.isBefore(limiteTempsEvenement))
+    const debut = dayjs(evenement.dateDebut);
+    if (dayjs().isBefore(debut.add(3, "hour"))) {
       return {
         success: false,
         message:
           "Vous devez attendre 3 heures après le début de l'événement pour inscrire les statistiques",
       };
+    }
 
-    const statsjoueur = await prisma.statistiqueJoueur.findFirst({
+    const deja = await prisma.statistiqueJoueur.findFirst({
       where: { evenementId: id, userId: joueurid },
     });
-
-    if (statsjoueur)
+    if (deja) {
       return {
         success: false,
         message: "Des stats existent déjà pour ce joueur",
       };
+    }
 
-    const statsequipeexistante = await prisma.statistiqueEquipe.findUnique({
+    const statsequipe = await prisma.statistiqueEquipe.findUnique({
       where: { evenementId: id },
       select: { butsMarques: true },
     });
-
-    if (!statsequipeexistante)
+    if (!statsequipe) {
       return {
         success: false,
         message: "Vous devez inscrire les stats de l'équipe en premier",
       };
+    }
+    const teamButs = statsequipe.butsMarques;
 
-    const TeamStats = await prisma.statistiqueJoueur.aggregate({
+    const ag = await prisma.statistiqueJoueur.aggregate({
       where: { evenementId: id },
       _sum: { buts: true, passesdecisive: true },
     });
+    const totalButsExistants = ag._sum.buts ?? 0;
+    const totalPassesExistantes = ag._sum.passesdecisive ?? 0;
 
-    const totalbuts = TeamStats._sum.buts ?? 0;
-    const totalpassedecisive = TeamStats._sum.passesdecisive ?? 0;
-
-    if (
-      totalbuts > statsequipeexistante.butsMarques ||
-      totalpassedecisive > statsequipeexistante.butsMarques
-    )
+    if (buts > teamButs) {
+      return {
+        success: false,
+        message: "Un joueur ne peut pas inscrire plus de buts que l’équipe !",
+      };
+    }
+    if (passesdecisive > teamButs) {
       return {
         success: false,
         message:
-          "Vos joueurs ont inscrit plus de buts ou passes décisives qu'il n'y en a eu dans le match",
+          "Un joueur ne peut pas avoir plus de passes décisives " +
+          "que de buts marqués par l’équipe !",
       };
+    }
+
+    if (totalButsExistants + buts > teamButs) {
+      return {
+        success: false,
+        message:
+          "La somme des buts de tous les joueurs dépasserait le total " +
+          "inscrit par l’équipe.",
+      };
+    }
+    if (totalPassesExistantes + passesdecisive > teamButs) {
+      return {
+        success: false,
+        message:
+          "La somme des passes décisives de tous les joueurs dépasserait " +
+          "le nombre de buts marqués par l’équipe.",
+      };
+    }
 
     await prisma.statistiqueJoueur.create({
       data: {
-        buts,
-        minutesJouees,
-        note,
-        passesdecisive,
-        poste,
-        titulaire,
         userId: joueurid,
         evenementId: id,
+        poste,
+        buts,
+        passesdecisive,
+        minutesJouees,
+        note,
+        titulaire,
       },
     });
 
     return {
       success: true,
-      message: `Les stats pour le joueur ${MembreJoueur.user.name} ont été ajoutées`,
+      message: `Les stats pour le joueur ${membreJoueur.user.name} ont été ajoutées`,
     };
   } catch (error) {
     console.error(error);

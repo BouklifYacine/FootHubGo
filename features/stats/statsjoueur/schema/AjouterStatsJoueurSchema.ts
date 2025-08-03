@@ -24,6 +24,6 @@ export const AjouterStatsJoueurSchema = z.object({
   titulaire: z.coerce.boolean(),
 });
 
-export type AjouterStatsJoueurForm = z.infer<
+export type schemaAjouterStatsJoueurSchema = z.infer<
   typeof AjouterStatsJoueurSchema
 >;

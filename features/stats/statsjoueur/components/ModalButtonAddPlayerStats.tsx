@@ -28,7 +28,7 @@ import { useAjouterStatsJoueur } from "../hooks/useAjouterStatsJoueur";
 import {
   AjouterStatsJoueurSchema,
   enumsPoste,
-  AjouterStatsJoueurForm,
+  schemaAjouterStatsJoueurSchema,
 } from "../schema/AjouterStatsJoueurSchema";
 
 interface Props {
@@ -47,7 +47,7 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
     reset,
     setValue,
     watch,
-  } = useForm<AjouterStatsJoueurForm>({
+  } = useForm<schemaAjouterStatsJoueurSchema>({
     resolver: zodResolver(AjouterStatsJoueurSchema),
     defaultValues: {
       poste: "GARDIEN",
@@ -59,7 +59,7 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
     },
   });
 
-  const onSubmit = (data: AjouterStatsJoueurForm) => {
+  const onSubmit = (data: schemaAjouterStatsJoueurSchema) => {
     mutate(data, {
       onSuccess: () => {
         setOpen(false);
@@ -96,7 +96,7 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             <Select
               value={watch("poste")}
               onValueChange={(v) =>
-                setValue("poste", v as AjouterStatsJoueurForm["poste"])
+                setValue("poste", v as schemaAjouterStatsJoueurSchema["poste"])
               }
             >
               <SelectTrigger
@@ -164,18 +164,7 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-          {/* Titulaire */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="titulaire"
-              checked={watch("titulaire")}
-              onCheckedChange={(v) => setValue("titulaire", v)}
-            />
-            <Label htmlFor="titulaire">Titulaire</Label>
-            {errors.titulaire && (
-              <p className="text-red-500 text-sm">{errors.titulaire.message}</p>
-            )}
-          </div>
+       
 
           {/* Note */}
           <div>
@@ -188,6 +177,19 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             />
             {errors.note && (
               <p className="text-red-500 text-sm">{errors.note.message}</p>
+            )}
+          </div>
+
+             {/* Titulaire */}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="titulaire"
+              checked={watch("titulaire")}
+              onCheckedChange={(v) => setValue("titulaire", v)}
+            />
+            <Label htmlFor="titulaire">Titulaire</Label>
+            {errors.titulaire && (
+              <p className="text-red-500 text-sm">{errors.titulaire.message}</p>
             )}
           </div>
 
