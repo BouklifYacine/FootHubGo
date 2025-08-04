@@ -80,7 +80,7 @@ export async function SupprimerStatsJoueurAction(
 
     const StatsJoueur = await prisma.statistiqueJoueur.findFirst({
       where: { userId: joueurid, id: statistiqueid },
-      select: { buts: true },
+      select: { buts: true, user : { select : {name : true}} },
     });
 
     if (!StatsJoueur) {
@@ -96,7 +96,7 @@ export async function SupprimerStatsJoueurAction(
 
     return {
       success: true,
-      message: `Les stats pour l'événement ${evenement.titre} ont été supprimées`,
+      message: `Les stats de ${StatsJoueur.user.name} ont été supprimées`,
     };
   } catch (error) {
     console.error(error);

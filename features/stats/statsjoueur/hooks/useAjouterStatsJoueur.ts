@@ -8,7 +8,7 @@ export function useAjouterStatsJoueur(joueurid: string, eventid: string) {
 
   return useMutation({
     mutationFn: async (data: schemaAjouterStatsJoueurSchema) => {
-      const result = await AjouterStatsJoueurAction(data, joueurid, eventid);
+       const result = await AjouterStatsJoueurAction(data, eventid, joueurid);
 
       if (!result.success) {
         throw new Error(result.message);

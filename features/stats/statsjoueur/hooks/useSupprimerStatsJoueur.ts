@@ -9,7 +9,7 @@ type MutationParams = {
   statistiqueid: string;
 };
 
-export function useSupprimerStatsEquipe() {
+export function useSupprimerStatsJoueur() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -60,7 +60,7 @@ export function useSupprimerStatsEquipe() {
         );
       }
       toast.error(
-        error.message || "Échec de la suppression des stats d'équipe"
+        error.message || "Échec de la suppression des stats du joueur"
       );
     },
 

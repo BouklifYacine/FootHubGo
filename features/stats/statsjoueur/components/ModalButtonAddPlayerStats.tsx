@@ -38,7 +38,7 @@ interface Props {
 
 export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
   const [open, setOpen] = useState(false);
-  const { mutate, isPending } = useAjouterStatsJoueur(eventid, playerid);
+  const { mutate, isPending } = useAjouterStatsJoueur(playerid, eventid);
 
   const {
     register,

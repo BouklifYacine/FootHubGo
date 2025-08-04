@@ -12,6 +12,7 @@ interface Props {
     idstatsequipe: string | undefined;
     eventid: string;
   };
+  
 }
 
 function TableauStatsJoueurEvenement({ statsJoueur, presences, IdStatsandEvent}: Props) {
@@ -20,6 +21,8 @@ function TableauStatsJoueurEvenement({ statsJoueur, presences, IdStatsandEvent}:
   const GererAffichage = () => {
     setAffichage(!affichage);
   };
+
+  console.log(statsJoueur)
 
   return (
     <div className="overflow-x-auto mt-10">
@@ -32,6 +35,7 @@ function TableauStatsJoueurEvenement({ statsJoueur, presences, IdStatsandEvent}:
 
       {affichage ? (
         <ArrayPlayerStatsEventsId
+        eventId={IdStatsandEvent.eventid}
           statsJoueur={statsJoueur}
         ></ArrayPlayerStatsEventsId>
       ) : (

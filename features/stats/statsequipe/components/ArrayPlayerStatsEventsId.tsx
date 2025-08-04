@@ -13,9 +13,12 @@ import Image from "next/image";
 import { CircleCheck, CircleX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useSupprimerStatsJoueur } from "../../statsjoueur/hooks/useSupprimerStatsJoueur";
+import { BoutonSupprimer } from "@/components/Boutons/BoutonSupprimer";
 
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
+  eventId : string 
 }
 
 const BadgeNote = (note: number) => {
@@ -25,7 +28,16 @@ const BadgeNote = (note: number) => {
   else return "bg-green-500";
 };
 
-function ArrayPlayerStatsEventsId({ statsJoueur }: Props) {
+function ArrayPlayerStatsEventsId({ statsJoueur,eventId }: Props) {
+  const { mutate, isPending } = useSupprimerStatsJoueur();
+
+  const DeletePlayerStats = (
+ playerId: string,
+    statisticId: string
+  ) => {
+    mutate({ eventId, joueurid : playerId, statistiqueid : statisticId });
+  };
+
   return (
     <>
       <Table>
@@ -57,6 +69,9 @@ function ArrayPlayerStatsEventsId({ statsJoueur }: Props) {
             </TableHeadCell>
             <TableHeadCell className="text-black dark:text-white">
               Minutes jouées
+            </TableHeadCell>
+            <TableHeadCell className="text-black dark:text-white">
+              Actions
             </TableHeadCell>
           </TableRow>
         </TableHead>
@@ -121,6 +136,14 @@ function ArrayPlayerStatsEventsId({ statsJoueur }: Props) {
               <TableCell className="text-black dark:text-white">
                 <div className="bg-gray-700 dark:bg-black border rounded-md flex items-center justify-center w-10">
                   <p className="text-white"> {m.minutesJouees}</p>
+                </div>
+              </TableCell>
+              <TableCell className="text-black dark:text-white">
+                <div className="flex gap-2">
+                  <BoutonSupprimer
+                    supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)}
+                    disabled={isPending}
+                  ></BoutonSupprimer>
                 </div>
               </TableCell>
             </TableRow>

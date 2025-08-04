@@ -25,11 +25,8 @@ interface Props {
   statsJoueur: StatsJoueur[] | undefined;
 }
 
-function ArrayPlayerStatusEventId({
-  presences,
-  statsteamid,
-  statsJoueur,
-}: Props) {
+function ArrayPlayerStatusEventId({ presences, statsteamid, statsJoueur}: Props) {
+  
   return (
     <Table>
       <TableHead>
@@ -37,16 +34,26 @@ function ArrayPlayerStatusEventId({
           <TableHeadCell className="p-4">
             <Checkbox />
           </TableHeadCell>
-          <TableHeadCell>Avatar</TableHeadCell>
-          <TableHeadCell>Nom</TableHeadCell>
-          <TableHeadCell>Poste</TableHeadCell>
-          <TableHeadCell>Status</TableHeadCell>
-          <TableHeadCell>Actions</TableHeadCell>
+
+          <TableHeadCell className="text-black dark:text-white">
+            Avatar
+          </TableHeadCell>
+          <TableHeadCell className="text-black dark:text-white">
+            Nom
+          </TableHeadCell>
+          <TableHeadCell className="text-black dark:text-white">
+            Poste
+          </TableHeadCell>
+          <TableHeadCell className="text-black dark:text-white">
+            Status
+          </TableHeadCell>
+          <TableHeadCell className="text-black dark:text-white">
+            Actions
+          </TableHeadCell>
         </TableRow>
       </TableHead>
       <TableBody className="divide-y">
         {presences?.map((m) => {
-          // Vérifie si ce joueur a déjà une stat
           const hasStats = statsJoueur?.some(
             (s) => s.idUtilisateur === m.idUtilisateur
           );
@@ -68,21 +75,26 @@ function ArrayPlayerStatusEventId({
                   />
                 ) : (
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300">
-                    <span className="text-lg font-medium text-gray-700">
+                    <span className="text-lg font-medium ">
                       {m.nom?.charAt(0).toUpperCase() || "?"}
                     </span>
                   </div>
                 )}
               </TableCell>
-              <TableCell>{m.nom}</TableCell>
-              <TableCell>{m.poste || "ENTRAINEUR"}</TableCell>
-              <TableCell>{m.statut}</TableCell>
+              <TableCell className="text-black dark:text-white">
+                {m.nom}
+              </TableCell>
+              <TableCell className="text-black dark:text-white">
+                {m.poste || "ENTRAINEUR"}
+              </TableCell>
+              <TableCell className="text-black dark:text-white">
+                {m.statut}
+              </TableCell>
               <TableCell>
                 {statsteamid.idstatsequipe && m.poste ? (
                   hasStats ? (
                     <div className="flex gap-2">
-<Button></Button>
-<Button></Button>
+                      <Button></Button>
                     </div>
                   ) : (
                     <ModalButtonAddPlayerStats
