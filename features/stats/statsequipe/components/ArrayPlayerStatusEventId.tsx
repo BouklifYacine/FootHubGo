@@ -15,6 +15,7 @@ import {
 } from "@/features/evenements/types/TypesEvenements";
 import { ModalButtonAddPlayerStats } from "../../statsjoueur/components/ModalButtonAddPlayerStats";
 import { Button } from "@/components/ui/button";
+import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 
 interface Props {
   presences: Presence[] | undefined;
@@ -25,8 +26,16 @@ interface Props {
   statsJoueur: StatsJoueur[] | undefined;
 }
 
-function ArrayPlayerStatusEventId({ presences, statsteamid, statsJoueur}: Props) {
-  
+function ArrayPlayerStatusEventId({
+  presences,
+  statsteamid,
+  statsJoueur,
+}: Props) {
+  const { data, isLoading } = useInfosClub();
+
+  const entraineur = data?.role === "ENTRAINEUR";
+
+  console.log(statsJoueur)
   return (
     <Table>
       <TableHead>
@@ -47,9 +56,11 @@ function ArrayPlayerStatusEventId({ presences, statsteamid, statsJoueur}: Props)
           <TableHeadCell className="text-black dark:text-white">
             Status
           </TableHeadCell>
-          <TableHeadCell className="text-black dark:text-white">
-            Actions
-          </TableHeadCell>
+          {entraineur && (
+            <TableHeadCell className="text-black dark:text-white">
+              Actions
+            </TableHeadCell>
+          )}
         </TableRow>
       </TableHead>
       <TableBody className="divide-y">
@@ -57,8 +68,6 @@ function ArrayPlayerStatusEventId({ presences, statsteamid, statsJoueur}: Props)
           const hasStats = statsJoueur?.some(
             (s) => s.idUtilisateur === m.idUtilisateur
           );
-
-          console.log(hasStats);
           return (
             <TableRow key={m.idUtilisateur}>
               <TableCell className="p-4">
@@ -90,20 +99,22 @@ function ArrayPlayerStatusEventId({ presences, statsteamid, statsJoueur}: Props)
               <TableCell className="text-black dark:text-white">
                 {m.statut}
               </TableCell>
-              <TableCell>
-                {statsteamid.idstatsequipe && m.poste ? (
-                  hasStats ? (
-                    <div className="flex gap-2">
-                      <Button></Button>
-                    </div>
-                  ) : (
-                    <ModalButtonAddPlayerStats
-                      playerid={m.idUtilisateur}
-                      eventid={statsteamid.eventid}
-                    />
-                  )
-                ) : null}
-              </TableCell>
+              {entraineur && (
+                <TableCell>
+                  {statsteamid.idstatsequipe && m.poste ? (
+                    hasStats ? (
+                      <div className="flex gap-2">
+                        <Button></Button>
+                      </div>
+                    ) : (
+                      <ModalButtonAddPlayerStats
+                        playerid={m.idUtilisateur}
+                        eventid={statsteamid.eventid}
+                      />
+                    )
+                  ) : null}
+                </TableCell>
+              )}
             </TableRow>
           );
         })}

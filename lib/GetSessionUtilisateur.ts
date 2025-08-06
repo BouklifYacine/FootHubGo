@@ -22,13 +22,11 @@ export async function GetSessionUtilisateur() {
         image: true,
         role: true,
         plan: true,
-        roleEquipe: true,
-        membreEquipe: {
+        MembreEquipe: {
           select: {
             id: true,
             role: true,
-            posteJoueur: true,
-            dateAdhesion: true,
+            poste: true,
             equipeId: true,
             equipe: {
               select: {

@@ -10,6 +10,7 @@ import { BoutonCreerStatsEquipe } from "@/features/stats/statsequipe/components/
 import { useSupprimerStatsEquipe } from "@/features/stats/statsequipe/hooks/useSupprimerStatsEquipe";
 import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
+import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 
 interface Props {
   infosmatch: {
@@ -40,6 +41,9 @@ const BadgeResultat = (resultat: $Enums.ResultatMatch | null | undefined) => {
 
 function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
   const { mutate, isPending } = useSupprimerStatsEquipe();
+  const { data, isLoading } = useInfosClub();
+
+  const entraineur = data?.role === "ENTRAINEUR";
 
   const DeleteStatsTeamOnClick = () => {
     if (!IdStatsandEvent.eventid) {
@@ -54,15 +58,17 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
 
   return (
     <div>
-      <div className="mb-2">
-  
-        {IdStatsandEvent.idstatsequipe ?  <Button
-            onClick={DeleteStatsTeamOnClick}
-            disabled={isPending}
-          >
-            {"Supprimer Stats"}
-          </Button> :  <BoutonCreerStatsEquipe  eventid={IdStatsandEvent.eventid} />}
-      </div>
+      {entraineur && (
+        <div className="mb-2">
+          {IdStatsandEvent.idstatsequipe ? (
+            <Button onClick={DeleteStatsTeamOnClick} disabled={isPending}>
+              {"Supprimer Stats"}
+            </Button>
+          ) : (
+            <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} />
+          )}
+        </div>
+      )}
 
       <div className="">
         <div className="border border-blue-500 rounded-2xl p-6 md:p-10 w-full md:w-3/4 lg:w-2/3 max-w-3xl h-full ">

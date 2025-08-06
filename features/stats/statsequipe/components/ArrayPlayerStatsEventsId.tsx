@@ -15,10 +15,11 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useSupprimerStatsJoueur } from "../../statsjoueur/hooks/useSupprimerStatsJoueur";
 import { BoutonSupprimer } from "@/components/Boutons/BoutonSupprimer";
+import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
-  eventId : string 
+  eventId: string;
 }
 
 const BadgeNote = (note: number) => {
@@ -28,15 +29,18 @@ const BadgeNote = (note: number) => {
   else return "bg-green-500";
 };
 
-function ArrayPlayerStatsEventsId({ statsJoueur,eventId }: Props) {
+function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
   const { mutate, isPending } = useSupprimerStatsJoueur();
+  const { data, isLoading } = useInfosClub();
 
-  const DeletePlayerStats = (
- playerId: string,
-    statisticId: string
-  ) => {
-    mutate({ eventId, joueurid : playerId, statistiqueid : statisticId });
+  const entraineur = data?.role === "ENTRAINEUR";
+
+  console.log("Role de la personne : " + data?.role);
+
+  const DeletePlayerStats = (playerId: string, statisticId: string) => {
+    mutate({ eventId, joueurid: playerId, statistiqueid: statisticId });
   };
+
 
   return (
     <>
@@ -138,14 +142,20 @@ function ArrayPlayerStatsEventsId({ statsJoueur,eventId }: Props) {
                   <p className="text-white"> {m.minutesJouees}</p>
                 </div>
               </TableCell>
-              <TableCell className="text-black dark:text-white">
-                <div className="flex gap-2">
-                  <BoutonSupprimer
-                    supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)}
-                    disabled={isPending}
-                  ></BoutonSupprimer>
-                </div>
-              </TableCell>
+              {entraineur && (
+                <TableCell className="text-black dark:text-white">
+                  <div className="flex gap-2">
+                    <BoutonSupprimer
+                      supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)}
+                      disabled={isPending}
+                    ></BoutonSupprimer>
+                        <BoutonSupprimer
+                      supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)}
+                      disabled={isPending}
+                    ></BoutonSupprimer>
+                  </div>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

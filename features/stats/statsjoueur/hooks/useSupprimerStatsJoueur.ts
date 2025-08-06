@@ -23,7 +23,7 @@ export function useSupprimerStatsJoueur() {
       return result;
     },
 
-    onMutate: async ({ eventId }: MutationParams) => {
+    onMutate: async ({ eventId, statistiqueid }: MutationParams) => {
       await queryClient.cancelQueries({
         queryKey: ["statistique", eventId],
       });
@@ -34,14 +34,18 @@ export function useSupprimerStatsJoueur() {
       ]);
 
       if (previousEvent) {
-        const updatedEvent: EvenementComplet = {
+        const filteredStats = previousEvent.statsJoueurs.filter(
+          (s) => s.id !== statistiqueid
+        );
+
+        const optimisticEvent: EvenementComplet = {
           ...previousEvent,
-          statsJoueurs: [],
+          statsJoueurs: filteredStats,
         };
 
         queryClient.setQueryData<EvenementComplet>(
           ["statistique", eventId],
-          updatedEvent
+          optimisticEvent
         );
       }
 

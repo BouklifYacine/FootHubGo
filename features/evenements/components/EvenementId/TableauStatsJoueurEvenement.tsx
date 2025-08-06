@@ -4,7 +4,6 @@ import { Presence, StatsJoueur } from "../../types/TypesEvenements";
 import { Button } from "@/components/ui/button";
 import ArrayPlayerStatsEventsId from "@/features/stats/statsequipe/components/ArrayPlayerStatsEventsId";
 import ArrayPlayerStatusEventId from "@/features/stats/statsequipe/components/ArrayPlayerStatusEventId";
-
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
   presences: Presence[] | undefined;
@@ -12,37 +11,38 @@ interface Props {
     idstatsequipe: string | undefined;
     eventid: string;
   };
-  
 }
 
-function TableauStatsJoueurEvenement({ statsJoueur, presences, IdStatsandEvent}: Props) {
+function TableauStatsJoueurEvenement({
+  statsJoueur,
+  presences,
+  IdStatsandEvent,
+}: Props) {
   const [affichage, setAffichage] = useState(false);
-  
+
   const GererAffichage = () => {
     setAffichage(!affichage);
   };
-
-  console.log(statsJoueur)
 
   return (
     <div className="overflow-x-auto mt-10">
       <div className="flex gap-2">
         <Button onClick={GererAffichage} className="mb-4">
           {" "}
-          {affichage ? "Tableau Stats" : "Tableau présence"}{" "}
+          {affichage && statsJoueur ? "Tableau Stats" : "Tableau présence"}{" "}
         </Button>
       </div>
 
       {affichage ? (
         <ArrayPlayerStatsEventsId
-        eventId={IdStatsandEvent.eventid}
+          eventId={IdStatsandEvent.eventid}
           statsJoueur={statsJoueur}
         ></ArrayPlayerStatsEventsId>
       ) : (
         <ArrayPlayerStatusEventId
           presences={presences}
           statsteamid={IdStatsandEvent}
-           statsJoueur={statsJoueur}
+          statsJoueur={statsJoueur}
         ></ArrayPlayerStatusEventId>
       )}
     </div>
