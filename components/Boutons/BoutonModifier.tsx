@@ -8,7 +8,7 @@ interface Props {
 
 function BoutonModifier({disabled , modifier} : Props) {
   return (
-    <Button disabled={disabled} onClick={modifier} className="rounded-full cursor-pointer text-white background-bg-red-500 " size='icon'>
+    <Button disabled={disabled} onClick={modifier} className="rounded-full cursor-pointer text-white dark:text-black background-bg-red-500 " size='icon'>
       <Pencil size={10}  />
     </Button>
   );

@@ -16,11 +16,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useSupprimerStatsJoueur } from "../../statsjoueur/hooks/useSupprimerStatsJoueur";
 import { BoutonSupprimer } from "@/components/Boutons/BoutonSupprimer";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
+import { ModalButtonEditPlayerStats } from "../../statsjoueur/components/ModalButtonUpdatePlayerStats";
 
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
   eventId: string;
 }
+
 
 const BadgeNote = (note: number) => {
   if (5 >= note) return "bg-red-600";
@@ -145,14 +147,8 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
               {entraineur && (
                 <TableCell className="text-black dark:text-white">
                   <div className="flex gap-2">
-                    <BoutonSupprimer
-                      supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)}
-                      disabled={isPending}
-                    ></BoutonSupprimer>
-                        <BoutonSupprimer
-                      supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)}
-                      disabled={isPending}
-                    ></BoutonSupprimer>
+                    <ModalButtonEditPlayerStats eventid={eventId} joueur={m}></ModalButtonEditPlayerStats>
+                    <BoutonSupprimer supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)} disabled={isPending}></BoutonSupprimer>
                   </div>
                 </TableCell>
               )}
