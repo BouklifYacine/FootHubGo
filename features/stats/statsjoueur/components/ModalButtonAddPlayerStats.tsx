@@ -91,7 +91,6 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Poste */}
           <div>
             <Label htmlFor="poste">Poste *</Label>
             <Select
@@ -119,7 +118,6 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-          {/* Buts */}
           <div>
             <Label htmlFor="buts">Buts*</Label>
             <Input
@@ -133,7 +131,6 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-          {/* Passes décisives */}
           <div>
             <Label htmlFor="passesdecisive">Passes décisives*</Label>
             <Input
@@ -149,7 +146,6 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-          {/* Minutes jouées */}
           <div>
             <Label htmlFor="minutesJouees">Minutes jouées*</Label>
             <Input
@@ -165,7 +161,6 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-          {/* Note */}
           <div>
             <Label htmlFor="note">Note*</Label>
             <Input
@@ -180,7 +175,6 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-          {/* Titulaire */}
           <div className="flex items-center space-x-2">
             <Checkbox
               id="titulaire"

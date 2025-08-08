@@ -79,7 +79,22 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (isOpen) {
+          reset({
+            poste: joueur.poste,
+            buts: joueur.buts,
+            passesdecisive: joueur.passesdecisive,
+            minutesJouees: joueur.minutesJouees,
+            note: joueur.note,
+            titulaire: joueur.titulaire,
+          });
+        }
+      }}
+    >
       <DialogTrigger asChild>
         <Button
           variant="outline"
@@ -100,7 +115,6 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Poste */}
           <div>
             <Label htmlFor="poste">Poste *</Label>
             <Select
@@ -128,7 +142,7 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
             )}
           </div>
 
-          {/* Buts */}
+ 
           <div>
             <Label htmlFor="buts">Buts*</Label>
             <Input
@@ -142,7 +156,7 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
             )}
           </div>
 
-          {/* Passes décisives */}
+ 
           <div>
             <Label htmlFor="passesdecisive">Passes décisives*</Label>
             <Input
@@ -158,7 +172,7 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
             )}
           </div>
 
-          {/* Minutes jouées */}
+
           <div>
             <Label htmlFor="minutesJouees">Minutes jouées*</Label>
             <Input
@@ -174,7 +188,7 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
             )}
           </div>
 
-          {/* Note */}
+
           <div>
             <Label htmlFor="note">Note*</Label>
             <Input
@@ -189,7 +203,7 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
             )}
           </div>
 
-          {/* Titulaire */}
+
           <div className="flex items-center space-x-2">
             <Checkbox
               id="titulaire"
