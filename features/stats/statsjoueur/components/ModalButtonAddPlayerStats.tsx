@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Dialog,
   DialogTrigger,
@@ -164,14 +165,13 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-       
-
           {/* Note */}
           <div>
             <Label htmlFor="note">Note*</Label>
             <Input
               id="note"
               type="number"
+              step="0.1"
               {...register("note")}
               className={errors.note ? "border-red-500" : ""}
             />
@@ -180,12 +180,12 @@ export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
             )}
           </div>
 
-             {/* Titulaire */}
+          {/* Titulaire */}
           <div className="flex items-center space-x-2">
             <Checkbox
               id="titulaire"
               checked={watch("titulaire")}
-             onCheckedChange={(checked) => setValue("titulaire", !!checked)}
+              onCheckedChange={(checked) => setValue("titulaire", !!checked)}
             />
             <Label htmlFor="titulaire">Titulaire</Label>
             {errors.titulaire && (
