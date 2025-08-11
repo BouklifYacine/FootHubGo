@@ -8,11 +8,11 @@ export async function GET(request: NextRequest) {
     headers: await headers(),
   });
 
-  const userId = session?.user.id;
+  const userId = session?.user.id
 
   if (!userId)
     return NextResponse.json(
-      { message: "Vous devez être connecté pour créer un événement." },
+      { message: "Vous devez être connecté pour voir vos statistiques." },
       { status: 403 }
     );
 

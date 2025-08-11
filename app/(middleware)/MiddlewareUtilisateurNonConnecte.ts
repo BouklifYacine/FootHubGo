@@ -10,4 +10,6 @@ export async function MiddlewareUtilisateurNonConnecte() {
   if (!session?.session.id || !session?.session.token) {
     redirect("/");
   }
+
+  return session
 }

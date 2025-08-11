@@ -101,7 +101,7 @@ const data = {
     },
     {
       title: "Statistiques",
-      url: "#",
+      url: "/dashboardfoothub/statistiques",
       icon: ChartNoAxesCombined,
       // items: [
       //   {
