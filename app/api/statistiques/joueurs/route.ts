@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     headers: await headers(),
   });
 
-  const userId = session?.user.id
+  const userId = session?.user.id;
 
   if (!userId)
     return NextResponse.json(
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       ? ((totalpassedecisive / totalmatch) * 100).toFixed(2)
       : 0;
   const GA90 =
-    tempsjouer > 0 ? ((totalcontribution / tempsjouer) * 90).toFixed(2) : 0;
+    tempsjouer > 0 ? ((totalcontribution / tempsjouer) * 90).toFixed(1) : 0;
   const Buts90 =
     tempsjouer > 0 ? ((totalbuts / tempsjouer) * 90).toFixed(2) : 0;
   const PasseDecisives90 =
