@@ -1,5 +1,5 @@
 import { MiddlewareUtilisateurNonConnecte } from "@/app/(middleware)/MiddlewareUtilisateurNonConnecte";
-import BlockStatsJoueur from "@/features/stats/statsjoueur/components/teststats";
+import BlockStatsClub from "@/features/stats/stats/components/BlockStatsClub";
 import React from "react";
 
 async function StatistiquePage() {
@@ -10,7 +10,7 @@ async function StatistiquePage() {
     <div className="">
       
       
-      <BlockStatsJoueur></BlockStatsJoueur>
+      <BlockStatsClub></BlockStatsClub>
     </div>
   );
 }

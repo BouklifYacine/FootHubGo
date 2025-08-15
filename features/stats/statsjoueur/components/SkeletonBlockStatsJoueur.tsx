@@ -3,13 +3,12 @@
 import React from "react";
 import { Bluetooth } from "lucide-react";
 
-function SkeletonBlockStatsJoueur() {
+function SkeletonBlockStats() {
   return (
     <div className="flex flex-wrap mt-5 justify-evenly">
       {/* Bloc 1 */}
       <div className="border w-[400px] border-gray-400 rounded-xl animate-pulse bg-gray-100">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} className="text-gray-300" />
           <div className="h-7 w-32 bg-gray-300 rounded ml-2" />
         </div>
         <div className="flex items-center">
@@ -22,7 +21,7 @@ function SkeletonBlockStatsJoueur() {
       {/* Bloc 2 */}
       <div className="border w-[400px] border-gray-400 rounded-xl animate-pulse bg-gray-100">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} className="text-gray-300" />
+
           <div className="h-7 w-32 bg-gray-300 rounded ml-2" />
         </div>
         <div className="flex items-center">
@@ -35,7 +34,7 @@ function SkeletonBlockStatsJoueur() {
       {/* Bloc 3 */}
       <div className="border w-[400px] border-gray-400 rounded-xl animate-pulse bg-gray-100">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} className="text-gray-300" />
+
           <div className="h-7 w-32 bg-gray-300 rounded ml-2" />
         </div>
         <div className="flex items-center">
@@ -48,7 +47,7 @@ function SkeletonBlockStatsJoueur() {
       {/* Bloc 4 */}
       <div className="border w-[400px] border-gray-400 rounded-xl animate-pulse bg-gray-100">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} className="text-gray-300" />
+
           <div className="h-7 w-32 bg-gray-300 rounded ml-2" />
         </div>
         <div className="flex items-center">
@@ -61,7 +60,7 @@ function SkeletonBlockStatsJoueur() {
       {/* Bloc 5 */}
       <div className="border w-[400px] border-gray-400 rounded-xl animate-pulse bg-gray-100">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} className="text-gray-300" />
+
           <div className="h-7 w-32 bg-gray-300 rounded ml-2" />
         </div>
         <div className="flex items-center">
@@ -75,4 +74,4 @@ function SkeletonBlockStatsJoueur() {
   );
 }
 
-export default SkeletonBlockStatsJoueur;
+export default SkeletonBlockStats;
