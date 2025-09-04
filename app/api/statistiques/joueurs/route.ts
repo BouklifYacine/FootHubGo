@@ -42,21 +42,17 @@ export async function GET(request: NextRequest) {
     (s) => s.titulaire === true
   ).length;
   const pourcentageTitulaire =
-    nombrematchtitulaire > 0
-      ? ((nombrematchtitulaire / totalmatch) * 100).toFixed(0)
-      : 0;
+    Number(nombrematchtitulaire > 0 ? ((nombrematchtitulaire / totalmatch) * 100).toFixed(0): 0);
   const pourcentagebutparmatch =
-    totalbuts > 0 ? ((totalbuts / totalmatch)).toFixed(2) : 0;
+    Number(totalbuts > 0 ? ((totalbuts / totalmatch)).toFixed(2) : 0);
   const pourcentagepassedeciviseparmatch =
-    totalpassedecisive > 0
-      ? ((totalpassedecisive / totalmatch) * 100).toFixed(2)
-      : 0;
+    Number(totalpassedecisive > 0 ? ((totalpassedecisive / totalmatch)).toFixed(2): 0);
   const GA90 =
-    tempsjouer > 0 ? ((totalcontribution / tempsjouer) * 90).toFixed(1) : 0;
+    Number(tempsjouer > 0 ? ((totalcontribution / tempsjouer) * 90).toFixed(2) : 0);
   const Buts90 =
-    tempsjouer > 0 ? ((totalbuts / tempsjouer) * 90).toFixed(2) : 0;
+    Number(tempsjouer > 0 ? ((totalbuts / tempsjouer) * 90).toFixed(2) : 0);
   const PasseDecisives90 =
-    tempsjouer > 0 ? ((totalpassedecisive / tempsjouer) * 90).toFixed(2) : 0;
+    Number(tempsjouer > 0 ? ((totalpassedecisive / tempsjouer) * 90).toFixed(2) : 0);
 
   return NextResponse.json({
     statsjoueur: {

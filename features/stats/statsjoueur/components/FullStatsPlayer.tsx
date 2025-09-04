@@ -1,6 +1,6 @@
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
-import { StatistiqueJoueur } from '../../statsjoueur/interface-types/interfacetype'
+import { StatistiqueJoueur } from '../interface-types/interfacetype'
 
 interface Props {
     statsJoueurData: StatistiqueJoueur | undefined
@@ -71,14 +71,14 @@ function FullStatsPlayer({ statsJoueurData }: Props) {
 
                 <div className="flex gap-2 items-center">
                     <Badge className="bg-zinc-800 rounded-sm text-white text-sm w-12 h-6 flex items-center justify-center">
-                        {typeof stats.pourcentagebutparmatch === 'number' ? `${stats.pourcentagebutparmatch}%` : stats.pourcentagebutparmatch ?? "-"}
+                        {stats.pourcentagebutparmatch ?? "-"}
                     </Badge>
                     <p className="tracking-tight"> Buts/match</p>
                 </div>
 
                 <div className="flex gap-2 items-center">
                     <Badge className="bg-zinc-800 rounded-sm text-white text-sm w-12 h-6 flex items-center justify-center">
-                        {typeof stats.pourcentagepassedeciviseparmatch === 'number' ? `${stats.pourcentagepassedeciviseparmatch}%` : stats.pourcentagepassedeciviseparmatch ?? "-"}
+                        {stats.pourcentagepassedeciviseparmatch ?? "-"}
                     </Badge>
                     <p className="tracking-tight"> Passes déc./match</p>
                 </div>
