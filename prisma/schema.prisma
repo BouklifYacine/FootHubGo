@@ -7,9 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ==============================================
-// MODÈLES CORE
-// ==============================================
+
 
 model User {
   id               String              @id @default(cuid())

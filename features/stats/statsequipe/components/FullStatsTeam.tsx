@@ -1,20 +1,22 @@
 "use client";
 
-import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import React from "react";
-import { UseStatistiqueEquipeID } from "../hooks/useStatistiqueEquipe";
 import { Badge } from "@/components/ui/badge";
+import { StatistiqueEquipeID } from "../interface/InterfaceStatsEquipe";
 
-function FullStatsTeam() {
-  const { data } = useInfosClub();
-  const { data: StatsEquipeData, isLoading: StatsEquipeIsLoading } =
-    UseStatistiqueEquipeID(data?.equipe.id);
+interface Props {
+  StatsEquipeData : StatistiqueEquipeID | undefined 
+}
 
-  const stats = StatsEquipeData?.statsequipe;
+function FullStatsTeam({StatsEquipeData} : Props) {
+
+  const stats = StatsEquipeData?.statsequipe
+
+  console.log("chab les stats + " + stats)
 
   return (
     <div className="flex gap-10">
-      {/* Première colonne - Statistiques générales */}
+    
       <div className="flex flex-col gap-4">
         <div className="flex gap-2 items-center">
           <Badge className="bg-zinc-800 rounded-sm text-white text-sm w-12 h-6 flex items-center justify-center font-light">
@@ -80,7 +82,6 @@ function FullStatsTeam() {
         </div>
       </div>
 
-      {/* Deuxième colonne - Statistiques détaillées */}
       <div className="flex flex-col gap-4">
         <div className="flex gap-2 items-center">
           <Badge className="bg-zinc-800 rounded-sm text-white text-sm w-12 h-6 flex items-center justify-center">

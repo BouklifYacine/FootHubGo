@@ -4,8 +4,13 @@ import React from "react";
 import { Bluetooth, TrendingUp } from "lucide-react";
 import { UseStatistiqueJoueur } from "../hooks/useStatistiquesJoueur";
 import SkeletonBlockStats from "./SkeletonBlockStatsJoueur";
+import { StatistiqueJoueur } from "../interface-types/interfacetype";
 
-function BlockStatsJoueur() {
+interface Props {
+  statsJoueurData: StatistiqueJoueur | undefined
+}
+
+function BlockStatsJoueur({statsJoueurData} : Props) {
   const { data, isLoading } = UseStatistiqueJoueur();
 
   const {
@@ -14,7 +19,7 @@ function BlockStatsJoueur() {
     totalpassedecisive,
     notemoyenne,
     GA90,
-  } = data?.statsjoueur ?? {};
+  } = statsJoueurData?.statsjoueur ?? {};
 
   if (isLoading) return <SkeletonBlockStats />;
   if (!data || data.statsjoueur.totalmatch === 0)

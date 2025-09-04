@@ -1,17 +1,14 @@
 import { MiddlewareUtilisateurNonConnecte } from "@/app/(middleware)/MiddlewareUtilisateurNonConnecte";
 import BlockStatsClub from "@/features/stats/stats/components/BlockStatsClub";
+import ComponentsPageStats from "@/features/stats/statsequipe/components/ComponentsPageStats";
 import FullStatsTeam from "@/features/stats/statsequipe/components/FullStatsTeam";
 import React from "react";
 
 async function StatistiquePage() {
-  const user = await MiddlewareUtilisateurNonConnecte();
-
-  console.log(user.user.id);
+  await MiddlewareUtilisateurNonConnecte();
   return (
     <div className="">
-      <BlockStatsClub></BlockStatsClub>
-      <FullStatsTeam></FullStatsTeam>
-      
+    <ComponentsPageStats></ComponentsPageStats>
     </div>
   );
 }
