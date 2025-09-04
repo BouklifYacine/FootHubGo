@@ -43,10 +43,10 @@ export async function GET(request: NextRequest) {
   ).length;
   const pourcentageTitulaire =
     nombrematchtitulaire > 0
-      ? ((nombrematchtitulaire / totalmatch) * 100).toFixed(2)
+      ? ((nombrematchtitulaire / totalmatch) * 100).toFixed(0)
       : 0;
   const pourcentagebutparmatch =
-    totalbuts > 0 ? ((totalbuts / totalmatch) * 100).toFixed(2) : 0;
+    totalbuts > 0 ? ((totalbuts / totalmatch)).toFixed(2) : 0;
   const pourcentagepassedeciviseparmatch =
     totalpassedecisive > 0
       ? ((totalpassedecisive / totalmatch) * 100).toFixed(2)

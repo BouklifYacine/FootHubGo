@@ -8,11 +8,12 @@ import { FullStatsTeamSkeleton } from "./FullStatsTeamSkeleton";
 import BlockStatsJoueur from "@/features/stats/statsjoueur/components/BlockStatsJoueur";
 import BlockStatsEquipe from "@/features/stats/statsequipe/components/BlockStatsEquipe";
 import FullStatsTeam from "./FullStatsTeam";
+import FullStatsPlayer from "./FullStatsPlayer";
 
 function ComponentsPageStats() {
   const { data: clubData, isLoading: clubLoading } = useInfosClub();
   const { data: StatsEquipeData, isLoading: statsEquipeLoading } = UseStatistiqueEquipeID(clubData?.equipe.id);
-  const { data: statsJoueurData, isLoading: statsJoueurLoading } =  UseStatistiqueJoueur();
+  const { data: statsJoueurData, isLoading: statsJoueurLoading } = UseStatistiqueJoueur();
 
   const isLoading = clubLoading || statsEquipeLoading || statsJoueurLoading;
 
@@ -31,7 +32,10 @@ function ComponentsPageStats() {
   return (
     <>
       {role === "JOUEUR" ? (
-        <BlockStatsJoueur statsJoueurData={statsJoueurData} />
+        <div>
+          <BlockStatsJoueur statsJoueurData={statsJoueurData} />
+          <FullStatsPlayer statsJoueurData={statsJoueurData}></FullStatsPlayer>
+        </div>
       ) : (
         <>
           {idEquipe ? (
