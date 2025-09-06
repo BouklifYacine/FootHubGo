@@ -34,66 +34,56 @@ function BlockStatsJoueur({statsJoueurData} : Props) {
       {/* Total Buts */}
       <div className="border w-[400px] border-gray-400 rounded-xl">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} />
+         
           <p className="text-2xl">Total Buts</p>
         </div>
         <div className="flex items-center">
           <p className="p-3 text-4xl">{totalbuts}</p>
-          <div className="bg-green-300 rounded-lg p-1">
-            <TrendingUp className="text-green-500" size={17} />
-          </div>
+        
         </div>
       </div>
       {/* Total Matchs */}
       <div className="border w-[400px] border-gray-400 rounded-xl">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} />
+          
           <p className="text-2xl">Total Matchs</p>
         </div>
         <div className="flex items-center">
           <p className="p-3 text-4xl">{totalmatch}</p>
-          <div className="bg-green-300 rounded-lg p-1">
-            <TrendingUp className="text-green-500" size={17} />
-          </div>
+       
         </div>
       </div>
       {/* Note moyenne */}
       <div className="border w-[400px] border-gray-400 rounded-xl">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} />
+     
           <p className="text-2xl">Note moyenne</p>
         </div>
         <div className="flex items-center">
           <p className="p-3 text-4xl">{notemoyenne}</p>
-          <div className="bg-green-300 rounded-lg p-1">
-            <TrendingUp className="text-green-500" size={17} />
-          </div>
+          
         </div>
       </div>
       {/* Total Passes décisives */}
       <div className="border w-[400px] border-gray-400 rounded-xl">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} />
+       
           <p className="text-2xl">Total Passes décisives</p>
         </div>
         <div className="flex items-center">
           <p className="p-3 text-4xl">{totalpassedecisive}</p>
-          <div className="bg-green-300 rounded-lg p-1">
-            <TrendingUp className="text-green-500" size={17} />
-          </div>
+       
         </div>
       </div>
       {/* GA */}
       <div className="border w-[400px] border-gray-400 rounded-xl">
         <div className="flex gap-0.5 p-3 items-center">
-          <Bluetooth size={26} />
+        
           <p className="text-2xl">GA</p>
         </div>
         <div className="flex items-center">
           <p className="p-3 text-4xl">{GA90}</p>
-          <div className="bg-green-300 rounded-lg p-1">
-            <TrendingUp className="text-green-500" size={17} />
-          </div>
+        
         </div>
       </div>
     </div>

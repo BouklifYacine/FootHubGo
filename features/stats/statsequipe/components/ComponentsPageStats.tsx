@@ -10,6 +10,8 @@ import BlockStatsEquipe from "@/features/stats/statsequipe/components/BlockStats
 import FullStatsTeam from "./FullStatsTeam";
 import FullStatsPlayer from "../../statsjoueur/components/FullStatsPlayer";
 import ChartsStatsPlayer from "../../statsjoueur/components/ChartsStatsPlayer";
+import TeamInfo from "./TeamInfo";
+import PlayerInfo from "../../statsjoueur/components/PlayerInfo";
 
 function ComponentsPageStats() {
   const { data: clubData, isLoading: clubLoading } = useInfosClub();
@@ -37,6 +39,7 @@ function ComponentsPageStats() {
           <BlockStatsJoueur statsJoueurData={statsJoueurData} />
           <FullStatsPlayer statsJoueurData={statsJoueurData}></FullStatsPlayer>
            <ChartsStatsPlayer statsJoueurData={statsJoueurData}></ChartsStatsPlayer>
+           <PlayerInfo></PlayerInfo>
         </div>
       ) : (
         <>
@@ -44,6 +47,7 @@ function ComponentsPageStats() {
             <>
               <BlockStatsEquipe StatsEquipeData={StatsEquipeData} />
               <FullStatsTeam StatsEquipeData={StatsEquipeData} />
+              <TeamInfo></TeamInfo>
             </>
           ) : (
             <p className="text-center text-4xl">
