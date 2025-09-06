@@ -12,8 +12,6 @@ function FullStatsTeam({StatsEquipeData} : Props) {
 
   const stats = StatsEquipeData?.statsequipe
 
-  console.log("chab les stats + " + stats)
-
   return (
     <div className="flex gap-10">
     
