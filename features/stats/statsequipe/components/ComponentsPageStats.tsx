@@ -18,6 +18,8 @@ function ComponentsPageStats() {
   const { data: StatsEquipeData, isLoading: statsEquipeLoading } = UseStatistiqueEquipeID(clubData?.equipe.id);
   const { data: statsJoueurData, isLoading: statsJoueurLoading } = UseStatistiqueJoueur();
 
+  const TeamName = clubData?.equipe.nom
+
   const isLoading = clubLoading || statsEquipeLoading || statsJoueurLoading;
 
   if (isLoading) {
@@ -35,19 +37,23 @@ function ComponentsPageStats() {
   return (
     <>
       {role === "JOUEUR" ? (
-        <div>
-          <BlockStatsJoueur statsJoueurData={statsJoueurData} />
-          <FullStatsPlayer statsJoueurData={statsJoueurData}></FullStatsPlayer>
+     <div className="">
+          <div className="  min-h-screen flex flex-col md:flex-row justify-evenly gap-4 items-center ">
+            <PlayerInfo statsJoueurData={statsJoueurData}></PlayerInfo>
            <ChartsStatsPlayer statsJoueurData={statsJoueurData}></ChartsStatsPlayer>
-           <PlayerInfo></PlayerInfo>
-        </div>
+              <FullStatsPlayer statsJoueurData={statsJoueurData}></FullStatsPlayer>
+          </div>
+          </div>
+     
       ) : (
         <>
           {idEquipe ? (
             <>
-              <BlockStatsEquipe StatsEquipeData={StatsEquipeData} />
+            <div>
+              {/* <BlockStatsEquipe StatsEquipeData={StatsEquipeData} /> */}
               <FullStatsTeam StatsEquipeData={StatsEquipeData} />
-              <TeamInfo></TeamInfo>
+              <TeamInfo StatsEquipeData={StatsEquipeData} TeamName={TeamName}></TeamInfo>
+              </div>
             </>
           ) : (
             <p className="text-center text-4xl">

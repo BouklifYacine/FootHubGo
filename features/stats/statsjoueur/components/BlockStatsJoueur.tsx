@@ -30,7 +30,7 @@ function BlockStatsJoueur({statsJoueurData} : Props) {
     );
 
   return (
-    <div className="flex flex-wrap mt-5 justify-evenly">
+    <div className="flex flex-wrap mt-5 gap-3 justify-evenly">
       {/* Total Buts */}
       <div className="border w-[400px] border-gray-400 rounded-xl">
         <div className="flex gap-0.5 p-3 items-center">
