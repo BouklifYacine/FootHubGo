@@ -1,13 +1,13 @@
 import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 type StatWithSum = {
   userId: string;
   _sum: {
-    buts?: number | null; 
-    passesdecisive?: number | null; 
+    buts?: number | null;
+    passesdecisive?: number | null;
   };
 };
 
@@ -42,8 +42,7 @@ export async function GET() {
       return NextResponse.json("Vous n'etes pas membre du club", {
         status: 400,
       });
-
-    const Coach = TeamMember.role === "ENTRAINEUR";
+;
     const Player = TeamMember.role === "JOUEUR";
 
     const includePlayerStats = Player
@@ -53,26 +52,26 @@ export async function GET() {
             where: { userId: id },
           },
         }
-      : {}; 
+      : {};
 
     const TeamResultWithPlayerStats = await prisma.evenement.findMany({
       where: {
         equipeId: TeamMember.equipeId,
         statEquipe: { isNot: null },
       },
-        select: {  
-        lieu: true,            
-        typeEvenement: true,   
-        dateDebut: true,       
-        statEquipe: {          
+      select: {
+        lieu: true,
+        typeEvenement: true,
+        dateDebut: true,
+        statEquipe: {
           select: {
-            resultatMatch: true,  
-            adversaire: true,     
-            butsMarques: true,    
-            butsEncaisses: true   
+            resultatMatch: true,
+            adversaire: true,
+            butsMarques: true,
+            butsEncaisses: true,
           },
         },
-        ...includePlayerStats, 
+        ...includePlayerStats,
       },
       orderBy: {
         dateDebut: "desc",
@@ -88,7 +87,7 @@ export async function GET() {
       select: {
         id: true,
         typeEvenement: true,
-        dateDebut: true,     
+        dateDebut: true,
         lieu: true,
       },
       orderBy: { dateDebut: "asc" },
@@ -136,13 +135,29 @@ export async function GET() {
       }));
     };
 
+    const buteursWithNames = addPlayerNames(topGoalScorer, teamPlayers);
+    const passeursWithNames = addPlayerNames(TopPasseur, teamPlayers);
+
     return NextResponse.json({
-      role: TeamMember.role,
-      FiveLastResults: FiveLastResults,
-      ThreeNextEvents: ThreeNextEvents,
-      TotalTeamMembers: TotalTeamMembers,
-      topScorers: addPlayerNames(topGoalScorer, teamPlayers),
-      topAssisters: addPlayerNames(TopPasseur, teamPlayers),
+      user: {
+        role: TeamMember.role,
+      },
+
+      team: {
+        name: TeamMember.equipe.nom,
+        level: TeamMember.equipe.niveau,
+        totalMembers: TotalTeamMembers,
+      },
+
+      matches: {
+        recent: FiveLastResults,
+        upcoming: ThreeNextEvents,
+      },
+
+      leaderboards: {
+        topScorers: buteursWithNames, 
+        topAssisters: passeursWithNames, 
+      },
     });
   } catch (error) {
     console.error("Erreur lors de la récupération infos de l'accueil", error);
