@@ -7,20 +7,20 @@ const userId = "Ll4DUDp3JWKDJvhGorreUad4dXdbzTC9";
 
 export async function GET() {
   try {
-    //   const session = await auth.api.getSession({
-    //     headers: await headers(),
-    //   });
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      });
     
-    // if (!session?.user?.id) {
-    //   return NextResponse.json(
-    //     { message: "Vous devez être connecté pour accéder à vos présences" },
-    //     { status: 401 }
-    //   );
-    // }
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { message: "Vous devez être connecté pour accéder à vos présences" },
+        { status: 401 }
+      );
+    }
 
-    // const idUtilisateur = session.user.id;
+    const idUtilisateur = session.user.id;
 
-       const idUtilisateur = "WXy4jylVHogXq4omfvR0gaGPuYdospk0"
+
 
     // Récupérer toutes les présences de l'utilisateur
     const presences = await prisma.presence.findMany({
