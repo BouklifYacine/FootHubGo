@@ -1,14 +1,29 @@
-"use client"
-import React from 'react'
-import { UseDataAccueil } from '../hooks/UseDataAccueil'
+"use client";
+import React from "react";
+import { UseDataAccueil } from "../hooks/UseDataAccueil";
+import NoClub from "./NoClub";
+import ResultLastFiveMatches from "./ResultLastFiveMatches";
 
-function ComposantPrincipalAccueil() {
+function ComposantPrincipalAccueil() {;
 
-  const {data, isLoading} = UseDataAccueil()
-  console.log(data)
-  return (
-    <div>ComposantPrincipal</div>
-  )
+  const { data, isLoading } = UseDataAccueil();
+  const Coach = data?.role === "ENTRAINEUR"
+  const Player = data?.role === "JOUEUR";
+  const HasNoClub = data?.role === "SANSCLUB";
+
+  console.log(data?.team.level);
+
+  if (HasNoClub) {
+    return <NoClub></NoClub>;
+  } else if (Coach) {
+    return (  
+      <div>
+       <ResultLastFiveMatches></ResultLastFiveMatches>
+      </div>
+    );
+  } else {
+    return <div>ComposantPrincipal</div>;
+  }
 }
 
-export default ComposantPrincipalAccueil
+export default ComposantPrincipalAccueil;

@@ -41,7 +41,7 @@ export async function GET() {
     if (!TeamMember)
       return NextResponse.json("Vous n'etes pas membre du club", {
         status: 400,
-      });
+ });
 ;
     const Player = TeamMember.role === "JOUEUR";
 
@@ -139,10 +139,9 @@ export async function GET() {
     const passeursWithNames = addPlayerNames(TopPasseur, teamPlayers);
 
     return NextResponse.json({
-      user: {
+    
         role: TeamMember.role,
-      },
-
+  
       team: {
         name: TeamMember.equipe.nom,
         level: TeamMember.equipe.niveau,
