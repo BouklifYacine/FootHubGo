@@ -7,18 +7,19 @@ import ResultLastFiveMatches from "./ResultLastFiveMatches";
 function ComposantPrincipalAccueil() {;
 
   const { data, isLoading } = UseDataAccueil();
+
   const Coach = data?.role === "ENTRAINEUR"
   const Player = data?.role === "JOUEUR";
   const HasNoClub = data?.role === "SANSCLUB";
 
-  console.log(data?.team.level);
+const recentmatch = data?.matches.recent
 
   if (HasNoClub) {
     return <NoClub></NoClub>;
   } else if (Coach) {
     return (  
       <div>
-       <ResultLastFiveMatches></ResultLastFiveMatches>
+       <ResultLastFiveMatches Role={data.role} recentmatch={recentmatch}></ResultLastFiveMatches>
       </div>
     );
   } else {

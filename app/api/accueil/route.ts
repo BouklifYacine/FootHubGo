@@ -41,8 +41,8 @@ export async function GET() {
     if (!TeamMember)
       return NextResponse.json("Vous n'etes pas membre du club", {
         status: 400,
- });
-;
+      });
+
     const Player = TeamMember.role === "JOUEUR";
 
     const includePlayerStats = Player
@@ -60,6 +60,7 @@ export async function GET() {
         statEquipe: { isNot: null },
       },
       select: {
+        id: true,             
         lieu: true,
         typeEvenement: true,
         dateDebut: true,
@@ -85,7 +86,7 @@ export async function GET() {
     const UpcomingEvents = await prisma.evenement.findMany({
       where: { equipeId: TeamMember.equipeId, dateDebut: { gte: currenDate } },
       select: {
-        id: true,
+        id: true,             
         typeEvenement: true,
         dateDebut: true,
         lieu: true,
@@ -103,7 +104,14 @@ export async function GET() {
 
     const teamPlayers = await prisma.membreEquipe.findMany({
       where: { equipeId: TeamMember.equipeId },
-      include: { user: { select: { id: true, name: true } } },
+      include: { 
+        user: { 
+          select: { 
+            id: true,          
+            name: true 
+          } 
+        } 
+      },
     });
 
     const PlayerIds = teamPlayers.map((p) => p.userId);
@@ -128,10 +136,10 @@ export async function GET() {
       stats: StatWithSum[],
       teamPlayers: TeamPlayer[]
     ) => {
-      return stats.map((stat) => ({
+      return stats.map((stat, index) => ({
+        id: stat.userId,       
         ...stat,
-        playerName: teamPlayers.find((p) => p.userId === stat.userId)?.user
-          ?.name,
+        playerName: teamPlayers.find((p) => p.userId === stat.userId)?.user?.name,
       }));
     };
 
@@ -139,9 +147,8 @@ export async function GET() {
     const passeursWithNames = addPlayerNames(TopPasseur, teamPlayers);
 
     return NextResponse.json({
-    
-        role: TeamMember.role,
-  
+      role: TeamMember.role,
+
       team: {
         name: TeamMember.equipe.nom,
         level: TeamMember.equipe.niveau,
@@ -149,12 +156,12 @@ export async function GET() {
       },
 
       matches: {
-        recent: FiveLastResults,
-        upcoming: ThreeNextEvents,
+        recent: FiveLastResults,       
+        upcoming: ThreeNextEvents,     
       },
 
       leaderboards: {
-        topScorers: buteursWithNames, 
+        topScorers: buteursWithNames,   
         topAssisters: passeursWithNames, 
       },
     });

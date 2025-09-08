@@ -1,6 +1,7 @@
 import { $Enums } from "@prisma/client";
 
 type PlayerLeaderboard = {
+  id: string;  
   userId: string;
   playerName?: string;           
   _sum: {
@@ -9,7 +10,8 @@ type PlayerLeaderboard = {
   };
 };
 
-type RecentMatch = {
+export type RecentMatch = {
+   id: string;  
   lieu: string | null;           
   typeEvenement: $Enums.TypeEvenement;
   dateDebut: string;           
