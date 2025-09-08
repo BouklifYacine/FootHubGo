@@ -5,10 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Send } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { RejoindreEquipeSchema } from "../schema/schemaRejoindreEquipe";
 import z from "zod";
 import { useRouter } from "next/navigation";
-import { useRejoindreEquipe } from "../hook/useRejoindreEquipe";
+import { useRejoindreEquipe } from "@/features/rejoindreclub/hook/useRejoindreEquipe";
+import { RejoindreEquipeSchema } from "@/features/rejoindreclub/schema/schemaRejoindreEquipe";
+
 
 type FormData = z.infer<typeof RejoindreEquipeSchema>;
 
