@@ -4,27 +4,29 @@ import { UseDataAccueil } from "../hooks/UseDataAccueil";
 import NoClub from "./NoClub";
 import ResultLastFiveMatches from "./ResultLastFiveMatches";
 
-function ComposantPrincipalAccueil() {;
-
+function ComposantPrincipalAccueil() {
   const { data, isLoading } = UseDataAccueil();
 
-  const Coach = data?.role === "ENTRAINEUR"
+  console.log(data?.matches.recent.map((p) => p.statsJoueur))
+
+  const Coach = data?.role === "ENTRAINEUR";
   const Player = data?.role === "JOUEUR";
   const HasNoClub = data?.role === "SANSCLUB";
 
-const recentmatch = data?.matches.recent
+  const recentmatch = data?.matches.recent;
+
+  if (isLoading) return "Ca charge ";
 
   if (HasNoClub) {
     return <NoClub></NoClub>;
-  } else if (Coach) {
-    return (  
-      <div>
-       <ResultLastFiveMatches Role={data.role} recentmatch={recentmatch}></ResultLastFiveMatches>
-      </div>
-    );
-  } else {
-    return <div>ComposantPrincipal</div>;
-  }
+  }  
+
+  return <>  <div>
+        <ResultLastFiveMatches
+          Role={data!.role}
+          recentmatch={recentmatch}
+        ></ResultLastFiveMatches>
+      </div></>
 }
 
 export default ComposantPrincipalAccueil;

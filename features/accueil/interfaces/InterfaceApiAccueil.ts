@@ -16,7 +16,7 @@ export type RecentMatch = {
   typeEvenement: $Enums.TypeEvenement;
   dateDebut: string;           
   statEquipe: {
-    resultatMatch: $Enums.ResultatMatch;
+    resultatMatch: $Enums.ResultatMatch | string;
     adversaire: string | null;
     butsMarques: number | null;
     butsEncaisses: number | null;
