@@ -25,24 +25,46 @@ function LeaderboardTeam({TopAssists,TopScorers} : Props) {
         </div>
       </div>
 
-     {TopAssists?.map((a) => (
-  <div key={a.id} className="flex justify-between mt-4 items-center">
-    <div className="flex gap-2">
-      <Image
-        alt="logo joueur"
-        src={a.playerImage || Logo}
-        width={50}
-        height={50}
-        className="rounded-full"
-      />
-      <div className="flex flex-col">
-        <p>{a.playerName}</p>
-        <p>{a.playerPosition}</p>
+  {ShowGoals ? (
+  TopScorers?.map((a) => (
+    <div key={a.id} className="flex justify-between mt-4 items-center">
+      <div className="flex gap-2">
+        <Image
+          alt="logo joueur"
+          src={a.playerImage || Logo}
+          width={50}
+          height={50}
+          className="rounded-full"
+        />
+        <div className="flex flex-col">
+          <p>{a.playerName}</p>
+          <p>{a.playerPosition}</p>
+        </div>
       </div>
+      <p>{a._sum.buts} {a._sum.buts != null && a._sum.buts > 1 ? "Buts" : "But"}</p>
     </div>
-    <p>{a._sum.passesdecisive} {a._sum.passesdecisive != null && a._sum.passesdecisive  > 1 ? "Passes" : "Passe"}</p>
-  </div>
-))}
+  ))
+) : (
+  TopAssists?.map((a) => (
+    <div key={a.id} className="flex justify-between mt-4 items-center">
+      <div className="flex gap-2">
+        <Image
+          alt="logo joueur"
+          src={a.playerImage || Logo}
+          width={50}
+          height={50}
+          className="rounded-full"
+        />
+        <div className="flex flex-col">
+          <p>{a.playerName}</p>
+          <p>{a.playerPosition}</p>
+        </div>
+      </div>
+      <p>{a._sum.passesdecisive} {a._sum.passesdecisive != null && a._sum.passesdecisive > 1 ? "Passes" : "Passe"}</p>
+    </div>
+  ))
+)}
+
 
     </div>
   );
