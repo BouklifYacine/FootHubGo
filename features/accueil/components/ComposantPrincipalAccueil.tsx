@@ -3,11 +3,10 @@ import React from "react";
 import { UseDataAccueil } from "../hooks/UseDataAccueil";
 import NoClub from "./NoClub";
 import ResultLastFiveMatches from "./ResultLastFiveMatches";
+import LeaderboardTeam from "./LeaderboardTeam";
 
 function ComposantPrincipalAccueil() {
   const { data, isLoading } = UseDataAccueil();
-
-  console.log(data?.matches.recent.map((p) => p.statsJoueur))
 
   const Coach = data?.role === "ENTRAINEUR";
   const Player = data?.role === "JOUEUR";
@@ -26,6 +25,7 @@ function ComposantPrincipalAccueil() {
           Role={data!.role}
           recentmatch={recentmatch}
         ></ResultLastFiveMatches>
+        <LeaderboardTeam></LeaderboardTeam>
       </div></>
 }
 
