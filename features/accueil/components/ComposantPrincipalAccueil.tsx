@@ -8,11 +8,12 @@ import LeaderboardTeam from "./LeaderboardTeam";
 function ComposantPrincipalAccueil() {
   const { data, isLoading } = UseDataAccueil();
 
-  const Coach = data?.role === "ENTRAINEUR";
-  const Player = data?.role === "JOUEUR";
   const HasNoClub = data?.role === "SANSCLUB";
-
   const recentmatch = data?.matches.recent;
+  
+  const TopScorers = data?.leaderboards.topScorers
+  const TopAssists = data?.leaderboards.topAssisters
+
 
   if (isLoading) return "Ca charge ";
 
@@ -25,7 +26,7 @@ function ComposantPrincipalAccueil() {
           Role={data!.role}
           recentmatch={recentmatch}
         ></ResultLastFiveMatches>
-        <LeaderboardTeam></LeaderboardTeam>
+        <LeaderboardTeam TopScorers={TopScorers} TopAssists={TopAssists} ></LeaderboardTeam>
       </div></>
 }
 

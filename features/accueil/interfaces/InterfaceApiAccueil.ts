@@ -1,14 +1,17 @@
 import { $Enums } from "@prisma/client";
 
-type PlayerLeaderboard = {
+export type PlayerLeaderboard = {
   id: string;  
   userId: string;
-  playerName?: string;           
+  playerName?: string;
+  playerImage?: string | null;              
+  playerPosition?: string | null;  
   _sum: {
     buts?: number | null;        
     passesdecisive?: number | null;
   };
 };
+
 
 export type RecentMatch = {
    id: string;  

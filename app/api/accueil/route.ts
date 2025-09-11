@@ -13,10 +13,13 @@ type StatWithSum = {
 
 type TeamPlayer = {
   userId: string;
+  poste: string | null;        
   user: {
     name: string;
+    image: string | null;      
   };
 };
+
 
 export async function GET() {
   try {
@@ -102,17 +105,21 @@ export async function GET() {
       },
     });
 
-    const teamPlayers = await prisma.membreEquipe.findMany({
-      where: { equipeId: TeamMember.equipeId },
-      include: { 
-        user: { 
-          select: { 
-            id: true,          
-            name: true 
-          } 
-        } 
-      },
-    });
+  const teamPlayers = await prisma.membreEquipe.findMany({
+  where: { equipeId: TeamMember.equipeId },
+  select: {                    
+    userId: true,              
+    poste: true,               
+    user: { 
+      select: { 
+        id: true,          
+        name: true, 
+        image: true,        
+      } 
+    } 
+  },
+});
+
 
     const PlayerIds = teamPlayers.map((p) => p.userId);
 
@@ -132,16 +139,22 @@ export async function GET() {
       take: 5,
     });
 
-    const addPlayerNames = (
-      stats: StatWithSum[],
-      teamPlayers: TeamPlayer[]
-    ) => {
-      return stats.map((stat, index) => ({
-        id: stat.userId,       
-        ...stat,
-        playerName: teamPlayers.find((p) => p.userId === stat.userId)?.user?.name,
-      }));
+   const addPlayerNames = (
+  stats: StatWithSum[],
+  teamPlayers: TeamPlayer[]
+) => {
+  return stats.map((stat) => {
+    const player = teamPlayers.find((p) => p.userId === stat.userId);
+    return {
+      id: stat.userId,       
+      ...stat,
+      playerName: player?.user?.name,
+      playerImage: player?.user?.image,    
+      playerPosition: player?.poste,       
     };
+  });
+};
+
 
     const buteursWithNames = addPlayerNames(topGoalScorer, teamPlayers);
     const passeursWithNames = addPlayerNames(TopPasseur, teamPlayers);
