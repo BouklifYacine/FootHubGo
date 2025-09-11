@@ -4,30 +4,45 @@ import { UseDataAccueil } from "../hooks/UseDataAccueil";
 import NoClub from "./NoClub";
 import ResultLastFiveMatches from "./ResultLastFiveMatches";
 import LeaderboardTeam from "./LeaderboardTeam";
+import StatsPrincipal from "./StatsPrincipal";
+import { useInfosClub } from "@/features/club/hooks/useinfosclub";
+import { UseStatistiqueEquipeID } from "@/features/stats/statsequipe/hooks/useStatistiqueEquipe";
+import { UseStatistiqueJoueur } from "@/features/stats/statsjoueur/hooks/useStatistiquesJoueur";
 
 function ComposantPrincipalAccueil() {
   const { data, isLoading } = UseDataAccueil();
+    const { data: clubData, isLoading: clubLoading } = useInfosClub();
+    const { data: StatsEquipeData, isLoading: statsEquipeLoading } = UseStatistiqueEquipeID(clubData?.equipe.id);
+    const { data: statsJoueurData, isLoading: statsJoueurLoading } = UseStatistiqueJoueur();
 
   const HasNoClub = data?.role === "SANSCLUB";
   const recentmatch = data?.matches.recent;
-  
-  const TopScorers = data?.leaderboards.topScorers
-  const TopAssists = data?.leaderboards.topAssisters
 
+  const TopScorers = data?.leaderboards.topScorers;
+  const TopAssists = data?.leaderboards.topAssisters;
 
   if (isLoading) return "Ca charge ";
 
   if (HasNoClub) {
     return <NoClub></NoClub>;
-  }  
+  }
 
-  return <>  <div>
+  return (
+    <>
+      {" "}
+      <div>
         <ResultLastFiveMatches
           Role={data!.role}
           recentmatch={recentmatch}
         ></ResultLastFiveMatches>
-        <LeaderboardTeam TopScorers={TopScorers} TopAssists={TopAssists} ></LeaderboardTeam>
-      </div></>
+        <LeaderboardTeam
+          TopScorers={TopScorers}
+          TopAssists={TopAssists}
+        ></LeaderboardTeam>
+        <StatsPrincipal statsJoueurData={statsJoueurData} StatsEquipeData={StatsEquipeData} Role={data!.role}></StatsPrincipal>
+      </div>
+    </>
+  );
 }
 
 export default ComposantPrincipalAccueil;

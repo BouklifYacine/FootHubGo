@@ -17,7 +17,7 @@ function LeaderboardTeam({TopAssists,TopScorers} : Props) {
 
   const [ShowGoals, setShowGoals] = useState(!false)
   return (
-    <div className="w-full max-w-2xl rounded-xl  p-4 border border-gray-200 shadow shadow-blue-500">
+    <div className="w-full max-w-2xl rounded-xl  p-4 border border-gray-200 shadow shadow-green-500">
       <div className="flex justify-between  ">
         <p className="text-lg tracking-tighter font-bold">{ShowGoals? "Classement Buteurs" : "Classement Passeurs"}</p>
         <div className="flex items-center gap-2">
