@@ -2,7 +2,7 @@ import React from 'react'
 
 function NextEventsClub() {
   return (
-    <div>NextEventsClub</div>
+    <div className='mt-10'>NextEventsClub</div>
   )
 }
 

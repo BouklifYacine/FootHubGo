@@ -15,15 +15,14 @@ interface Props {
 function StatsPrincipal({Role, statsJoueurData, StatsEquipeData} : Props) {
 
     const coach = Role === "ENTRAINEUR"
-    console.log(statsJoueurData)
 
     const statsPlayer = statsJoueurData?.statsjoueur
     const statsTeam = StatsEquipeData?.statsequipe
 
   return (
-    <div className="border border-gray-200 shadow-lg shadow-blue-500 max-w-2xl rounded-xl mt-10">
-      <Link href={"/dashboardfoothub/statistiques"} className="flex justify-end max-w-3xl hover:underline font-medium tracking-tight p-2 pr-4">Voir toute les stats</Link>
-    <div className=" max-w-3xl flex gap-10">
+    <div className="border border-gray-200 shadow-lg shadow-blue-500 max-w-lg rounded-3xl mt-10">
+      <Link href={"/dashboardfoothub/statistiques"} className="flex justify-end  hover:underline font-medium tracking-tight p-2 pr-4">Voir toute les stats</Link>
+    <div className="  flex gap-10">
     
       <div className="flex flex-col gap-7 p-4 "> 
         <div className=" border border-gray-200  rounded-2xl p-6"> 
