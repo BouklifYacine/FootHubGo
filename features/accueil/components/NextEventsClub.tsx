@@ -3,7 +3,7 @@ import { ApiAccueil } from "../interfaces/InterfaceApiAccueil";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, House, Timer } from "lucide-react";
+import { Calendar, House, MapPin, Timer } from "lucide-react";
 import LogoVS from "@/public/pngtree-fiery-vs-logo-battle-symbol-competition-icon-flame-clipart-png-image_15705733.png"
 import Image from "next/image";
 import LogoLiverpool from "@/public/Logo_FC_Liverpool.svg.png"
@@ -24,47 +24,55 @@ function NextEventsClub({ data, TeamName }: Props) {
 
   const FirstUpcomingMatch = UpcomingMatches ? UpcomingMatches[0] : undefined;
 
-  console.log(FirstUpcomingMatch?.adversaire);
+ 
+  const ColorBadgeEvent = (event : string) => {
+    if (event === "CHAMPIONNAT") return "bg-blue-400 text-white"
+    else if (event === "COUPE") return "bg-purple-400 text-white"
+    return
+  }
 
   return (
     <div className="border-2 border-gray-200 max-w-3xl rounded-3xl p-4">
       <div className="flex justify-between ">
         <p className="text-sm md:text-xl font-medium tracking-tighter">Prochain Match</p>
+         <p className="text-sm md:text-xl font-medium tracking-tighter flex items-center gap-1.5">  {FirstUpcomingMatch?.lieu} <MapPin size={21} /></p>
       </div>
 
-      <div className="flex items-center justify-center ">
-        <Badge className="flex gap-2 rounded-3xl p-2 px-4 ">
+      <div className="flex items-center justify-center gap-2 mt-2.5 ">
+        
           {" "}
-          <p className="flex items-center text-lg font-light gap-1">
-            <Calendar size={24} className="font-light" />
+          <p className="flex items-center text-md gap-1 md:text-lg text-xs ">
+            <Calendar size={18}  />
             {dayjs(FirstUpcomingMatch?.dateDebut).format("DD/MM/YYYY")}
           </p>
-          <p className="flex items-center text-lg font-light gap-1">
-            <Timer size={24} />
+          <p>|</p>
+          <p className="flex items-center text-md gap-1 md:text-lg text-xs">
+            <Timer size={18} />
             {dayjs(FirstUpcomingMatch?.dateDebut).format("H")}
             {"h"}
             {dayjs(FirstUpcomingMatch?.dateDebut).format("mm")}
           </p>
-          <p className="flex items-center text-lg font-light gap-1">
-            <House size={24} />
-            {FirstUpcomingMatch?.lieu}
-          </p>
-        </Badge>
+    
       </div>
 
       <div className="flex justify-center items-center gap-12 mt-6">
         <div className="flex flex-col items-center gap-2">
-      <Image src={LogoLiverpool} alt="logo vs" width={90} height={90}></Image>
-          <p className="font-medium text-xl tracking-tighter">{TeamName}</p>
+      <Image src={LogoLiverpool} alt="logo vs" className="w-[70px] h-[90px] md:w-[100px] md:h-[120px]"></Image>
+          <p className="font-medium text-sm md:text-xl tracking-tighter">{TeamName}</p>
          </div>
 
-         <Image src={LogoVS} alt="logo vs" width={75} height={75}></Image>
+         <Image src={LogoVS} alt="logo vs" className="w-[45px] h-[55px] md:w-[90px] md:h-[90px] "></Image>
 
        <div className="flex flex-col items-center gap-2">
-      <Image src={LogoLiverpool} alt="logo vs" width={90} height={90}></Image>
-          <p className="font-medium text-xl tracking-tighter">{FirstUpcomingMatch?.adversaire}</p>
+      <Image src={LogoLiverpool} alt="logo vs" className="w-[70px] h-[90px] md:w-[100px] md:h-[120px]"></Image>
+          <p className="font-medium text-sm md:text-xl tracking-tighter">{FirstUpcomingMatch?.adversaire}</p>
          </div>
+
+       
       </div>
+        <div className="flex items-center justify-center mt-2 mb-4">
+            <Badge className={`${ColorBadgeEvent(FirstUpcomingMatch?.typeEvenement || "")} text-xs md:text-sm rounded-full tracking-tighter font-medium`}><p>{FirstUpcomingMatch?.typeEvenement}</p></Badge>
+        </div>
     </div>
   );
 }
