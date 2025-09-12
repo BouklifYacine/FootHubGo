@@ -22,11 +22,9 @@ function ComposantPrincipalAccueil() {
   const HasNoClub = data?.role === "SANSCLUB";
   const recentmatch = data?.matches.recent;
 
-  console.log(data?.matches.recent)
-  console.log(data?.matches.upcoming)
-
   const TopScorers = data?.leaderboards.topScorers;
   const TopAssists = data?.leaderboards.topAssisters;
+  const TeamName = clubData?.equipe.nom
 
   if (isLoading) return "Ca charge ";
 
@@ -51,8 +49,8 @@ function ComposantPrincipalAccueil() {
           StatsEquipeData={StatsEquipeData}
           Role={data!.role}
         ></StatsPrincipal>
-        {/* <NextEventsClub></NextEventsClub> */}
-        <InfosTeamAccueil></InfosTeamAccueil>
+        <NextEventsClub data={data} TeamName={TeamName}></NextEventsClub>
+        <InfosTeamAccueil clubData={clubData} Role={data!.role} ></InfosTeamAccueil>
       </div>
     </>
   );

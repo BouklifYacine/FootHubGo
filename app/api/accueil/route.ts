@@ -93,6 +93,7 @@ export async function GET() {
         typeEvenement: true,
         dateDebut: true,
         lieu: true,
+        adversaire : true
       },
       orderBy: { dateDebut: "asc" },
     });

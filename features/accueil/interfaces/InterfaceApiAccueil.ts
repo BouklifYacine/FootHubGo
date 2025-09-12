@@ -34,6 +34,7 @@ type UpcomingEvent = {
   typeEvenement: $Enums.TypeEvenement;
   dateDebut: string;            
   lieu: string | null;
+  adversaire : string | undefined
 };
 
 

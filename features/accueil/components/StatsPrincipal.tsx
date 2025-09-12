@@ -20,7 +20,7 @@ function StatsPrincipal({Role, statsJoueurData, StatsEquipeData} : Props) {
     const statsTeam = StatsEquipeData?.statsequipe
 
   return (
-    <div className="border border-gray-200 shadow-lg shadow-blue-500 max-w-lg rounded-3xl mt-10">
+    <div className="border-2 border-gray-300  max-w-lg rounded-3xl mt-10">
       <Link href={"/dashboardfoothub/statistiques"} className="flex justify-end  hover:underline font-medium tracking-tight p-2 pr-4">Voir toute les stats</Link>
     <div className="  flex gap-10">
     

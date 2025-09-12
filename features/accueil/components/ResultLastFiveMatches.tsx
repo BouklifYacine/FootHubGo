@@ -86,7 +86,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto rounded-2xl lg:rounded-3xl border border-gray-300 shadow-lg shadow-blue-600">
+    <div className="w-full max-w-4xl mx-auto rounded-2xl lg:rounded-3xl border-2 border-gray-300 ">
       <div className="flex justify-between items-center p-3 sm:p-4 lg:p-6">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-medium tracking-tighter">
           5 derniers matchs
