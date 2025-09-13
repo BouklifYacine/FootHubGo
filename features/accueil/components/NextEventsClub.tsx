@@ -18,6 +18,9 @@ interface Props {
 function NextEventsClub({ data, TeamName }: Props) {
   const UpcomingEvents = data?.matches.upcoming;
 
+  const SliceEvents = UpcomingEvents?.slice(1,3)
+  console.log(SliceEvents)
+
   const UpcomingMatches = UpcomingEvents?.filter(
     (u) => u.typeEvenement === "CHAMPIONNAT" || u.typeEvenement === "COUPE"
   );
@@ -32,6 +35,7 @@ function NextEventsClub({ data, TeamName }: Props) {
   }
 
   return (
+    
     <div className="border-2 border-gray-200 max-w-3xl rounded-3xl p-4">
       <div className="flex justify-between ">
         <p className="text-sm md:text-xl font-medium tracking-tighter">Prochain Match</p>

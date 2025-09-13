@@ -24,7 +24,7 @@ function ComposantPrincipalAccueil() {
 
   const TopScorers = data?.leaderboards.topScorers;
   const TopAssists = data?.leaderboards.topAssisters;
-  const TeamName = clubData?.equipe.nom
+  const TeamName = clubData?.equipe.nom;
 
   if (isLoading) return "Ca charge ";
 
@@ -33,26 +33,25 @@ function ComposantPrincipalAccueil() {
   }
 
   return (
-    <>
-      {" "}
-      <div>
-        <ResultLastFiveMatches
-          Role={data!.role}
-          recentmatch={recentmatch}
-        ></ResultLastFiveMatches>
-        <LeaderboardTeam
-          TopScorers={TopScorers}
-          TopAssists={TopAssists}
-        ></LeaderboardTeam>
-        <StatsPrincipal
-          statsJoueurData={statsJoueurData}
-          StatsEquipeData={StatsEquipeData}
-          Role={data!.role}
-        ></StatsPrincipal>
-        <NextEventsClub data={data} TeamName={TeamName}></NextEventsClub>
-        <InfosTeamAccueil clubData={clubData} Role={data!.role} ></InfosTeamAccueil>
-      </div>
-    </>
+    <div>
+      <p className="text-2xl">Bienvenue Yacine Bouklif</p>
+      <div className="grid grid-cols-1 md:grid-cols-3  gap-6 container mx-auto mt-10">
+      {/* Ligne 1 */}
+      <div className="md:col-span-2 bg-red-500 rounded-3xl flex items-center justify-center">A (large)</div>
+      <div className="bg-green-500 rounded-3xl "><InfosTeamAccueil
+            clubData={clubData}
+            Role={data!.role}
+          ></InfosTeamAccueil></div>
+
+      {/* Ligne 2 */}
+      <div className="bg-blue-500 rounded-3xl flex items-center justify-center">C</div>
+      <div className="md:col-span-2 bg-yellow-500 rounded-3xl flex items-center justify-center">D (large)</div>
+
+      {/* Ligne 3 */}
+      <div className="bg-purple-500 rounded-3xl flex items-center justify-center">E</div>
+      <div className="md:col-span-2 bg-pink-500 rounded-3xl flex items-center justify-center">F (large)</div>
+    </div>
+    </div>
   );
 }
 
