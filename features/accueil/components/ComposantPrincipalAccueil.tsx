@@ -10,6 +10,7 @@ import { UseStatistiqueEquipeID } from "@/features/stats/statsequipe/hooks/useSt
 import { UseStatistiqueJoueur } from "@/features/stats/statsjoueur/hooks/useStatistiquesJoueur";
 import NextEventsClub from "./NextEventsClub";
 import InfosTeamAccueil from "./InfosTeamAccueil";
+import { authClient } from "@/lib/auth-client";
 
 function ComposantPrincipalAccueil() {
   const { data, isLoading } = UseDataAccueil();
@@ -18,6 +19,9 @@ function ComposantPrincipalAccueil() {
     UseStatistiqueEquipeID(clubData?.equipe.id);
   const { data: statsJoueurData, isLoading: statsJoueurLoading } =
     UseStatistiqueJoueur();
+      const { 
+        data: session, 
+    } = authClient.useSession() 
 
   const HasNoClub = data?.role === "SANSCLUB";
   const recentmatch = data?.matches.recent;
@@ -34,10 +38,10 @@ function ComposantPrincipalAccueil() {
 
   return (
     <div>
-      <p className="text-2xl">Bienvenue Yacine Bouklif</p>
+      <p className="text-2xl tracking-tight font-medium">Bienvenue {session?.user.name}</p>
       <div className="grid grid-cols-1 md:grid-cols-3  gap-6 container mx-auto mt-10">
       {/* Ligne 1 */}
-      <div className="md:col-span-2 bg-red-500 rounded-3xl flex items-center justify-center">A (large)</div>
+      <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl "><ResultLastFiveMatches Role={data!.role} recentmatch={recentmatch}></ResultLastFiveMatches></div>
       <div className="border-2 border-gray-300 rounded-3xl "><InfosTeamAccueil
             clubData={clubData}
             Role={data!.role}

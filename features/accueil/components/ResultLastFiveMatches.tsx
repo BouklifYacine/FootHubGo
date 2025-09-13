@@ -1,5 +1,6 @@
 import React from "react";
 import Logo from "@/public/Logo_Manchester_City_2016.svg";
+import LogoLiverpool from "@/public/github-icon-2.svg"
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { $Enums } from "@prisma/client";
@@ -86,14 +87,15 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
   };
 
   return (
-    <div className="h-1/2 max-w-3xl  rounded-2xl lg:rounded-3xl border-2 border-gray-300 ">
+
+      <div>
       <div className="flex justify-between items-center p-3 sm:p-4 lg:p-6">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-medium tracking-tighter">
           5 derniers matchs
         </h2>
 
         {IsAPlayer ? (
-          <div className="flex items-center gap-1 sm:gap-2">
+          <div className="flex justify-center items-center gap-1 sm:gap-2">
             <span className="text-lg sm:text-xl lg:text-2xl font-medium tracking-tighter">
               Note Moyenne :
             </span>
@@ -108,8 +110,8 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
         )}
       </div>
 
-      <div className="px-2 sm:px-4 lg:px-6 pb-4 sm:pb-6">
-        <div className="flex flex-wrap justify-center sm:justify-between lg:justify-around gap-2 sm:gap-3 lg:gap-4">
+      <div className="px-2 sm:px-4 lg:px-6 pb-4 sm:pb-6 mt-2 ">
+        <div className="flex flex-wrap justify-center md:justify-evenly gap-2 sm:gap-3 lg:gap-4">
           {prepareMatchesData()?.map((match) => (
             <div
               key={match.id}
@@ -118,10 +120,9 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
               <div className="">
                 <Image
                   alt="Logo Club"
-                  src={Logo}
-                  width={40}
-                  height={40}
-                  className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all duration-300"
+                  src={LogoLiverpool}
+              
+                  className="w-18 h-18  md:w-[110px] md:h-[110px] rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all duration-300"
                 />
               </div>
 
@@ -135,7 +136,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Badge
-                      className={`${getResultColor(match.statEquipe.resultatMatch)} rounded-full w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 flex items-center justify-center text-xs sm:text-sm lg:text-base font-bold transition-all duration-300`}
+                      className={`${getResultColor(match.statEquipe.resultatMatch)} rounded-full w-10 h-10  md:w-14 md:h-14 flex items-center justify-center text-md md:text-xl font-bold `}
                     >
                       {getResultLetter(match.statEquipe.resultatMatch)}
                     </Badge>
@@ -169,7 +170,8 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
           ))}
         </div>
       </div>
-    </div>
+      </div>
+    
   );
 }
 
