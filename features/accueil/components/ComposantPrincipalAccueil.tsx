@@ -38,7 +38,7 @@ function ComposantPrincipalAccueil() {
       <div className="grid grid-cols-1 md:grid-cols-3  gap-6 container mx-auto mt-10">
       {/* Ligne 1 */}
       <div className="md:col-span-2 bg-red-500 rounded-3xl flex items-center justify-center">A (large)</div>
-      <div className="bg-green-500 rounded-3xl "><InfosTeamAccueil
+      <div className="border-2 border-gray-300 rounded-3xl "><InfosTeamAccueil
             clubData={clubData}
             Role={data!.role}
           ></InfosTeamAccueil></div>
