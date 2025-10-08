@@ -23,8 +23,9 @@ function ComposantPrincipalAccueil() {
         data: session, 
     } = authClient.useSession() 
 
-  const HasNoClub = data?.role === "SANSCLUB";
+  const HasNoClub = data?.role === "SANSCLUB" || data?.role === undefined;
   const recentmatch = data?.matches.recent;
+  console.log(HasNoClub);
 
   const TopScorers = data?.leaderboards.topScorers;
   const TopAssists = data?.leaderboards.topAssisters;
