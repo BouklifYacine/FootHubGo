@@ -31,20 +31,20 @@ function LeaderboardTeam({TopAssists,TopScorers} : Props) {
         <Image
           alt="logo joueur"
           src={a.playerImage || Logo}
-          width={50}
-          height={50}
+          width={65}
+          height={65}
           className="rounded-full"
         />
         <div className="flex flex-col">
        <div>
-           <p className="tracking-tight font-medium">{a.playerName}</p>
+           <p className="tracking-tight font-medium text-xl">{a.playerName}</p>
        </div>
         <div className="flex items-center">
            <Badge className="tracking-tight">{a.playerPosition}</Badge>
         </div>
         </div>
       </div>
-      <p className="tracking-tighter text-lg font-medium">{a._sum.buts} {a._sum.buts != null && a._sum.buts > 1 ? "Buts" : "But"}</p>
+      <p className="tracking-tighter text-xl font-medium">{a._sum.buts} {a._sum.buts != null && a._sum.buts > 1 ? "Buts" : "But"}</p>
     </div>
   ))
 ) : (

@@ -19,43 +19,52 @@ function ComposantPrincipalAccueil() {
     UseStatistiqueEquipeID(clubData?.equipe.id);
   const { data: statsJoueurData, isLoading: statsJoueurLoading } =
     UseStatistiqueJoueur();
-      const { 
-        data: session, 
-    } = authClient.useSession() 
+  const { data: session } = authClient.useSession();
 
   const HasNoClub = data?.role === "SANSCLUB" || data?.role === undefined;
   const recentmatch = data?.matches.recent;
-  console.log(HasNoClub);
 
   const TopScorers = data?.leaderboards.topScorers;
   const TopAssists = data?.leaderboards.topAssisters;
   const TeamName = clubData?.equipe.nom;
 
-  if (isLoading) return "Ca charge ";
+  if (isLoading || clubLoading || statsEquipeLoading || statsJoueurLoading)
+    return "Ca charge";
 
   if (HasNoClub) {
-    return <NoClub></NoClub>;
+    return <NoClub />;
   }
 
   return (
     <div>
-      <p className="text-2xl tracking-tight font-medium">Bienvenue {session?.user.name}</p>
-      <div className="grid grid-cols-1 md:grid-cols-3  gap-6 container mx-auto mt-10">
-      {/* Ligne 1 */}
-      <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl "><ResultLastFiveMatches Role={data!.role} recentmatch={recentmatch}></ResultLastFiveMatches></div>
-      <div className="border-2 border-gray-300 rounded-3xl "><InfosTeamAccueil
-            clubData={clubData}
-            Role={data!.role}
-          ></InfosTeamAccueil></div>
+      <p className="text-2xl tracking-tight font-medium">
+        Bienvenue {session?.user.name}
+      </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 container mx-auto mt-10">
+        {/* Ligne 1 */}
+        <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6">
+          <ResultLastFiveMatches Role={data!.role} recentmatch={recentmatch} />
+        </div>
+        <div className="border-2 border-gray-300 rounded-3xl p-6">
+          <InfosTeamAccueil clubData={clubData} Role={data!.role} />
+        </div>
 
-      {/* Ligne 2 */}
-      <div className="bg-blue-500 rounded-3xl flex items-center justify-center">C</div>
-      <div className="md:col-span-2 bg-yellow-500 rounded-3xl flex items-center justify-center">D (large)</div>
+        {/* Ligne 2 */}
+        <div className="border-2 border-gray-300 rounded-3xl p-6">
+          <NextEventsClub data={data} TeamName={TeamName} />
+        </div>
+        <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6">
+          <LeaderboardTeam TopAssists={TopAssists} TopScorers={TopScorers} />
+        </div>
 
-      {/* Ligne 3 */}
-      <div className="bg-purple-500 rounded-3xl flex items-center justify-center">E</div>
-      <div className="md:col-span-2 bg-pink-500 rounded-3xl flex items-center justify-center">F (large)</div>
-    </div>
+        {/* Ligne 3 */}
+        <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6">
+          <StatsPrincipal StatsEquipeData={StatsEquipeData} />
+        </div>
+        <div className="border-2 border-gray-300 rounded-3xl p-6">
+          <LeaderboardTeam TopAssists={TopAssists} TopScorers={TopScorers} />
+        </div>
+      </div>
     </div>
   );
 }

@@ -19,7 +19,7 @@ function NextEventsClub({ data, TeamName }: Props) {
   const UpcomingEvents = data?.matches.upcoming;
 
   const SliceEvents = UpcomingEvents?.slice(1,3)
-  console.log(SliceEvents)
+  console.log('Les 3 events : ' + SliceEvents)
 
   const UpcomingMatches = UpcomingEvents?.filter(
     (u) => u.typeEvenement === "CHAMPIONNAT" || u.typeEvenement === "COUPE"
