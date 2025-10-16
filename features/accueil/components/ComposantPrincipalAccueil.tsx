@@ -11,6 +11,7 @@ import { UseStatistiqueJoueur } from "@/features/stats/statsjoueur/hooks/useStat
 import NextEventsClub from "./NextEventsClub";
 import InfosTeamAccueil from "./InfosTeamAccueil";
 import { authClient } from "@/lib/auth-client";
+import NextThreeEvents from "./NextThreeEvents";
 
 function ComposantPrincipalAccueil() {
   const { data, isLoading } = UseDataAccueil();
@@ -23,6 +24,7 @@ function ComposantPrincipalAccueil() {
 
   const HasNoClub = data?.role === "SANSCLUB" || data?.role === undefined;
   const recentmatch = data?.matches.recent;
+  const Role = data?.role;
 
   const TopScorers = data?.leaderboards.topScorers;
   const TopAssists = data?.leaderboards.topAssisters;
@@ -50,19 +52,24 @@ function ComposantPrincipalAccueil() {
         </div>
 
         {/* Ligne 2 */}
-        <div className="border-2 border-gray-300 rounded-3xl p-6">
-          <NextEventsClub data={data} TeamName={TeamName} />
-        </div>
         <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6">
+          <StatsPrincipal
+            Role={Role}
+            StatsEquipeData={StatsEquipeData}
+            statsJoueurData={statsJoueurData}
+          />
+        </div>
+        <div className="border-2 border-gray-300 rounded-3xl p-6">
           <LeaderboardTeam TopAssists={TopAssists} TopScorers={TopScorers} />
         </div>
 
         {/* Ligne 3 */}
-        <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6">
-          <StatsPrincipal StatsEquipeData={StatsEquipeData} />
-        </div>
         <div className="border-2 border-gray-300 rounded-3xl p-6">
-          <LeaderboardTeam TopAssists={TopAssists} TopScorers={TopScorers} />
+          <NextEventsClub data={data} TeamName={TeamName} />
+        </div>
+
+        <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6 flex justify-center">
+          <NextThreeEvents data={data} />
         </div>
       </div>
     </div>

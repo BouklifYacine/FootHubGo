@@ -3,7 +3,7 @@ import { ApiAccueil } from "../interfaces/InterfaceApiAccueil";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, House, MapPin, Timer } from "lucide-react";
+import { Calendar, MapPin, Timer } from "lucide-react";
 import LogoVS from "@/public/pngtree-fiery-vs-logo-battle-symbol-competition-icon-flame-clipart-png-image_15705733.png"
 import Image from "next/image";
 import LogoLiverpool from "@/public/Logo_FC_Liverpool.svg.png"
@@ -17,9 +17,6 @@ interface Props {
 
 function NextEventsClub({ data, TeamName }: Props) {
   const UpcomingEvents = data?.matches.upcoming;
-
-  const SliceEvents = UpcomingEvents?.slice(1,3)
-  console.log('Les 3 events : ' + SliceEvents)
 
   const UpcomingMatches = UpcomingEvents?.filter(
     (u) => u.typeEvenement === "CHAMPIONNAT" || u.typeEvenement === "COUPE"
@@ -36,7 +33,7 @@ function NextEventsClub({ data, TeamName }: Props) {
 
   return (
     
-    <div className="border-2 border-gray-200 max-w-3xl rounded-3xl p-4">
+    <div className=" max-w-3xl rounded-3xl p-4">
       <div className="flex justify-between ">
         <p className="text-sm md:text-xl font-medium tracking-tighter">Prochain Match</p>
          <p className="text-sm md:text-xl font-medium tracking-tighter flex items-center gap-1.5">  {FirstUpcomingMatch?.lieu} <MapPin size={21} /></p>
