@@ -44,11 +44,11 @@ function ComposantPrincipalAccueil() {
       </p>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 container mx-auto mt-10">
         {/* Ligne 1 */}
-        <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6">
-          <ResultLastFiveMatches Role={data!.role} recentmatch={recentmatch} />
-        </div>
         <div className="border-2 border-gray-300 rounded-3xl p-6">
           <InfosTeamAccueil clubData={clubData} Role={data!.role} />
+        </div>
+        <div className="md:col-span-2 border-2 border-gray-300 rounded-3xl p-6">
+          <ResultLastFiveMatches Role={data!.role} recentmatch={recentmatch} />
         </div>
 
         {/* Ligne 2 */}

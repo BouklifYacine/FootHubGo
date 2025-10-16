@@ -1,12 +1,12 @@
 import React from "react";
-import LogoCity from "@/public/Logo_Manchester_City_2016.svg";
-import LogoLiverpool from "@/public/github-icon-2.svg"
+import LogoLiverpool from "@/public/github-icon-2.svg";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { $Enums } from "@prisma/client";
 import { RecentMatch } from "../interfaces/InterfaceApiAccueil";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
+import { Activity } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -21,6 +21,8 @@ interface Props {
 }
 
 function ResultLastFiveMatches({ Role, recentmatch }: Props) {
+
+  console.log(recentmatch)
   const IsAPlayer = Role === "JOUEUR";
 
   const rating = recentmatch
@@ -64,6 +66,23 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
     }
   };
 
+  // Cas où il n'y a aucun match récent
+  if (!recentmatch || recentmatch.length === 0) {
+    return (
+      <div className="flex items-center justify-center w-full h-full py-12">
+        <div className="flex flex-col items-center gap-4 text-center">
+          <Activity size={48} className="text-gray-400 dark:text-gray-600" />
+          <p className="text-lg font-semibold text-gray-600 dark:text-gray-400">
+            Aucun match joué
+          </p>
+          <p className="text-sm text-gray-500 dark:text-gray-500">
+            Les 5 derniers matchs s'afficheront ici après les premières rencontres
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const prepareMatchesData = () => {
     const matches = [...(recentmatch || [])];
 
@@ -87,8 +106,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
   };
 
   return (
-
-      <div>
+    <div>
       <div className="flex justify-between items-center p-3 sm:p-4 lg:p-6">
         <h2 className="text-lg sm:text-xl lg:text-2xl font-medium tracking-tighter">
           5 derniers matchs
@@ -100,7 +118,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
               Note Moyenne :
             </span>
             <Badge
-              className={`${GetRatingColor(averageRating)} "text-sm md:text-lg rounded-2xl font-extralight tracking-tight"`}
+              className={`${GetRatingColor(averageRating)} text-sm md:text-lg rounded-2xl font-extralight tracking-tight`}
             >
               {averageRating.toFixed(2)}
             </Badge>
@@ -121,7 +139,6 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
                 <Image
                   alt="Logo Club"
                   src={LogoLiverpool}
-              
                   className="w-18 h-18  md:w-[110px] md:h-[110px] rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all duration-300"
                 />
               </div>
@@ -170,8 +187,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
           ))}
         </div>
       </div>
-      </div>
-    
+    </div>
   );
 }
 
