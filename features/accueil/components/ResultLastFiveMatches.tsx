@@ -1,5 +1,5 @@
 import React from "react";
-import Logo from "@/public/Logo_Manchester_City_2016.svg";
+import LogoCity from "@/public/Logo_Manchester_City_2016.svg";
 import LogoLiverpool from "@/public/github-icon-2.svg"
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
