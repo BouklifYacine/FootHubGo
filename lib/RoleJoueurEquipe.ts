@@ -25,7 +25,7 @@ export async function RoleJoueurEquipe() {
     avatar: utilisateur.image || "",
     role: utilisateur.role,
     plan: utilisateur.plan,
-    roleEquipe: utilisateur.MembreEquipe.map
+    roleEquipe: utilisateur.MembreEquipe.map,
     equipeId: utilisateur.membreEquipe?.equipe?.id,
     equipeNom: utilisateur.membreEquipe?.equipe?.nom,
     equipeLogo: utilisateur.membreEquipe?.equipe?.logoUrl
