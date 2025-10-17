@@ -2,16 +2,17 @@
   "name": "footdatago",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "dev": "next dev --turbopack",
-    "db:push:prod": " npx prisma db push",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "vitest",
-    "test:ui": "vitest --ui",
-    "postinstall": "prisma generate && flowbite-react patch"
-  },
+"scripts": {
+  "dev": "bun run next dev --turbopack",
+  "db:push:prod": "bunx prisma db push",
+  "build": "bun run next build",
+  "start": "bun run next start",
+  "lint": "bun run next lint",
+  "test": "bun test",
+  "test:ui": "bun test --ui",
+  "postinstall": "bunx prisma generate && bunx flowbite-react patch"
+},
+
   "dependencies": {
     "@auth/core": "^0.37.4",
     "@auth/prisma-adapter": "^2.7.4",

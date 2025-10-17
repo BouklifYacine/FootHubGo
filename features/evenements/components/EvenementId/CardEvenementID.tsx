@@ -77,7 +77,7 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
   </div>
 )}
 
-      <div className="">
+      <div className="flex items-center justify-center">
         <div className="border border-blue-500 rounded-2xl p-6 md:p-10 w-full md:w-3/4 lg:w-2/3 max-w-3xl h-full ">
           <div className="flex flex-col gap-2 items-center justify-center ">
             {infosmatch.score ? (
