@@ -81,16 +81,16 @@ export async function ModifierEvenementAction(id: string, data: schema) {
     };
   }
 
-  const DateNow = dayjs();
-  const dateEvenement = dayjs(Evenementexistant.dateDebut);
+const DateNow = dayjs(); 
+const nouvelleDateEvenement = dayjs(DataaJour.dateDebut); 
 
-  if (dateEvenement.isBefore(DateNow)) {
-    return {
-      success: false,
-      message:
-        "Vous ne pouvez pas modifier un événement dont la date est passée.",
-    };
-  }
+if (nouvelleDateEvenement.isBefore(DateNow)) {
+  return {
+    success: false,
+    message: "Vous ne pouvez pas définir une date antérieure à l'heure actuelle.",
+  };
+}
+
 
   const Evenementajour = await prisma.evenement.update({
     where: { id },
