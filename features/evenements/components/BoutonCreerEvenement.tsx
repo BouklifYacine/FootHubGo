@@ -18,7 +18,7 @@ export function BoutonCreerEvenement() {
   if (!estEntraineur) return;
 
   return (
-    <Button onClick={handleClick} className="flex items-center gap-2 mb-4">
+    <Button onClick={handleClick} className="flex items-center gap-2">
       <Calendar size={16} />
       Créer un événement
     </Button>

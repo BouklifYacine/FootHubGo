@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Header from "@/components/header";
-import { GalleryVerticalEnd } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GalleryVerticalEnd } from "lucide-react";
 
 export default function NotFound() {
   return (

@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,21 +15,24 @@ import {
 } from "lucide-react";
 import SelectPresence from "./SelectPresence";
 import { Badge } from "@/components/ui/badge";
-import { useEvenements } from "../hooks/useEvenements";
 import dayjs from "dayjs";
-import { useInfosClub } from "@/features/club/hooks/useinfosclub";
-import { useSupprimerEvenement } from "../hooks/useSupprimerEvenement";
 import { useRouter } from "next/navigation";
 import { ColorBadgeEvent } from "@/lib/ColorBadgeEvent";
+import { EvenementsAPI } from "../types/TypesEvenements";
+import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
+import { UseMutateFunction } from "@tanstack/react-query";
 
-function CardEvenement() {
+interface Props {
+  data : EvenementsAPI | undefined
+  infosdata : InfosClubApiResponse | undefined
+  isPending : boolean
+   mutate: UseMutateFunction< { success: boolean; message: string },Error, string>
+}
+
+function CardEvenement({data,infosdata, isPending, mutate} : Props) {
   const router = useRouter();
-  const { data, isLoading } = useEvenements();
-  const { data: infosdata, isLoading: isLoadingInfosClub } = useInfosClub();
-  const { mutate, isPending } = useSupprimerEvenement();
-  const entraineur = infosdata?.role === "ENTRAINEUR";
 
-  const dsfgdfg = data?.evenements.find((e) => e.typeEvenement === "ENTRAINEMENT")
+  const entraineur = infosdata?.role === "ENTRAINEUR";
   
   const handleModifier = (id: string) => {
     router.push(`/dashboardfoothub/evenements/${id}/modifier`);
