@@ -6,6 +6,7 @@ import {
   SchemaModificationStatsEquipe,
 } from "@/features/stats/statsequipe/schema/ModifierStatsEquipeSchema";
 import { prisma } from "@/prisma";
+import dayjs from "dayjs";
 import { headers } from "next/headers";
 
 export async function ModifierStatsEquipeAction(
@@ -90,6 +91,14 @@ export async function ModifierStatsEquipeAction(
         message: "Cet événement n'appartient pas à votre équipe",
       };
     }
+
+     const debut = dayjs(evenement.dateDebut);
+        if (dayjs().isAfter(debut.add(2, "days"))) {
+          return {
+            success: false,
+            message: "Après 48h de la date de l'événement vous ne pouvez plus modifiez un évenement",
+          };
+        }
 
     const StatsEquipe = await prisma.statistiqueEquipe.findUnique({
       where: {

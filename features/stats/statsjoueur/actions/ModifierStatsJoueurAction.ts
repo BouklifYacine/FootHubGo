@@ -7,6 +7,7 @@ import {
   ModifierStatsJoueurSchema,
   TypeModifierStatsJoueurSchema,
 } from "../schema/ModifierStatsJoueurSchema";
+import dayjs from "dayjs";
 
 export async function modifierStatsJoueurAction(
   id: string,
@@ -91,7 +92,17 @@ export async function modifierStatsJoueurAction(
       };
     }
 
-    const joueurPresent = evenement.presences.find((i) => i.userId === joueurid);
+    const debut = dayjs(evenement.dateDebut);
+    if (dayjs().isAfter(debut.add(2, "days"))) {
+      return {
+        success: false,
+        message: "Après 48h de la date de l'événement vous ne pouvez plus modifiez un évenement",
+      };
+    }
+
+    const joueurPresent = evenement.presences.find(
+      (i) => i.userId === joueurid
+    );
 
     const MembreJoueur = await prisma.membreEquipe.findFirst({
       where: { userId: joueurid, equipeId: evenement.equipeId },
@@ -185,7 +196,8 @@ export async function modifierStatsJoueurAction(
     console.error(error);
     return {
       success: false,
-      message: "Erreur serveur lors de la modification des statistiques du joueur",
+      message:
+        "Erreur serveur lors de la modification des statistiques du joueur",
     };
   }
 }

@@ -4,6 +4,7 @@ import { ModifierEvenementSchema } from "@/features/evenements/schemas/Modificat
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 import z from "zod";
+import dayjs from "dayjs";
 
 type schema = z.infer<typeof ModifierEvenementSchema>;
 
@@ -51,6 +52,10 @@ export async function ModifierEvenementAction(id: string, data: schema) {
 
   const Evenementexistant = await prisma.evenement.findUnique({
     where: { id },
+    include: {
+      statsJoueur: true,
+      statEquipe: true,
+    },
   });
   if (!Evenementexistant) {
     return {
@@ -62,6 +67,28 @@ export async function ModifierEvenementAction(id: string, data: schema) {
     return {
       success: false,
       message: "Vous ne pouvez pas modifier un événement d'une autre équipe.",
+    };
+  }
+
+  if (
+    Evenementexistant.statsJoueur.length >= 1 ||
+    Evenementexistant.statEquipe
+  ) {
+    return {
+      success: false,
+      message:
+        "Vous ne pouvez pas modifier un événement qui a déja des statistiques.",
+    };
+  }
+
+  const DateNow = dayjs();
+  const dateEvenement = dayjs(Evenementexistant.dateDebut);
+
+  if (dateEvenement.isBefore(DateNow)) {
+    return {
+      success: false,
+      message:
+        "Vous ne pouvez pas modifier un événement dont la date est passée.",
     };
   }
 
