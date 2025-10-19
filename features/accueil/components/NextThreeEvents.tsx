@@ -6,6 +6,7 @@ import { Calendar, MapPin, Timer, CalendarX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ApiAccueil } from "../interfaces/InterfaceApiAccueil";
 import LogoCity from "@/public/Logo_Manchester_City_2016.svg";
+import { ColorBadgeEvent } from "@/lib/ColorBadgeEvent";
 
 dayjs.locale("fr");
 
@@ -15,14 +16,6 @@ interface Props {
 
 function NextThreeEvents({ data }: Props) {
   const upcomingMatches = data?.matches.upcoming?.slice(0, 3) || [];
-
-  const ColorBadgeEvent = (event: string) => {
-    if (event === "CHAMPIONNAT")
-      return "bg-blue-500 hover:bg-blue-600 text-white";
-    else if (event === "COUPE")
-      return "bg-purple-500 hover:bg-purple-600 text-white";
-    return "bg-gray-500 hover:bg-gray-600 text-white";
-  };
 
   if (upcomingMatches.length === 0) {
     return (

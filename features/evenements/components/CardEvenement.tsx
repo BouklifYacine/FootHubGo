@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { useSupprimerEvenement } from "../hooks/useSupprimerEvenement";
 import { useRouter } from "next/navigation";
+import { ColorBadgeEvent } from "@/lib/ColorBadgeEvent";
 
 function CardEvenement() {
   const router = useRouter();
@@ -118,7 +119,7 @@ function CardEvenement() {
               />
             )}
             <Badge
-              className={` text-sm mr-3 rounded-md border ${e.typeEvenement === "ENTRAINEMENT" ? "text-green-700 bg-green-200 border-green-700" : "text-blue-700 bg-blue-200 border-blue-700"}`}
+              className={`${ColorBadgeEvent(e.typeEvenement)} mr-3 rounded-lg`}
             >
               {e.typeEvenement}{" "}
               {e.typeEvenement === "ENTRAINEMENT" ? (

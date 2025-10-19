@@ -67,7 +67,7 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
           eventid={IdStatsandEvent.eventid}
           statsEquipe={infosmatch.score!}
         />
-        <Button onClick={DeleteStatsTeamOnClick} disabled={isPending}>
+        <Button onClick={DeleteStatsTeamOnClick} disabled={isPending} className="bg-red-500 text-white cursor-pointer hover:bg-red-600">
           Supprimer Stats
         </Button>
       </>

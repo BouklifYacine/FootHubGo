@@ -103,11 +103,8 @@ export function BoutonModifierStatsEquipe({ eventid, statsEquipe }: Props) {
 >
       <DialogTrigger asChild>
         <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full"
-          aria-label="Modifier stats équipe"
-        >
+          className=" text-center cursor-pointer"
+        > Modifier stats
           <Pencil size={16} strokeWidth={2} />
         </Button>
       </DialogTrigger>

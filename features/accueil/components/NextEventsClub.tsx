@@ -26,7 +26,7 @@ function NextEventsClub({ data, TeamName }: Props) {
 
   const ColorBadgeEvent = (event: string) => {
     if (event === "CHAMPIONNAT") return "bg-blue-400 text-white";
-    else if (event === "COUPE") return "bg-purple-400 text-white";
+    else if (event === "COUPE") return "bg-purple-600 text-white";
     return "";
   };
 
