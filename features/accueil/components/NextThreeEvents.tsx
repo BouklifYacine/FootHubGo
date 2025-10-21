@@ -17,7 +17,11 @@ interface Props {
 function NextThreeEvents({ data }: Props) {
   const upcomingMatches = data?.matches.upcoming?.slice(0, 3) || [];
 
-  if (upcomingMatches.length === 0) {
+   const filteredMatches = upcomingMatches.filter(
+    (m) => m.typeEvenement === "COUPE" || m.typeEvenement === "CHAMPIONNAT"
+  );
+
+  if (filteredMatches.length === 0) {
     return (
       <div className="flex items-center justify-center w-full py-12">
         <div className="flex flex-col items-center gap-4 text-center">
@@ -43,7 +47,7 @@ function NextThreeEvents({ data }: Props) {
       </div>
 
       <div className="flex flex-col md:flex-row justify-center gap-6 w-full">
-        {upcomingMatches.map((m) => (
+        {filteredMatches.map((m) => (
           <div
             key={m.id}
             className="relative group border border-gray-200/60 dark:border-gray-700/50 rounded-2xl p-6 w-full md:min-w-[280px] md:max-w-[320px] hover:shadow-2xl hover:shadow-gray-300/50 dark:hover:shadow-black/50 hover:scale-[1.02] transition-all duration-300"
