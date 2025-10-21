@@ -86,7 +86,7 @@ function BlockEffectif() {
         <div className="relative w-full max-w-md bg-blue/70 backdrop-blur-md border border-blue-300 rounded-2xl shadow-xl p-8 flex flex-col items-center ">
           {/* Titre */}
           <div className="mb-4 text-center">
-            <div className="text-blue-600 font-bold text-xl tracking-wide uppercase drop-shadow">
+            <div className="text-blue-600 font-bold text-2xl tracking-wide uppercase drop-shadow">
               Code d&apos;invitation du club
             </div>
             {code ? (
@@ -102,7 +102,7 @@ function BlockEffectif() {
           {/* Code + boutons */}
           <div className="flex items-center gap-3 mb-4">
             {code && (
-              <span className="font-mono text-2xl  px-6 py-3 rounded-xl tracking-widest border border-blue-200  ">
+              <span className="font-mono text-2xl  px-6 py-3 rounded-xl  border border-blue-200  ">
                 {code}
               </span>
             )}
@@ -138,13 +138,6 @@ function BlockEffectif() {
               />
             )}
           </div>
-          {/* Message d'aide */}
-          {code && (
-            <div className="text-xs text-blue-600 mt-2">
-              Ce code est confidentiel, ne le partage qu’aux personnes de
-              confiance.
-            </div>
-          )}
         </div>
 
         <div></div>

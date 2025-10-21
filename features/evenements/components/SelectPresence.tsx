@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import {
   Select,
   SelectContent,
@@ -10,18 +9,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePresenceEvenementJoueur } from "../hooks/usePresenceEvenementJoueur";
+import { $Enums } from "@prisma/client";
+import dayjs from 'dayjs';
 
 type PresenceStatut = "ATTENTE" | "PRESENT" | "ABSENT";
 
 interface SelectPresenceProps {
   id: string;
-  className?: string;
+  date: Date
   value: PresenceStatut;
+  typeEvent: $Enums.TypeEvenement
 }
 
-function SelectPresence({ id, value, className = "" }: SelectPresenceProps) {
-  console.log(value)
+function SelectPresence({typeEvent, id, value, date }: SelectPresenceProps) {
   const { mutate, isPending } = usePresenceEvenementJoueur();
+
+   const disabled = typeEvent !== "ENTRAINEMENT" || isPending;
+
   return (
     <Select
     value={value}
@@ -31,17 +35,18 @@ function SelectPresence({ id, value, className = "" }: SelectPresenceProps) {
           data: { statut: value as PresenceStatut },
         })
       }
-      disabled={isPending}
+      disabled={disabled || dayjs(date).isBefore(dayjs())
+}
     >
       <SelectTrigger
-        className={`w-[140px] my-5 mx-4 border border-black dark:border-white ${className}`}
+        className={`w-[140px] my-5 mx-4 border border-black dark:border-white `}
       >
         <SelectValue placeholder="Présence" />
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
           <SelectLabel>Choisis une présence</SelectLabel>
-          <SelectItem value="ATTENTE" className="text-orange-500 ">
+          <SelectItem value="ATTENTE" className=" ">
             En Attente
           </SelectItem>
           <SelectItem value="ABSENT" className="text-red-500 ">

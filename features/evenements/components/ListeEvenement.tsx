@@ -11,7 +11,9 @@ import FiltersEventsByDate from "./FiltersEventsByDate";
 import FiltersEventsByType from "./FilterEventByType";
 
 function ListeEvenement() {
-  const [filtreDate, setFiltreDate] = useState<"tous" | "avant" | "apres">("tous");
+  const [filtreDate, setFiltreDate] = useState<"tous" | "avant" | "apres">(
+    "tous"
+  );
   const [filtreTypeEvent, setFiltreTypeEvent] = useState<string>("tous");
   const { data, isLoading } = useEvenements();
   const { data: infosdata, isLoading: isLoadingInfosClub } = useInfosClub();
@@ -30,15 +32,21 @@ function ListeEvenement() {
               return true;
             }
             if (filtreDate === "avant") {
-              return eventDate.isBefore(dayjs(), "day");
+              return eventDate.isBefore(dayjs());
             }
             if (filtreDate === "apres") {
-              return eventDate.isSame(dayjs(), "day") || eventDate.isAfter(dayjs(), "day");
+              return (
+                eventDate.isSame(dayjs()) ||
+                eventDate.isAfter(dayjs())
+              );
             }
             return true;
           })();
 
-          const filtreTypeMatch = filtreTypeEvent === "tous" ? true : e.typeEvenement === filtreTypeEvent;
+          const filtreTypeMatch =
+            filtreTypeEvent === "tous"
+              ? true
+              : e.typeEvenement === filtreTypeEvent;
 
           return filtreDateMatch && filtreTypeMatch;
         }),
@@ -46,21 +54,25 @@ function ListeEvenement() {
     : undefined;
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-4">
-        <BoutonCreerEvenement />
-        <FiltersEventsByDate onChangeFiltre={setFiltreDate} />
-        <FiltersEventsByType onChangeFiltre={setFiltreTypeEvent}></FiltersEventsByType>
-      </div>
-      <div className="flex gap-7 flex-wrap items-center">
+   <div>
+    <div className="flex items-center gap-4 mb-4">
+      <BoutonCreerEvenement />
+      <FiltersEventsByDate onChangeFiltre={setFiltreDate} />
+      <FiltersEventsByType onChangeFiltre={setFiltreTypeEvent} />
+    </div>
+    <div className="flex gap-7 flex-wrap items-center">
+      {filteredEvents?.evenements.length ? (
         <CardEvenement
           filteredEvents={filteredEvents}
           infosdata={infosdata}
           isPending={isPending}
           mutate={mutate}
         />
-      </div>
+      ) : (
+        <p>Aucun événement correspondant</p>
+      )}
     </div>
+  </div>
   );
 }
 

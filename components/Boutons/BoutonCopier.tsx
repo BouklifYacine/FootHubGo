@@ -56,7 +56,7 @@ function BoutonCopier({ value }: BoutonCopierProps) {
             </div>
           </Button>
         </TooltipTrigger>
-        <TooltipContent className="px-2 py-1 text-xs">Cliquez pour copier</TooltipContent>
+        <TooltipContent>Cliquez pour copier</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

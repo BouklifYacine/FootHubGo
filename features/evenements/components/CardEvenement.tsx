@@ -116,9 +116,11 @@ function CardEvenement({filteredEvents,infosdata, isPending, mutate} : Props) {
               <div className="w-[140px] my-9 mx-4  "></div>
             ) : (
               <SelectPresence
+                typeEvent={e.typeEvenement}
                 id={e.id}
                 value={e.statutPresence}
-                className="..."
+                date={e.dateDebut}
+               
               />
             )}
             <Badge
