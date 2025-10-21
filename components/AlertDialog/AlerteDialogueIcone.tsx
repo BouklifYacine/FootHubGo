@@ -30,7 +30,6 @@ export default function AlerteDIalogueIcone({
     <AlertDialog>
       <AlertDialogTrigger asChild>
         <Button className="bg-red-500 text-white hover:bg-red-600 cursor-pointer">
-          
           <Trash2></Trash2>
         </Button>
       </AlertDialogTrigger>
@@ -44,12 +43,20 @@ export default function AlerteDIalogueIcone({
           </div>
           <AlertDialogHeader>
             <AlertDialogTitle>{Titre}</AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">{description}</AlertDialogDescription>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+              {description}
+            </AlertDialogDescription>
           </AlertDialogHeader>
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={disabled} className="cursor-pointer">Annuler</AlertDialogCancel>
-          <AlertDialogAction onClick={supprimer} disabled={disabled} className="cursor-pointer">
+          <AlertDialogCancel disabled={disabled} className="cursor-pointer">
+            Annuler
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={supprimer}
+            disabled={disabled}
+            className="cursor-pointer"
+          >
             Confirmer
           </AlertDialogAction>
         </AlertDialogFooter>

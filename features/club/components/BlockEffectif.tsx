@@ -8,7 +8,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { CircleFadingPlus } from "lucide-react";
-import React from "react";
 import { useInfosClub } from "../hooks/useinfosclub";
 import { useSupprimerCodeInvitation } from "@/features/codeinvitation/hooks/useSupprimerCodeInvitation";
 import { useCreerouGenererCodeInvitation } from "@/features/codeinvitation/hooks/useCreerouGenererCodeInvitation";
@@ -43,33 +42,17 @@ function BlockEffectif() {
 
   return (
     <div className="flex justify-between items-center flex-col md:flex-row gap-4 p-5">
-      <div className="border border-blue-300 rounded-xl p-4 w-full md:w-xl flex flex-col   ">
-        <div className="flex flex-col ">
+      <div className=" ">
+        <div className="flex items-center gap-2 ">
           <Image
             src={GithubImage}
             alt="photo profil"
-            width={40}
-            height={30}
-            className="mb-2.5"
+            width={50}
+            height={40}
           ></Image>
-          <p className="md:text-4xl text-2xl font-bold tracking-tight">
-            {" "}
+          <p className="md:text-3xl text-xl font-bold tracking-tighter">
             {data?.equipe.nom}{" "}
           </p>
-          <div className="flex gap-2">
-            <p className="md:text-xl"> Niveau :</p>
-            <Badge className="rounded-xl">{data?.equipe.niveau.toLowerCase()}</Badge>
-          </div>
-          {data?.equipe.description && (
-            <p className="text-black dark:text-gray-300 text-xs mt-2">
-              {" "}
-              Description : <br></br>
-              {data?.equipe.description}{" "}
-            </p>
-          )}
-        </div>
-
-        <div className=" flex justify-end gap-2">
           {data?.role === "ENTRAINEUR" && <BoutonModifierClub />}
           {entraineur && (
             <BoutonSupprimerClub
@@ -77,6 +60,26 @@ function BlockEffectif() {
             ></BoutonSupprimerClub>
           )}
         </div>
+        <div className="mt-0.5">
+          <div className="flex items-center gap-2">
+            <p className="md:text-xl font-medium"> Niveau :</p>
+            <Badge className="rounded-xl text-md">
+              <p className="font-medium tracking-tighter">{data?.equipe.niveau.toLowerCase()}</p>
+            </Badge>
+          </div>
+            {data?.equipe.description && (
+              <div className="flex items-center gap-2">
+                <p className="text-black dark:text-gray-300 text-md ">
+                  {" "}
+                  Description :{" "}
+                </p>
+                <p>{data?.equipe.description} </p>{" "}
+              </div>
+            )}
+         
+        </div>
+
+        <div className=" flex justify-end gap-2"></div>
       </div>
 
       <div className="flex items-center justify-center">

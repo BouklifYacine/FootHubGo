@@ -19,7 +19,7 @@ function Listemembreequipe() {
   const estEntraineur = data?.role === "ENTRAINEUR";
 
   if (isLoading) return <p>Chargement...</p>;
-  if (!data) return <p>Aucune donnée disponible</p>;
+  if (!data) return <p>Aucune donnée disponible</p>
 
   return (
     <TableauEffectif

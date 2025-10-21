@@ -69,7 +69,7 @@ function BoutonModifierClub() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-xl border border-white">
+        <Button className="rounded-xl border border-white cursor-pointer">
           <Pencil size={16} />
         </Button>
       </DialogTrigger>
