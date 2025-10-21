@@ -23,16 +23,17 @@ import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
 import { UseMutateFunction } from "@tanstack/react-query";
 
 interface Props {
-  data : EvenementsAPI | undefined
+  filteredEvents : EvenementsAPI | undefined
   infosdata : InfosClubApiResponse | undefined
   isPending : boolean
    mutate: UseMutateFunction< { success: boolean; message: string },Error, string>
 }
 
-function CardEvenement({data,infosdata, isPending, mutate} : Props) {
+function CardEvenement({filteredEvents,infosdata, isPending, mutate} : Props) {
   const router = useRouter();
 
   const entraineur = infosdata?.role === "ENTRAINEUR";
+  filteredEvents?.evenements.map((e) => e.typeEvenement === "ENTRAINEMENT")
   
   const handleModifier = (id: string) => {
     router.push(`/dashboardfoothub/evenements/${id}/modifier`);
@@ -44,7 +45,7 @@ function CardEvenement({data,infosdata, isPending, mutate} : Props) {
 
   return (
     <>
-      {data?.evenements.map((e) => (
+      {filteredEvents?.evenements.map((e) => (
         
         <div className=" rounded-xl border border-gray-400 w-2xl" key={e.id}>
           <div className="flex flex-col items-start">
