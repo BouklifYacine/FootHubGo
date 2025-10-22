@@ -45,6 +45,7 @@ model User {
 
   @@unique([email])
   @@map("user")
+  Convocation Convocation[]
 }
 
 model Equipe {
@@ -117,12 +118,13 @@ model Blessure {
   endDate     DateTime
   isRecurring Boolean  @default(false)
 
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  equipeId String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  equipe      Equipe   @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId    String
 
   @@map("blessure")
+  @@index([userId, startDate])
 }
 
 model Finance {
@@ -140,6 +142,29 @@ model Finance {
 
   @@map("finance")
 }
+
+model Convocation {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  evenementId String
+  statut      StatutConvocation @default(EN_ATTENTE)
+  dateEnvoi   DateTime @default(now())
+  dateReponse DateTime?
+  reponse     Boolean?
+
+  @@unique([userId, evenementId])
+  @@index([evenementId, statut])
+}
+
+enum StatutConvocation {
+  EN_ATTENTE
+  CONFIRME
+  REFUSE
+  EXPIRE
+}
+
 
 model Evenement {
   id            String              @id @default(cuid())
@@ -160,6 +185,7 @@ model Evenement {
 
   @@index([equipeId])
   @@map("evenement")
+  Convocation Convocation[]
 }
 
 // ==============================================
