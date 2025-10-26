@@ -8,10 +8,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 ) {
   const {id : convocationId} = await params;
 
-//   const session = await auth.api.getSession({ headers: await headers() });
-//   const userId = session?.user?.id;
+  const session = await auth.api.getSession({ headers: await headers() });
+  const userId = session?.user?.id;
 
-const userId = "2cXsE8BlLpdHKiJdOrDXPpi7rmHDXhK9";
+// const userId = "2cXsE8BlLpdHKiJdOrDXPpi7rmHDXhK9";
 
   if (!userId) {
     return NextResponse.json(

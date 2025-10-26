@@ -37,8 +37,6 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
 
   const entraineur = data?.role === "ENTRAINEUR";
 
-  console.log("Role de la personne : " + data?.role);
-
   const DeletePlayerStats = (playerId: string, statisticId: string) => {
     mutate({ eventId, joueurid: playerId, statistiqueid: statisticId });
   };

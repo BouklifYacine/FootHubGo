@@ -4,18 +4,24 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableHeadCell,
+  TableHeader,
   TableRow,
-} from "flowbite-react";
+} from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import Image from "next/image";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useInfosClub } from "@/features/club/hooks/useinfosclub";
+import { UseTeamList } from "@/features/CallUp/hooks/UseTeamList";
 import {
   Presence,
   StatsJoueur,
 } from "@/features/evenements/types/TypesEvenements";
-import { ModalButtonAddPlayerStats } from "../../statsjoueur/components/ModalButtonAddPlayerStats";
-import { Button } from "@/components/ui/button";
-import { useInfosClub } from "@/features/club/hooks/useinfosclub";
+import { CircleCheck, CircleX, Send } from "lucide-react";
 
 interface Props {
   presences: Presence[] | undefined;
@@ -31,93 +37,118 @@ function ArrayPlayerStatusEventId({
   statsteamid,
   statsJoueur,
 }: Props) {
-  const { data, isLoading } = useInfosClub();
+  const { data, isPending } = useInfosClub();
+  const TeamId = data?.equipe.id;
+  const { data: TeamListData, isPending: isPendingTeamList } =
+    UseTeamList(TeamId);
 
   const entraineur = data?.role === "ENTRAINEUR";
 
-  console.log(statsJoueur)
+  if (isPending || isPendingTeamList) {
+    return <div>Chargement des membres...</div>;
+  }
+
+  if (!TeamListData?.equipe?.membres?.length) {
+    return <div>Aucun membre à afficher</div>;
+  }
+
   return (
     <Table>
-      <TableHead>
+      <TableHeader>
         <TableRow>
-          <TableHeadCell className="p-4">
-            <Checkbox />
-          </TableHeadCell>
-
-          <TableHeadCell className="text-black dark:text-white">
-            Avatar
-          </TableHeadCell>
-          <TableHeadCell className="text-black dark:text-white">
-            Nom
-          </TableHeadCell>
-          <TableHeadCell className="text-black dark:text-white">
-            Poste
-          </TableHeadCell>
-          <TableHeadCell className="text-black dark:text-white">
-            Status
-          </TableHeadCell>
+          <TableHead></TableHead>
+          <TableHead className="text-black dark:text-white">Avatar</TableHead>
+          <TableHead className="text-black dark:text-white">Nom</TableHead>
+          <TableHead className="text-black dark:text-white">Poste</TableHead>
+          <TableHead className="text-black dark:text-white">Licencié</TableHead>
+          <TableHead className="text-black dark:text-white">Blessé</TableHead>
           {entraineur && (
-            <TableHeadCell className="text-black dark:text-white">
-              Actions
-            </TableHeadCell>
+            <TableHead className="text-black dark:text-white">Action</TableHead>
           )}
         </TableRow>
-      </TableHead>
-      <TableBody className="divide-y">
-        {presences?.map((m) => {
-          const hasStats = statsJoueur?.some(
-            (s) => s.idUtilisateur === m.idUtilisateur
-          );
-          return (
-            <TableRow key={m.idUtilisateur}>
-              <TableCell className="p-4">
-                <Checkbox />
-              </TableCell>
-              <TableCell>
-                {m.image ? (
-                  <Image
-                    src={m.image}
-                    width={35}
-                    height={35}
-                    alt={m.nom}
-                    className="rounded-full"
-                  />
+      </TableHeader>
+      <TableBody>
+        {TeamListData.equipe.membres.map((m) => (
+          <TableRow key={m.id}>
+            <TableCell></TableCell>
+            <TableCell>
+              {m.image ? (
+                <Image
+                  src={m.image}
+                  width={35}
+                  height={35}
+                  alt={m.name}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300">
+                  <span className="text-lg font-medium ">
+                    {m.name?.charAt(0).toUpperCase() || "?"}
+                  </span>
+                </div>
+              )}
+            </TableCell>
+            <TableCell className="text-black dark:text-white">
+              {m.name}
+            </TableCell>
+            <TableCell className="text-black dark:text-white">
+              {m.position || "ENTRAINEUR"}
+            </TableCell>
+            <TableCell>
+              <Badge
+                className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
+                  m.isLicensed
+                    ? "border-emerald-800 bg-emerald-100 text-emerald-800"
+                    : "border-red-800 bg-red-200 text-red-800"
+                }`}
+              >
+                {m.isLicensed ? (
+                  <CircleCheck size={16} />
                 ) : (
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300">
-                    <span className="text-lg font-medium ">
-                      {m.nom?.charAt(0).toUpperCase() || "?"}
-                    </span>
-                  </div>
+                  <CircleX size={16} />
+                )}
+                {m.isLicensed ? "Oui" : "Non"}
+              </Badge>
+            </TableCell>
+            <TableCell>
+              <Badge
+                className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
+                  m.isBlessed
+                    ? "border-emerald-800 bg-emerald-100 text-emerald-800"
+                    : "border-red-800 bg-red-200 text-red-800"
+                }`}
+              >
+                {m.isBlessed ? (
+                  <CircleX size={16} />
+                ) : (
+                  <CircleCheck size={16} />
+                )}
+                {m.isBlessed ? "Oui" : "Non"}
+              </Badge>
+            </TableCell>
+            {entraineur && (
+              <TableCell>
+                {m.position !== "ENTRAINEUR" && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="submit"
+                        variant="outline"
+                        disabled={m.isBlessed}
+                        className="cursor-pointer hover:opacity-80 border border-gray-400 d rounded-lg"
+                      >
+                        <Send />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Envoyez une convocation au joueur</p>
+                    </TooltipContent>
+                  </Tooltip>
                 )}
               </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.nom}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.poste || "ENTRAINEUR"}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.statut}
-              </TableCell>
-              {entraineur && (
-                <TableCell>
-                  {statsteamid.idstatsequipe && m.poste ? (
-                    hasStats ? (
-                      <div className="flex gap-2">
-                        <Button></Button>
-                      </div>
-                    ) : (
-                      <ModalButtonAddPlayerStats
-                        playerid={m.idUtilisateur}
-                        eventid={statsteamid.eventid}
-                      />
-                    )
-                  ) : null}
-                </TableCell>
-              )}
-            </TableRow>
-          );
-        })}
+            )}
+          </TableRow>
+        ))}
       </TableBody>
     </Table>
   );
