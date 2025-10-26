@@ -1,49 +1,38 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { convocationService } from "../services/convocation.service";
-import { CallUpPlayerParams, Convocation, ErrorResponse } from "../interfaces/CallUpInterface";
+import {
+  CallUpPlayerParams,
+  ErrorResponse,
+  TeamListInterface,
+  CallUpResponse,
+} from "../interfaces/CallUpInterface";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 
 export function useCallUpPlayer() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<CallUpResponse,AxiosError<ErrorResponse>,CallUpPlayerParams,{ previousData: TeamListInterface | undefined }
+  >({
     mutationFn: ({ eventId, playerId }: CallUpPlayerParams) =>
       convocationService.callUpPlayer(eventId, playerId),
 
-    onMutate: async ({ eventId, playerId }) => {
-      await queryClient.cancelQueries({ queryKey: ["TeamList", eventId] });
+    onMutate: async ({ teamId }) => {
+      await queryClient.cancelQueries({ queryKey: ["TeamList", teamId] });
 
-      const previousConvocations = queryClient.getQueryData<Convocation[]>([
+      const previousData = queryClient.getQueryData<TeamListInterface>([
         "TeamList",
-        eventId,
+        teamId,
       ]);
 
-      queryClient.setQueryData<Convocation[]>(
-        ["TeamList", eventId],
-        (old = []) => [
-          ...old,
-          {
-            id: `temp-${Date.now()}`,
-            userId: playerId,
-            evenementId: eventId,
-            statut: "EN_ATTENTE",
-            dateEnvoi: new Date(),
-          },
-        ]
-      );
-
-      return { previousConvocations };
+      return { previousData }; 
     },
 
-    onError: (error: AxiosError<ErrorResponse>, { eventId }, context) => {
-      if (context?.previousConvocations) {
-        queryClient.setQueryData(
-          ["Convocations", eventId],
-          context.previousConvocations
-        );
+    onError: (error, { teamId }, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(["TeamList", teamId], context.previousData);
       }
-      
+
       toast.error(error.response?.data?.message || "Erreur lors de la convocation");
     },
 
@@ -51,8 +40,8 @@ export function useCallUpPlayer() {
       toast.success(data.message);
     },
 
-    onSettled: (_, __, { eventId }) => {
-      queryClient.invalidateQueries({ queryKey: ["TeamList", eventId] });
+    onSettled: (_, __, { teamId }) => {
+      queryClient.invalidateQueries({ queryKey: ["TeamList", teamId] });
     },
   });
 }

@@ -5,9 +5,9 @@ import { CallUpResponse } from '../interfaces/CallUpInterface';
 
 
 export const convocationService = {
-  callUpPlayer: async (teamId: string, playerId: string): Promise<CallUpResponse> => {
+  callUpPlayer: async (eventId: string, playerId: string): Promise<CallUpResponse> => {
     const { data } = await axios.post<CallUpResponse>(
-      `/api/evenements/${teamId}/convocation/${playerId}`
+      `/api/evenements/${eventId}/convocation/${playerId}`
     );
     return data;
   },

@@ -17,8 +17,16 @@ interface Players {
     position: $Enums.RoleEquipe;
     isLicensed: boolean;
     isBlessed: boolean;
+    convocations: ConvocationInfo[];
 }
 
+export interface ConvocationInfo {
+  id: string;
+  statut: $Enums.StatutConvocation;
+  dateEnvoi: Date;
+  dateReponse: Date | null;
+  evenementId: string;
+}
 
 export interface Convocation {
   id: string;
@@ -33,9 +41,11 @@ export interface CallUpResponse {
 }
 
 export interface CallUpPlayerParams {
-  eventId: string;
+  eventId: string;    // Pour l'API
   playerId: string;
+  teamId: string;     // Pour invalider la query
 }
+
 
 export interface ErrorResponse {
   message: string;

@@ -10,8 +10,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   const idUtilisateur = session?.user?.id;
 
   try {
-
-     if (!idUtilisateur) {
+    if (!idUtilisateur) {
       return NextResponse.json({ message: "Authentification requise" }, { status: 401 });
     }
 
@@ -22,8 +21,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     const membreEquipe = await prisma.membreEquipe.findFirst({
       where: { userId: idUtilisateur, equipeId: id },
-      select : {role : true},
+      select: { role: true },
     });
+    
     if (!membreEquipe) {
       return NextResponse.json(
         { message: "Seuls les membres de cette équipe peuvent accéder à ces données" },
@@ -31,46 +31,61 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       );
     }
 
-     const equipeComplete = await prisma.equipe.findUnique({
-  where: { id },
-  include: {
-    MembreEquipe: {
-      select: {
-        isLicensed: true,
-        role: true,
-        poste: true,
-        user: {
+    const equipeComplete = await prisma.equipe.findUnique({
+      where: { id },
+      include: {
+        MembreEquipe: {
           select: {
-            id: true,
-            name: true,
-            image: true,
-            email: true,
-            blessures: {
-              where: {
-                startDate: { lte: new Date() },
-                endDate: { gte: new Date() },
+            isLicensed: true,
+            role: true,
+            poste: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+                email: true,
+                blessures: {
+                  where: {
+                    startDate: { lte: new Date() },
+                    endDate: { gte: new Date() },
+                  },
+                },
+                Convocation: {
+                  select: {
+                    id: true,
+                    statut: true,
+                    dateEnvoi: true,
+                    dateReponse: true,
+                    evenementId: true,
+                  },
+                },
               },
             },
           },
         },
       },
-    },
-  },
-});
-
+    });
 
     const membresAvecBlessure = equipeComplete?.MembreEquipe?.map((membre) => ({
       id: membre.user.id,
       name: membre.user.name,
       email: membre.user.email,
       image: membre.user.image,
-      position : membre.role,
-      isLicensed : membre.isLicensed,
+      position: membre.role,
+      isLicensed: membre.isLicensed,
       isBlessed: membre.user.blessures.length > 0,
+      convocations: membre.user.Convocation.map(conv => ({
+        id: conv.id,
+        statut: conv.statut,
+        dateEnvoi: conv.dateEnvoi,
+        dateReponse: conv.dateReponse,
+        evenementId: conv.evenementId,
+      })),
     })) || [];
 
     return NextResponse.json({
-      RolePlayer : membreEquipe.role,
+      RolePlayer: membreEquipe.role,
       userId: idUtilisateur,
       equipe: {
         id: equipeComplete!.id,
