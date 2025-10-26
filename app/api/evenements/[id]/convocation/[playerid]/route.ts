@@ -10,8 +10,6 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
   const session = await auth.api.getSession({ headers: await headers() });
   const idUtilisateur = session?.user?.id;
 
-//  const idUtilisateur = "2cXsE8BlLpdHKiJdOrDXPpi7rmHDXhK9"
-
   if (!idUtilisateur) {
     return NextResponse.json(
       { message: "Authentification requise" },

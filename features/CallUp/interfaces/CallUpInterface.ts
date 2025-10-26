@@ -18,3 +18,27 @@ interface Players {
     isLicensed: boolean;
     isBlessed: boolean;
 }
+
+
+export interface Convocation {
+  id: string;
+  userId: string;
+  evenementId: string;
+  statut: 'EN_ATTENTE' | 'ACCEPTEE' | 'REFUSEE';
+  dateEnvoi: Date;
+}
+
+export interface CallUpResponse {
+  message: string;
+}
+
+export interface CallUpPlayerParams {
+  eventId: string;
+  playerId: string;
+}
+
+export interface ErrorResponse {
+  message: string;
+}
+
+

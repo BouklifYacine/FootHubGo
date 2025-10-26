@@ -22,6 +22,7 @@ import {
   StatsJoueur,
 } from "@/features/evenements/types/TypesEvenements";
 import { CircleCheck, CircleX, Send } from "lucide-react";
+import CallUpButton from "@/features/CallUp/components/CallUpButton";
 
 interface Props {
   presences: Presence[] | undefined;
@@ -39,8 +40,7 @@ function ArrayPlayerStatusEventId({
 }: Props) {
   const { data, isPending } = useInfosClub();
   const TeamId = data?.equipe.id;
-  const { data: TeamListData, isPending: isPendingTeamList } =
-    UseTeamList(TeamId);
+  const { data: TeamListData, isPending: isPendingTeamList } = UseTeamList(TeamId);
 
   const entraineur = data?.role === "ENTRAINEUR";
 
@@ -129,21 +129,7 @@ function ArrayPlayerStatusEventId({
             {entraineur && (
               <TableCell>
                 {m.position !== "ENTRAINEUR" && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        type="submit"
-                        variant="outline"
-                        disabled={m.isBlessed}
-                        className="cursor-pointer hover:opacity-80 border border-gray-400 d rounded-lg"
-                      >
-                        <Send />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Envoyez une convocation au joueur</p>
-                    </TooltipContent>
-                  </Tooltip>
+               <CallUpButton injured={m.isBlessed} playerId={m.id} eventId={statsteamid.eventid}></CallUpButton>
                 )}
               </TableCell>
             )}

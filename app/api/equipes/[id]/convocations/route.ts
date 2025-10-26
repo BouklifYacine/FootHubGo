@@ -7,8 +7,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   const { id } = await params;
 
   const session = await auth.api.getSession({ headers: await headers() });
-  // const idUtilisateur = session?.user?.id;
-   const idUtilisateur = "2cXsE8BlLpdHKiJdOrDXPpi7rmHDXhK9";
+  const idUtilisateur = session?.user?.id;
 
   try {
 
