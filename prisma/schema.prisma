@@ -152,7 +152,6 @@ model Convocation {
   statut      StatutConvocation @default(EN_ATTENTE)
   dateEnvoi   DateTime @default(now())
   dateReponse DateTime?
-  reponse     Boolean?
 
   @@unique([userId, evenementId])
   @@index([evenementId, statut])

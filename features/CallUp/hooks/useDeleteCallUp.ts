@@ -1,26 +1,41 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { convocationService } from "../services/convocation.service";
 import {
-  CallUpPlayerParams,
   ErrorResponse,
   TeamListInterfaceAPI,
   CallUpResponse,
 } from "../interfaces/CallUpInterface";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
+import { DeleteCallUpParams } from "../interfaces/DeleteCallUpInterface";
+import { deleteCallUpService } from "../services/deleteCallUp.service";
 
-export function useCallUpPlayer() {
+export function useDeleteCallUp() {
   const queryClient = useQueryClient();
 
-  return useMutation<CallUpResponse,AxiosError<ErrorResponse>,CallUpPlayerParams,{ previousData: TeamListInterfaceAPI | undefined }
+  return useMutation<CallUpResponse,AxiosError<ErrorResponse>,DeleteCallUpParams,{ previousData: TeamListInterfaceAPI | undefined }
   >({
-    mutationFn: ({ eventId, playerId }: CallUpPlayerParams) =>
-      convocationService.callUpPlayer(eventId, playerId),
+    mutationFn: ({ callUpId }: DeleteCallUpParams) =>
+      deleteCallUpService.DeleteCallUp(callUpId),
 
-    onMutate: async ({ teamId,eventId }) => {
+    onMutate: async ({ teamId,eventId, callUpId }) => {
       await queryClient.cancelQueries({ queryKey: ["TeamList", teamId, eventId] });
 
       const previousData = queryClient.getQueryData<TeamListInterfaceAPI>(["TeamList", teamId, eventId]);
+
+       if (previousData) {
+    const updatedData = {
+      ...previousData,
+      equipe: {
+        ...previousData.equipe,
+        membres: previousData.equipe.membres.map(membre => ({
+          ...membre,
+          convocations: membre.convocations.filter((callup) => callup.id !== callUpId )
+        }))
+      }
+    };
+    
+    queryClient.setQueryData(["TeamList", teamId, eventId], updatedData);
+  }
 
       return { previousData }; 
     },

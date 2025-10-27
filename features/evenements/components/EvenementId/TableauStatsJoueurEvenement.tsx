@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Presence, StatsJoueur } from "../../types/TypesEvenements";
 import { Button } from "@/components/ui/button";
 import ArrayPlayerStatsEventsId from "@/features/stats/statsequipe/components/ArrayPlayerStatsEventsId";
-import ArrayPlayerStatusEventId from "@/features/stats/statsequipe/components/ArrayPlayerStatusEventId";
+import ArrayPlayerStatusEventId from "@/features/CallUp/components/ArrayPlayerStatusEventId";
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
   presences: Presence[] | undefined;
@@ -40,9 +40,7 @@ function TableauStatsJoueurEvenement({
         ></ArrayPlayerStatsEventsId>
       ) : (
         <ArrayPlayerStatusEventId
-          presences={presences}
           statsteamid={IdStatsandEvent}
-          statsJoueur={statsJoueur}
         ></ArrayPlayerStatusEventId>
       )}
     </div>

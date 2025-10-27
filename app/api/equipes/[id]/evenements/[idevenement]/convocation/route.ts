@@ -3,8 +3,11 @@ import { prisma } from "@/prisma";
 import { auth } from "@/auth";
 import { headers } from "next/headers";
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = await params;
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: { id: string; idevenement: string } }
+) {
+  const { id, idevenement } = await params; 
 
   const session = await auth.api.getSession({ headers: await headers() });
   const idUtilisateur = session?.user?.id;
@@ -52,6 +55,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
                   },
                 },
                 Convocation: {
+                  where: { evenementId: idevenement }, // ← Filtre direct
                   select: {
                     id: true,
                     statut: true,
@@ -67,7 +71,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       },
     });
 
-    const membresAvecBlessure = equipeComplete?.MembreEquipe?.map((membre) => ({
+    const TeamMembersCallUp = equipeComplete?.MembreEquipe?.map((membre) => ({
       id: membre.user.id,
       name: membre.user.name,
       email: membre.user.email,
@@ -86,11 +90,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
     return NextResponse.json({
       RolePlayer: membreEquipe.role,
-      userId: idUtilisateur,
       equipe: {
         id: equipeComplete!.id,
         nom: equipeComplete!.nom,
-        membres: membresAvecBlessure,
+        membres: TeamMembersCallUp,
       },
     });
   } catch (error) {

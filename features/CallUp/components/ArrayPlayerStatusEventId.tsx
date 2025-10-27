@@ -10,34 +10,29 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { UseTeamList } from "@/features/CallUp/hooks/UseTeamList";
-import {
-  Presence,
-  StatsJoueur,
-} from "@/features/evenements/types/TypesEvenements";
-import { CircleCheck, CircleX } from "lucide-react";
+import { CircleCheck, CircleX, Dot } from "lucide-react";
 import CallUpButton from "@/features/CallUp/components/CallUpButton";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
-
-dayjs.locale("fr");
+import DeleteCallUpButton from "./DeleteCallUpButton";
 
 interface Props {
-  presences: Presence[] | undefined;
   statsteamid: {
     idstatsequipe: string | undefined;
     eventid: string;
   };
-  statsJoueur: StatsJoueur[] | undefined;
 }
 
-function ArrayPlayerStatusEventId({
-  presences,
-  statsteamid,
-  statsJoueur,
-}: Props) {
+function ArrayPlayerStatusEventId({ statsteamid }: Props) {
   const { data, isPending } = useInfosClub();
   const TeamId = data?.equipe.id;
-  const { data: TeamListData, isPending: isPendingTeamList } = UseTeamList(TeamId);
+  const eventId = statsteamid.eventid;
+  const { data: TeamListData, isPending: isPendingTeamList } = UseTeamList(
+    TeamId,
+    eventId
+  );
+
+  console.log(TeamListData);
 
   const entraineur = data?.role === "ENTRAINEUR";
 
@@ -61,8 +56,12 @@ function ArrayPlayerStatusEventId({
           <TableHead className="text-black dark:text-white">Blessé</TableHead>
           <TableHead className="text-black dark:text-white">Convoqué</TableHead>
           <TableHead className="text-black dark:text-white">Statut</TableHead>
-          <TableHead className="text-black dark:text-white">Date envoi</TableHead>
-          <TableHead className="text-black dark:text-white">Date réponse</TableHead>
+          <TableHead className="text-black dark:text-white">
+            Date envoi
+          </TableHead>
+          <TableHead className="text-black dark:text-white">
+            Date réponse
+          </TableHead>
           {entraineur && (
             <TableHead className="text-black dark:text-white">Action</TableHead>
           )}
@@ -74,7 +73,7 @@ function ArrayPlayerStatusEventId({
             (conv) => conv.evenementId === statsteamid.eventid
           );
 
-          const isCalled = m.convocations.length > 0
+          const isCalled = m.convocations.length > 0;
 
           return (
             <TableRow key={m.id}>
@@ -122,15 +121,14 @@ function ArrayPlayerStatusEventId({
                 <Badge
                   className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
                     m.isBlessed
-                    ? "border-emerald-800 bg-emerald-100 text-emerald-800"
+                      ? "border-emerald-800 bg-emerald-100 text-emerald-800"
                       : "border-red-800 bg-red-200 text-red-800"
                   }`}
                 >
                   {m.isBlessed ? (
-                
-                       <CircleCheck size={16} />
+                    <CircleCheck size={16} />
                   ) : (
-                     <CircleX size={16} />
+                    <CircleX size={16} />
                   )}
                   {m.isBlessed ? "Oui" : "Non"}
                 </Badge>
@@ -143,42 +141,44 @@ function ArrayPlayerStatusEventId({
                       : "border-red-800 bg-red-200 text-red-800"
                   }`}
                 >
-                  {isCalled ? (
-                    <CircleCheck size={16} />
-                  ) : (
-                    <CircleX size={16} />
-                  )}
+                  {isCalled ? <CircleCheck size={16} /> : <CircleX size={16} />}
                   {isCalled ? "Oui" : "Non"}
                 </Badge>
               </TableCell>
               <TableCell>
                 {convocation ? (
-                  <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${
-                      convocation.statut === "EN_ATTENTE" ? "bg-orange-500" :
-                      convocation.statut === "CONFIRME" ? "bg-green-500" :
-                      "bg-red-500"
-                    }`} />
-                    <Badge 
-                      variant="outline"
-                      className={`${
-                        convocation.statut === "EN_ATTENTE" ? "border-orange-500 text-orange-700" :
-                        convocation.statut === "CONFIRME" ? "border-green-500 text-green-700" :
-                        "border-red-500 text-red-700"
+                  <Badge
+                    className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
+                      convocation.statut === "EN_ATTENTE"
+                        ? "border-orange-500 bg-orange-100 text-orange-700"
+                        : convocation.statut === "CONFIRME"
+                          ? "border-green-500 bg-green-100 text-green-700"
+                          : "border-red-500 bg-red-100 text-red-700"
+                    }`}
+                  >
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        convocation.statut === "EN_ATTENTE"
+                          ? "bg-orange-500"
+                          : convocation.statut === "CONFIRME"
+                            ? "bg-green-500"
+                            : "bg-red-500"
                       }`}
-                    >
-                      {convocation.statut === "EN_ATTENTE" ? "En attente" :
-                       convocation.statut === "CONFIRME" ? "Confirmé" :
-                       "Refusé"}
-                    </Badge>
-                  </div>
+                    />
+                    {convocation.statut === "EN_ATTENTE"
+                      ? "En attente"
+                      : convocation.statut === "CONFIRME"
+                        ? "Confirmé"
+                        : "Refusé"}
+                  </Badge>
                 ) : (
                   <span className="text-gray-400 text-sm">-</span>
                 )}
               </TableCell>
+
               <TableCell className="text-black dark:text-white">
                 {convocation ? (
-                  <span className="text-xs">
+                  <span className="text-md">
                     {dayjs(convocation.dateEnvoi).format("DD/MM/YYYY à HH:mm")}
                   </span>
                 ) : (
@@ -188,7 +188,9 @@ function ArrayPlayerStatusEventId({
               <TableCell className="text-black dark:text-white">
                 {convocation?.dateReponse ? (
                   <span className="text-xs">
-                    {dayjs(convocation.dateReponse).format("DD/MM/YYYY à HH:mm")}
+                    {dayjs(convocation.dateReponse).format(
+                      "DD/MM/YYYY à HH:mm"
+                    )}
                   </span>
                 ) : (
                   <span className="text-gray-400 text-sm">-</span>
@@ -197,28 +199,24 @@ function ArrayPlayerStatusEventId({
               {entraineur && (
                 <TableCell>
                   {m.position !== "ENTRAINEUR" && (
-                  <div className="flex gap-2">
-                      <CallUpButton 
-                      injured={m.isBlessed} 
-                      playerId={m.id} 
-                      eventId={statsteamid.eventid}
-                      teamId={TeamId}
-                      isCalled={isCalled}    
-                    />
-
-                     <CallUpButton 
-                      injured={m.isBlessed} 
-                      playerId={m.id} 
-                      eventId={statsteamid.eventid}
-                      teamId={TeamId}
-                      isCalled={isCalled}    
-                    />
-                  </div>
-                    
-                    
+                    <div className="flex gap-2">
+                      <CallUpButton
+                        injured={m.isBlessed}
+                        playerId={m.id}
+                        eventId={statsteamid.eventid}
+                        teamId={TeamId}
+                        isCalled={isCalled}
+                      />
+                      {convocation && (
+                        <DeleteCallUpButton
+                          callUpId={convocation.id} // ← Plus de ?, donc jamais undefined
+                          eventId={statsteamid.eventid}
+                          teamId={TeamId!}
+                        />
+                      )}
+                    </div>
                   )}
                 </TableCell>
-                
               )}
             </TableRow>
           );

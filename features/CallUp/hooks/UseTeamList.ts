@@ -1,16 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
-import {TeamListInterface} from "../interfaces/CallUpInterface";
+import {TeamListInterfaceAPI} from "../interfaces/CallUpInterface";
 
-export function UseTeamList(TeamId?: string) {
-  return useQuery<TeamListInterface>({
-    queryKey: ["TeamList", TeamId],
+export function UseTeamList(teamId?: string, eventId ?:string) {
+  return useQuery<TeamListInterfaceAPI>({
+    queryKey: ["TeamList", teamId, eventId],
     queryFn: async () => {
-      const res = await fetch(`/api/equipes/${TeamId}/convocations`);
+      const res = await fetch(`/api/equipes/${teamId}/evenements/${eventId}/convocation`);
       if (!res.ok) {
         throw new Error(await res.text());
       }
-      return res.json() as Promise<TeamListInterface>;
+      return res.json() as Promise<TeamListInterfaceAPI>;
     },
-     enabled: !!TeamId,
+     enabled: !!teamId && !!eventId,
   });
 }

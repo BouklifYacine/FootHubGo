@@ -1,15 +1,15 @@
 import { $Enums } from "@prisma/client";
 
-export interface TeamListInterface {
+export interface TeamListInterfaceAPI {
+  RolePlayer: $Enums.RoleEquipe;
   equipe: {
     id: string;
     nom: string;
-    RolePlayer: $Enums.RoleEquipe;
-    membres: Players[];
+    membres: TeamMembersCallUp[];
   };
 }
 
-interface Players {
+interface TeamMembersCallUp {
     id: string;
     name: string;
     email: string;
@@ -41,9 +41,10 @@ export interface CallUpResponse {
 }
 
 export interface CallUpPlayerParams {
-  eventId: string;    // Pour l'API
+  eventId: string;  
+  teamId: string;    
   playerId: string;
-  teamId: string;     // Pour invalider la query
+   
 }
 
 
