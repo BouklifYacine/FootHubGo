@@ -6,6 +6,7 @@ import {
   House ,
   UsersRound,
   ChartNoAxesCombined,
+  CalendarPlus2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -18,138 +19,33 @@ import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
+type Role = "ENTRAINEUR" | "JOUEUR" | "SANSCLUB"; 
+interface Props {
+  props?: React.ComponentProps<typeof Sidebar>;
+  datarole: Role;
+}
+
 const data = {
-  teams: [
-    // {
-    //   name: "Acme Inc",
-    //   logo: GalleryVerticalEnd,
-    //   plan: "Enterprise",
-    // },
-    // {
-    //   name: "Acme Corp.",
-    //   logo: AudioWaveform,
-    //   plan: "Startup",
-    // },
-    // {
-    //   name: "Evil Corp.",
-    //   logo: Command,
-    //   plan: "Free",
-    // },
-  ],
+  teams: [],
   navMain: [
-    {
-      title: "Accueil",
-      url: "/dashboardfoothub",
-      icon: House,
-      isActive: true,
-      // items: [
-      //   {
-      //     title: "History",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Starred",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Settings",
-      //     url: "#",
-      //   },
-      // ],
-    },
-    {
-      title: "Effectif",
-      url: "/dashboardfoothub/effectif",
-      icon: UsersRound,
-      // items: [
-      //   {
-      //     title: "Genesis",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Explorer",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Quantum",
-      //     url: "#",
-      //   },
-      // ],
-    },
-    {
-      title: "Evenements",
-      url: "/dashboardfoothub/evenements",
-      icon: Calendar,
-      // items: [
-      //   {
-      //     title: "Introduction",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Get Started",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Tutorials",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Changelog",
-      //     url: "#",
-      //   },
-      // ],
-    },
-    {
-      title: "Statistiques",
-      url: "/dashboardfoothub/statistiques",
-      icon: ChartNoAxesCombined,
-      // items: [
-      //   {
-      //     title: "General",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Team",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Billing",
-      //     url: "#",
-      //   },
-      //   {
-      //     title: "Limits",
-      //     url: "#",
-      //   },
-      // ],
-    },
+    { title: "Accueil", url: "/dashboardfoothub", icon: House, isActive: true },
+    { title: "Effectif", url: "/dashboardfoothub/effectif", icon: UsersRound },
+    { title: "Evenements", url: "/dashboardfoothub/evenements", icon: Calendar },
+    { title: "Statistiques", url: "/dashboardfoothub/statistiques", icon: ChartNoAxesCombined },
+    { title: "Convocations", url: "/dashboardfoothub/convocations", icon: CalendarPlus2 },
   ],
-  // projects: [
-  //   {
-  //     name: "Design Engineering",
-  //     url: "#",
-  //     icon: Frame,
-  //   },
-  //   {
-  //     name: "Sales & Marketing",
-  //     url: "#",
-  //     icon: PieChart,
-  //   },
-  //   {
-  //     name: "Travel",
-  //     url: "#",
-  //     icon: Map,
-  //   },
-  // ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ props, datarole }: Props) {
+  const nav = React.useMemo(() => data.navMain.filter(item => item.title !== "Convocations" || datarole === "JOUEUR"),[datarole]);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={nav} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser />

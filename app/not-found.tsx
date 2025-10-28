@@ -7,7 +7,7 @@ export default function NotFound() {
   return (
     <>
       <Header />
-      <div className="bg-muted flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 md:p-10">
+      <div className="flex min-h-[80vh] flex-col items-center justify-center gap-6 p-6 md:p-10">
         <div className="flex w-full max-w-md flex-col gap-6 text-center">
           <div className="flex flex-col items-center gap-2">
             <div className="bg-primary text-primary-foreground flex size-12 items-center justify-center rounded-md">
