@@ -1,21 +1,18 @@
-'use client';
+"use client";
 
-import {
-  Announcement,
-  AnnouncementTitle,
-} from '@/components/ui/announcement';
-import { ArrowUpRightIcon } from 'lucide-react';
+import { Announcement, AnnouncementTitle } from "@/components/ui/announcement";
 
 interface Props {
-  texte : number
+  texte: number | string;
+  icon?: React.ReactElement;
 }
 
-const BadgeTexteIcone = ({texte} : Props) => (
-  <div className="flex w-full h-screen items-center justify-center gap-4">
+const BadgeTexteIcone = ({ texte, icon }: Props) => (
+  <div className="">
     <Announcement>
       <AnnouncementTitle>
         {texte}
-        <ArrowUpRightIcon size={16} className="shrink-0 text-muted-foreground" />
+        {icon}
       </AnnouncementTitle>
     </Announcement>
   </div>

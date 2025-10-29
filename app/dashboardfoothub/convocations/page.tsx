@@ -1,8 +1,9 @@
 import { auth } from '@/auth';
+import CallUpCard from '@/features/CallUp/components/CallUpCard';
+
 import { prisma } from '@/prisma'
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import React from 'react'
 
 async function ConvocationPage() {
 
@@ -11,11 +12,19 @@ const session = await auth.api.getSession({ headers: await headers() });
     where : {userId : session?.user.id },
     select : {role : true}
   }))
+  
 
   if (DataRoleUser?.role !== "JOUEUR") redirect("/dashboardfoothub")
 
+    const serversession = await auth.api.getSession({
+    headers: await headers() // you need to pass the headers object.
+})
+
   return (
-    <div>Page de convocation</div>
+    <div>
+      <h1 className='text-xl tracking-tighter'>Convocations pour {serversession?.user.name} </h1>
+      <CallUpCard></CallUpCard>
+    </div>
   )
 }
 

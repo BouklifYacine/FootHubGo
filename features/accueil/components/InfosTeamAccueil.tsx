@@ -36,7 +36,7 @@ function InfosTeamAccueil({ clubData, Role }: Props) {
         />
         <Badge className=" w-34 md:w-44 rounded-xl flex flex-col items-center ">
           <p className="font-medium text-xs md:text-sm tracking-tighter ">
-            {clubData?.equipe.nom}
+            {clubData?.equipe?.nom}
           </p>
         </Badge>
 
@@ -53,7 +53,7 @@ function InfosTeamAccueil({ clubData, Role }: Props) {
           {coach ? (
             <div className="flex flex-col  items-center justify-center ">
               <p className="text-xl md:text-3xl font-bold">
-                {clubData?.equipe.codeInvitation}
+                {clubData?.equipe?.codeInvitation}
               </p>
               <p className=" text-sm md:text-lg tracking-tighter font-medium">
                 Code Invitation{" "}

@@ -19,13 +19,14 @@ import { Badge } from "@/components/ui/badge";
 import { BoutonDisabled } from "@/components/Boutons/BoutonDisabled";
 
 function BlockEffectif() {
-  const { data, isLoading } = useInfosClub();
-  const { mutate, isPending } = useSupprimerCodeInvitation();
+  const { data, isPending } = useInfosClub();
+  const { mutate, isPending: DeleteInvitationCode } = useSupprimerCodeInvitation();
+  const { mutate: MutationCreationCode, isPending: PendingCreationCode } = useCreerouGenererCodeInvitation();
 
-  const { mutate: MutationCreationCode, isPending: PendingCreationCode } =
-    useCreerouGenererCodeInvitation();
+  const entraineur = data?.role === "ENTRAINEUR";
+  const code = data?.equipe?.codeInvitation || "";
 
-  const SupprimerCodeInvitation = () => {
+    const SupprimerCodeInvitation = () => {
     if (data?.equipe.id) {
       mutate(data?.equipe.id);
     }
@@ -37,8 +38,9 @@ function BlockEffectif() {
     }
   };
 
-  const entraineur = data?.role === "ENTRAINEUR";
-  const code = data?.equipe.codeInvitation;
+  if(isPending) return <div>
+    <p>salut</p>
+  </div>
 
   return (
     <div className="flex justify-between items-center flex-col md:flex-row gap-4 p-5">
@@ -51,12 +53,12 @@ function BlockEffectif() {
             height={40}
           ></Image>
           <p className="md:text-3xl text-xl font-bold tracking-tighter">
-            {data?.equipe.nom}{" "}
+            {data?.equipe?.nom}{" "}
           </p>
           {data?.role === "ENTRAINEUR" && <BoutonModifierClub />}
           {entraineur && (
             <BoutonSupprimerClub
-              equipeid={data?.equipe.id || ""}
+              equipeid={data?.equipe?.id || ""}
             ></BoutonSupprimerClub>
           )}
         </div>
@@ -64,16 +66,16 @@ function BlockEffectif() {
           <div className="flex items-center gap-2">
             <p className="md:text-xl font-medium"> Niveau :</p>
             <Badge className="rounded-xl text-md">
-              <p className="font-medium tracking-tighter">{data?.equipe.niveau.toLowerCase()}</p>
+              <p className="font-medium tracking-tighter">{data?.equipe?.niveau.toLowerCase()}</p>
             </Badge>
           </div>
-            {data?.equipe.description && (
+            {data?.equipe?.description && (
               <div className="flex items-center gap-2">
                 <p className="text-black dark:text-gray-300 text-md ">
                   {" "}
                   Description :{" "}
                 </p>
-                <p>{data?.equipe.description} </p>{" "}
+                <p>{data?.equipe?.description} </p>{" "}
               </div>
             )}
          
@@ -134,7 +136,7 @@ function BlockEffectif() {
             {entraineur && code && (
               <BoutonSupprimer
                 supprimer={SupprimerCodeInvitation}
-                disabled={isPending}
+                disabled={DeleteInvitationCode}
               />
             )}
           </div>
