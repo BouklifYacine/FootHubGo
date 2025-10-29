@@ -1,10 +1,14 @@
+"use client"
+
 import { BadgeTexteIcone } from "@/components/Badge/BadgeTexteIcone";
 import { Button } from "@/components/ui/button";
-// import { BadgeAlert } from "lucide-react";
 import Liverpool from "@/public/action-de-footballeur-sur-le-stade.jpg";
 import { Calendar, CircleCheck, CircleX, Clock, MapPin, UsersRound } from "lucide-react";
+import { useGetCallUp } from "../hooks/UseGetCallUp";
 
 function CallUpCard() {
+
+ const {data, isPending} = useGetCallUp()
   return (
     <div className="bg-white rounded-xl w-[425px] mt-2 ">
       <div

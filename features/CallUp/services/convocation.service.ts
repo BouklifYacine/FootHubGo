@@ -1,8 +1,5 @@
-// lib/services/convocation.service.ts
-
 import axios from 'axios';
 import { CallUpResponse } from '../interfaces/CallUpInterface';
-
 
 export const convocationService = {
   callUpPlayer: async (eventId: string, playerId: string): Promise<CallUpResponse> => {

@@ -1,13 +1,14 @@
+"use client";
+
 import { StatsJoueur } from "@/features/evenements/types/TypesEvenements";
-import React from "react";
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
-  TableHeadCell,
+  TableHeader,
   TableRow,
-} from "flowbite-react";
+} from "@/components/ui/table"; 
 
 import Image from "next/image";
 import { CircleCheck, CircleX } from "lucide-react";
@@ -23,64 +24,46 @@ interface Props {
   eventId: string;
 }
 
-
 const BadgeNote = (note: number) => {
-  if (5 >= note) return "bg-red-600";
-  else if (6 >= note) return "bg-orange-500";
-  else if (7 >= note) return "bg-green-400";
+  if (note <= 5) return "bg-red-600";
+  else if (note <= 6) return "bg-orange-500";
+  else if (note <= 7) return "bg-green-400";
   else return "bg-green-500";
 };
 
 function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
   const { mutate, isPending } = useSupprimerStatsJoueur();
-  const { data, isLoading } = useInfosClub();
-
+  const { data } = useInfosClub();
   const entraineur = data?.role === "ENTRAINEUR";
 
   const DeletePlayerStats = (playerId: string, statisticId: string) => {
     mutate({ eventId, joueurid: playerId, statistiqueid: statisticId });
   };
 
+  if (!statsJoueur || statsJoueur.length === 0)
+    return <p className="p-4 text-center">Aucune statistique joueur disponible.</p>;
 
   return (
-    <>
+    <div className="overflow-x-auto">
       <Table>
-        <TableHead>
+        <TableHeader>
           <TableRow>
-            <TableHeadCell className="p-4">
+            <TableHead className="p-4">
               <Checkbox />
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Avatar
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Nom
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Buts
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Passes décisive
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Poste
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Titulaire
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Note
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Minutes jouées
-            </TableHeadCell>
-            <TableHeadCell className="text-black dark:text-white">
-              Actions
-            </TableHeadCell>
+            </TableHead>
+            <TableHead>Avatar</TableHead>
+            <TableHead>Nom</TableHead>
+            <TableHead>Buts</TableHead>
+            <TableHead>Passes décisive</TableHead>
+            <TableHead>Poste</TableHead>
+            <TableHead>Titulaire</TableHead>
+            <TableHead>Note</TableHead>
+            <TableHead>Minutes jouées</TableHead>
+            {entraineur && <TableHead>Actions</TableHead>}
           </TableRow>
-        </TableHead>
+        </TableHeader>
         <TableBody className="divide-y">
-          {statsJoueur?.map((m) => (
+          {statsJoueur.map((m) => (
             <TableRow key={m.id}>
               <TableCell className="p-4">
                 <Checkbox />
@@ -102,21 +85,13 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
                   </div>
                 )}
               </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.nom}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.buts}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.passesdecisive}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.poste || "Sans poste"}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
+              <TableCell>{m.nom}</TableCell>
+              <TableCell>{m.buts}</TableCell>
+              <TableCell>{m.passesdecisive}</TableCell>
+              <TableCell>{m.poste || "Sans poste"}</TableCell>
+              <TableCell>
                 <Badge
-                  className={`rounded-md border text-md  ${
+                  className={`rounded-md border text-md ${
                     m.titulaire
                       ? "border-emerald-800 bg-emerald-100 text-emerald-800"
                       : "border-red-800 bg-red-200 text-red-800"
@@ -130,23 +105,28 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
                   {m.titulaire ? "Oui" : "Non"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-black dark:text-white">
+              <TableCell>
                 <div
-                  className={`border rounded-md flex items-center justify-center w-10 ${BadgeNote(m.note)}`}
+                  className={`border rounded-md flex items-center justify-center w-10 ${BadgeNote(
+                    m.note
+                  )}`}
                 >
-                  <p className="text-white"> {m.note}</p>
+                  <p className="text-white">{m.note}</p>
                 </div>
               </TableCell>
-              <TableCell className="text-black dark:text-white">
+              <TableCell>
                 <div className="bg-gray-700 dark:bg-black border rounded-md flex items-center justify-center w-10">
-                  <p className="text-white"> {m.minutesJouees}</p>
+                  <p className="text-white">{m.minutesJouees}</p>
                 </div>
               </TableCell>
               {entraineur && (
-                <TableCell className="text-black dark:text-white">
+                <TableCell>
                   <div className="flex gap-2">
-                    <ModalButtonEditPlayerStats eventid={eventId} joueur={m}></ModalButtonEditPlayerStats>
-                    <BoutonSupprimer supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)} disabled={isPending}></BoutonSupprimer>
+                    <ModalButtonEditPlayerStats eventid={eventId} joueur={m} />
+                    <BoutonSupprimer
+                      supprimer={() => DeletePlayerStats(m.idUtilisateur, m.id)}
+                      disabled={isPending}
+                    />
                   </div>
                 </TableCell>
               )}
@@ -154,7 +134,7 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
           ))}
         </TableBody>
       </Table>
-    </>
+    </div>
   );
 }
 

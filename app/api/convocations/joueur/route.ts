@@ -79,8 +79,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json(
     {
       stats: stats,
-      convocationsFutures: convocationsFutures,
-      convocationsPassees: convocationsPassees,
+      convocations : convocations,
+      // convocationsFutures: convocationsFutures,
+      // convocationsPassees: convocationsPassees,
     },
     { status: 200 }
   );
