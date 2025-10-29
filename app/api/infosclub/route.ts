@@ -18,12 +18,17 @@ export async function GET(request: NextRequest) {
     include: { equipe: true },
   });
 
-  // if (!membre)
-  //   return NextResponse.json("Vous n'etes pas membre d'un club", { status: 400 });
+if (!membre) {
+  return NextResponse.json({
+    equipe: null,
+    membres: [],
+    role: "SANSCLUB",
+  });
+}
 
   // 2. On récupère tous les membres de cette équipe, avec les infos utilisateur
   const membres = await prisma.membreEquipe.findMany({
-    where: { equipeId: membre?.equipeId },
+    where: { equipeId: membre.equipeId },
     include : {user :  {
       select : {
         name : true,
@@ -72,8 +77,8 @@ export async function GET(request: NextRequest) {
 
   // 3. On retourne l'équipe et la liste des membres
   return NextResponse.json({
-    equipe: membre?.equipe,
+    equipe: membre.equipe,
     membres,
-    role : membre?.role
+    role : membre.role
   });
 }

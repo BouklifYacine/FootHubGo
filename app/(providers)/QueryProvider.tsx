@@ -10,10 +10,12 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
         retry: 2, 
         retryDelay: 3000,
         staleTime: 20 * 1000,
+        refetchOnWindowFocus: false,
       },
       mutations: {
         retryDelay: 3000,  
       },
+      
     },
   }))
 

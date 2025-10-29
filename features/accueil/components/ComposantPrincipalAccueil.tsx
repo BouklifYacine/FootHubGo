@@ -16,8 +16,8 @@ import NextThreeEvents from "./NextThreeEvents";
 function ComposantPrincipalAccueil() {
   const { data, isLoading } = UseDataAccueil();
   const { data: clubData, isLoading: clubLoading } = useInfosClub();
-  const { data: StatsEquipeData, isLoading: statsEquipeLoading } =
-    UseStatistiqueEquipeID(clubData?.equipe.id);
+const equipeId = clubData?.equipe?.id;
+const { data: StatsEquipeData, isLoading: statsEquipeLoading } = UseStatistiqueEquipeID(equipeId);
   const { data: statsJoueurData, isLoading: statsJoueurLoading } =
     UseStatistiqueJoueur();
   const { data: session } = authClient.useSession();
@@ -29,7 +29,8 @@ function ComposantPrincipalAccueil() {
 
   const TopScorers = data?.leaderboards.topScorers;
   const TopAssists = data?.leaderboards.topAssisters;
-  const TeamName = clubData?.equipe.nom;
+  const TeamName = clubData?.equipe?.nom ?? "";
+
 
   if (isLoading || clubLoading || statsEquipeLoading || statsJoueurLoading)
     return "Ca charge";
