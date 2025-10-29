@@ -23,6 +23,7 @@ function ComposantPrincipalAccueil() {
   const { data: session } = authClient.useSession();
 
   const HasNoClub = data?.role === "SANSCLUB" || data?.role === undefined;
+  console.log(data?.role)
   const recentmatch = data?.matches.recent;
   const Role = data?.role;
 

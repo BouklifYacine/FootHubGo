@@ -1,6 +1,6 @@
 "use client";
 
-import { AppSidebar } from "@/features/dashboard/components/app-sidebar";
+import { AppSidebar, Role } from "@/features/dashboard/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -11,17 +11,17 @@ import { BoutonDarkMode2 } from "@/components/BoutonDarkMode/BoutonDarkMode2";
 import React from "react";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 
-
-
 export default function DashboardfoothubLayout({ children }: { children: React.ReactNode;}) {
 
   const {data, isPending} = useInfosClub()
-  const role = data?.role
-  if(!role) return 
+  if (!data) return null
+  const role = data?.role as Role; // caste ici
+
+  if (!role || !["ENTRAINEUR", "JOUEUR", "SANSCLUB"].includes(role)) return null; 
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden">
-       <AppSidebar datarole={data.role} />
+       <AppSidebar role={role} />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">

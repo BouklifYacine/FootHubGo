@@ -19,10 +19,10 @@ import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 
-type Role = "ENTRAINEUR" | "JOUEUR" | "SANSCLUB"; 
+export type Role = "ENTRAINEUR" | "JOUEUR" | "SANSCLUB"; 
 interface Props {
   props?: React.ComponentProps<typeof Sidebar>;
-  datarole: Role;
+  role: Role;
 }
 
 const data = {
@@ -36,8 +36,8 @@ const data = {
   ],
 };
 
-export function AppSidebar({ props, datarole }: Props) {
-  const nav = React.useMemo(() => data.navMain.filter(item => item.title !== "Convocations" || datarole === "JOUEUR"),[datarole]);
+export function AppSidebar({ props, role }: Props) {
+  const nav = React.useMemo(() => data.navMain.filter(item => item.title !== "Convocations" || role === "JOUEUR"),[role]);
 
   return (
     <Sidebar collapsible="icon" {...props}>
