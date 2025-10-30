@@ -14,11 +14,21 @@ import {
 import { useGetCallUp } from "../hooks/UseGetCallUp";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
+import { useCallUpResponseByPlayer } from "../hooks/UseCallUpResponseByPlayer";
 
 dayjs.locale("fr");
 
 function CallUpCard() {
   const { data, isPending } = useGetCallUp();
+  const { mutate, isPending: isPendingCallUpResponse } = useCallUpResponseByPlayer();
+
+  const handleAccept = (callUpId: string) => {
+    mutate({ callUpId, statut: "CONFIRME" });
+  };
+
+  const handleRefuse = (callUpId: string) => {
+    mutate({ callUpId, statut: "REFUSE" });
+  };
 
   if (isPending) return <p>Chargement...</p>;
 
@@ -26,7 +36,6 @@ function CallUpCard() {
     return <p>Aucune convocation disponible</p>;
   }
 
-  console.log(data.convocations)
   return (
     <>
       {data.convocations.map((convocation) => {
@@ -70,9 +79,7 @@ function CallUpCard() {
                 <div className="bg-blue-500 rounded-full w-9 h-9 flex items-center justify-center">
                   <UsersRound className="w-6 h-6 text-white" />
                 </div>
-                <p className="text-black">
-                  {convocation.evenement.adversaire}
-                </p>
+                <p className="text-black">{convocation.evenement.adversaire}</p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -93,10 +100,19 @@ function CallUpCard() {
             </div>
 
             <div className="flex items-center justify-center gap-2 p-4">
-              <Button className="w-47 bg-red-500 text-white tracking-tight font-bold cursor-pointer">
+              <Button
+                onClick={() => handleRefuse(convocation.id)}
+                disabled={isPendingCallUpResponse}
+                className="w-47 bg-red-500 text-white tracking-tight font-bold cursor-pointer"
+              >
                 <CircleX /> Refuser
               </Button>
-              <Button className="w-47 bg-green-500 text-white tracking-tight font-bold cursor-pointer">
+
+              <Button
+                onClick={() => handleAccept(convocation.id)}
+                disabled={isPendingCallUpResponse}
+                className="w-47 bg-green-500 text-white tracking-tight font-bold cursor-pointer"
+              >
                 <CircleCheck /> Accepter
               </Button>
             </div>
