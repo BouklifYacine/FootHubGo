@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import dayjs from "dayjs";
 import { SchemaReponseConvocation } from "@/features/CallUp/schema/CallUpSchema";
+import { FindConvocationById } from "@/features/CallUp/repository/FindUniqueConvocationRepository";
+import { PrismaClient } from "@prisma/client";
 
 export async function PATCH(
   request: NextRequest,
@@ -36,16 +38,8 @@ export async function PATCH(
   
     const updatedConvocation = await prisma.$transaction(async (tx) => {
 
-      const convocation = await tx.convocation.findUnique({
-        where: { id: convocationId },
-        select: {
-          id: true,
-          userId: true,
-          statut: true,
-          evenementId: true,
-          dateReponse: true,
-        },
-      });
+   const convocation = await FindConvocationById(convocationId, tx as PrismaClient);
+
 
       if (!convocation) {
         throw new Error("Convocation introuvable");
