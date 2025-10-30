@@ -1,6 +1,5 @@
 import { $Enums } from "@prisma/client";
 
-
 export interface getCallUpApiResponse {
     stats : stats
     convocations : CallUp[]
@@ -15,7 +14,6 @@ interface stats {
 }
 
 interface CallUp {
-convocations: {
     id: string;
     statut: $Enums.StatutConvocation;
     dateEnvoi: Date;
@@ -33,5 +31,4 @@ convocations: {
         dateDebut: Date;
         adversaire: string | null;
     };
-}
 }
