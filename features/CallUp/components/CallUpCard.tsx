@@ -11,13 +11,13 @@ import {
   MapPin,
   UsersRound,
   Loader2,
+  Ban,
 } from "lucide-react";
 import { useGetCallUp } from "../hooks/UseGetCallUp";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import { useCallUpResponseByPlayer } from "../hooks/UseCallUpResponseByPlayer";
 import { useState } from "react";
-import SkeletonCardCallUpPlayer from "./SkeletonCardCallUpPlayer";
 
 dayjs.locale("fr");
 
@@ -38,7 +38,15 @@ function CallUpCard() {
 
   if (isPending) {
     return (
-      <><SkeletonCardCallUpPlayer/></>
+      <div className="bg-white rounded-xl w-full max-w-[425px] mt-4 animate-pulse">
+        <div className="h-48 bg-gray-200 rounded-t-xl" />
+        <div className="p-4 space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-3/4" />
+          <div className="h-4 bg-gray-200 rounded w-1/2" />
+          <div className="h-4 bg-gray-200 rounded w-2/3" />
+          <div className="h-10 bg-gray-200 rounded w-full mt-6" />
+        </div>
+      </div>
     );
   }
 
@@ -50,7 +58,7 @@ function CallUpCard() {
           Aucune convocation
         </h3>
         <p className="text-gray-500">
-          Vous avez pas de convocation en attente pour le moment
+          Vous n&apos;avez pas de convocation en attente pour le moment
         </p>
       </div>
     );
@@ -61,7 +69,12 @@ function CallUpCard() {
       {data.convocations.map((convocation) => {
         const date = dayjs(convocation.evenement.dateDebut).format("dddd D MMMM");
         const heure = dayjs(convocation.evenement.dateDebut).format("HH:mm");
-        const isUrgent = dayjs(convocation.evenement.dateDebut).diff(dayjs(), "hour") < 24;
+        const eventDate = dayjs(convocation.evenement.dateDebut);
+        const now = dayjs();
+        const hoursUntilEvent = eventDate.diff(now, "hour", true);
+        
+        const isExpired = convocation.statut === "EN_ATTENTE" && hoursUntilEvent < 3;
+        const isUrgent = hoursUntilEvent < 24 && hoursUntilEvent >= 3;
 
         return (
           <div key={convocation.id} className="bg-white rounded-xl w-full max-w-[425px] mt-4 shadow-sm">
@@ -82,15 +95,26 @@ function CallUpCard() {
                 />
                 
                 {/* ✅ Badge de statut */}
-                {convocation.statut !== "EN_ATTENTE" && (
+                {(convocation.statut !== "EN_ATTENTE" || isExpired) && (
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-bold ${
                       convocation.statut === "CONFIRME"
                         ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                        : convocation.statut === "REFUSE"
+                        ? "bg-red-100 text-red-700"
+                        : isExpired
+                        ? "bg-gray-100 text-gray-700"
+                        : ""
                     }`}
                   >
-                    {convocation.statut === "CONFIRME" ? "✓ Confirmé" : "✗ Refusé"}
+                    {convocation.statut === "CONFIRME" 
+                      ? "✓ Confirmé" 
+                      : convocation.statut === "REFUSE"
+                      ? "✗ Refusé"
+                      : isExpired
+                      ? "⏱ Expiré"
+                      : ""
+                    }
                   </span>
                 )}
               </div>
@@ -106,6 +130,13 @@ function CallUpCard() {
             {isUrgent && convocation.statut === "EN_ATTENTE" && (
               <div className="mx-4 mt-4 p-2 bg-orange-100 border-l-4 border-orange-500 text-orange-700 text-sm rounded">
                 ⚠️ Réponse urgente : événement dans moins de 24h
+              </div>
+            )}
+
+            {/* ✅ Alerte expiration */}
+            {isExpired && (
+              <div className="mx-4 mt-4 p-2 bg-gray-100 border-l-4 border-gray-500 text-gray-700 text-sm rounded">
+                ⏱ Délai expiré : vous devez répondre au moins 3h avant l&apos;événement
               </div>
             )}
 
@@ -143,7 +174,7 @@ function CallUpCard() {
 
             <div className="flex items-center justify-center gap-2 p-4">
               {/* ✅ Afficher les boutons selon le statut */}
-              {convocation.statut === "EN_ATTENTE" && (
+              {convocation.statut === "EN_ATTENTE" && !isExpired && (
                 <>
                   <Button
                     onClick={() => handleRefuse(convocation.id)}
@@ -173,6 +204,21 @@ function CallUpCard() {
                     {isPendingCallUpResponse && loadingAction === convocation.id ? "Envoi..." : "Accepter"}
                   </Button>
                 </>
+              )}
+
+              {/* ✅ État expiré */}
+              {isExpired && (
+                <div className="w-full space-y-2">
+                  <Button
+                    disabled
+                    className="w-full bg-gray-400 text-white tracking-tight font-bold opacity-75"
+                  >
+                    <Ban aria-hidden="true" /> Délai de réponse expiré
+                  </Button>
+                  <p className="text-xs text-gray-500 text-center">
+                    Vous deviez répondre au moins 3h avant l&apos;événement
+                  </p>
+                </div>
               )}
 
               {/* ✅ État confirmé avec date */}
