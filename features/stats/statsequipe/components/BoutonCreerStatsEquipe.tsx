@@ -89,7 +89,7 @@ function BoutonCreerStatsEquipe({ eventid }: Props) {
       </DialogTrigger>
       <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Ajouter des statistiques d'équipe</DialogTitle>
+          <DialogTitle>Ajouter des statistiques d&apos;équipe</DialogTitle>
           <DialogDescription>
             Remplissez les informations sur la performance de votre équipe
           </DialogDescription>

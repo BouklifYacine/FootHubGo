@@ -6,7 +6,6 @@ import ArrayPlayerStatsEventsId from "@/features/stats/statsequipe/components/Ar
 import ArrayPlayerStatusEventId from "@/features/CallUp/components/ArrayPlayerStatusEventId";
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
-  presences: Presence[] | undefined;
   IdStatsandEvent: {
     idstatsequipe: string | undefined;
     eventid: string;
@@ -15,7 +14,6 @@ interface Props {
 
 function TableauStatsJoueurEvenement({
   statsJoueur,
-  presences,
   IdStatsandEvent,
 }: Props) {
   const [affichage, setAffichage] = useState(false);

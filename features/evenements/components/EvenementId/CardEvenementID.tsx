@@ -56,6 +56,13 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
       statsEquipeId: IdStatsandEvent.idstatsequipe!,
     });
   };
+  
+const now = dayjs();
+const matchDate = dayjs(infosmatch.date);
+const threeHoursAfterMatch = matchDate.add(3, "hours");
+
+const canCreateStats = now.isAfter(threeHoursAfterMatch);
+
 
   return (
     <div>
@@ -71,11 +78,14 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
           Supprimer Stats
         </Button>
       </>
-    ) : (
+    ) : canCreateStats ? (
       <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} />
+    ) : (
+     ""
     )}
   </div>
 )}
+
 
       <div className="flex items-center justify-center">
         <div className="border border-blue-500 rounded-2xl p-6 md:p-10 w-full md:w-3/4 lg:w-2/3 max-w-3xl h-full ">
@@ -133,7 +143,7 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
               </span>
             </div>
             {/* Score */}
-            <div className="flex items-center flex-shrink-0">
+            <div className="flex items-center">
               <span className="text-base md:text-5xl font-bold text-center mx-1 min-w-[20px]">
                 {infosmatch.score?.butsMarques ?? "-"}
               </span>

@@ -62,7 +62,6 @@ export default function EvenementIdPage() {
         <TableauStatsJoueurEvenement
         IdStatsandEvent={IdStatsandEvent}
           statsJoueur={statsJoueur}
-          presences={presences}
         ></TableauStatsJoueurEvenement>
       )}
     </>
