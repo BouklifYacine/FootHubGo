@@ -2,7 +2,6 @@
 import Image from "next/image";
 import Github from "@/public/github-icon-2.svg";
 import Google from "@/public/Google.png";
-import React from "react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "../ui/button";
 
@@ -25,8 +24,7 @@ const BoutonConnexionProviders = () => {
   };
 
   return (
-    <>
-   
+    <>  
         <Button variant="outline" type="button" onClick={GithubConnexion} className="w-full cursor-pointer">
           <Image src={Github} alt="GitHub Logo" width={25} height={25} />
           Connexion avec Github
@@ -36,10 +34,6 @@ const BoutonConnexionProviders = () => {
           <Image src={Google} alt="Google Logo" width={25} height={25} />
            Connexion avec Google 
         </Button>
-
-
-        
-   
     </>
   );
 };

@@ -45,7 +45,7 @@ export function ConnexionFormulaire({
       console.log(data);
 
       if (result.success) {
-        router.push("/");
+        router.push("/dashboardfoothub");
         router.refresh();
       } else {
         setErreurIdentifiant(result.error || "Une erreur est survenue");

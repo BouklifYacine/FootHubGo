@@ -68,7 +68,7 @@ function ArrayPlayerStatusEventId({ statsteamid }: Props) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {TeamListData.equipe.membres.map((m) => {
+        {TeamListData.equipe.membres.filter((m) => m.position !== "ENTRAINEUR").map((m) => {
           const convocation = m.convocations.find(
             (conv) => conv.evenementId === statsteamid.eventid
           );
@@ -141,7 +141,7 @@ function ArrayPlayerStatusEventId({ statsteamid }: Props) {
                       : "border-red-800 bg-red-200 text-red-800"
                   }`}
                 >
-                  {isCalled ? <CircleCheck size={16} /> : <CircleX size={16} />}
+                  {isCalled ? <CircleCheck size={16} /> : <CircleX size={16}  />}
                   {isCalled ? "Oui" : "Non"}
                 </Badge>
               </TableCell>
@@ -200,19 +200,21 @@ function ArrayPlayerStatusEventId({ statsteamid }: Props) {
                 <TableCell>
                   {m.position !== "ENTRAINEUR" && (
                     <div className="flex gap-2">
-                      <CallUpButton
+                   {isCalled ? "" :    
+                   <CallUpButton
                         injured={m.isBlessed}
                         playerId={m.id}
                         eventId={statsteamid.eventid}
                         teamId={TeamId}
                         isCalled={isCalled}
-                      />
+                      />}
                       {convocation && (
                         <DeleteCallUpButton
                           callUpId={convocation.id} // ← Plus de ?, donc jamais undefined
                           eventId={statsteamid.eventid}
                           teamId={TeamId!}
                         />
+                        
                       )}
                     </div>
                   )}

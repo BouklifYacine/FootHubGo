@@ -27,7 +27,7 @@ function TableauStatsJoueurEvenement({
       <div className="flex gap-2">
         <Button onClick={GererAffichage} className="mb-4">
           {" "}
-          {affichage && statsJoueur ? "Tableau Stats" : "Tableau présence"}{" "}
+          {affichage && statsJoueur ? "Tableau Stats" : "Tableau joueurs"}
         </Button>
       </div>
 
