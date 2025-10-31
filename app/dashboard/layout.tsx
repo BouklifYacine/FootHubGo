@@ -5,10 +5,6 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { BoutonDarkMode2 } from "@/components/BoutonDarkMode/BoutonDarkMode2";
 import React from "react";
-import { useInfosClub } from './../../features/club/hooks/useinfosclub';
-
-
-
 
 export default function DashboardUnLayout({
   children,
