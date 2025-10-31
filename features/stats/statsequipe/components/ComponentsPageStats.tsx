@@ -13,7 +13,6 @@ import TeamInfoSkeleton from "../../statsjoueur/components/TeamInfoSkeleton";
 import ChartsStatsTeamSkeleton from "./ChartsStatsTeamSkeleton";
 import FullStatsTeamSkeleton from "./FullStatsTeamSkeleton";
 
-
 function ComponentsPageStats() {
   const { data: clubData, isLoading: clubLoading } = useInfosClub();
   const { data: StatsEquipeData, isLoading: statsEquipeLoading } = UseStatistiqueEquipeID(clubData?.equipe.id);
@@ -21,6 +20,15 @@ function ComponentsPageStats() {
 
   const TeamName = clubData?.equipe.nom;
   const isLoading = clubLoading || statsEquipeLoading || statsJoueurLoading;
+
+  // Vérifie si les stats joueur sont vides
+  const PlayerHasNoStats = statsJoueurData?.statsjoueur.totalmatch == 0;
+
+  console.log(PlayerHasNoStats)
+
+
+  // Vérifie si les stats équipe sont vides
+  // const hasTeamStats = StatsEquipeData && StatsEquipeData.statsequipe.totalMatch == 0;
 
   if (isLoading) {
     return (
@@ -40,9 +48,17 @@ function ComponentsPageStats() {
       {role === "JOUEUR" ? (
         <div className="">
           <div className="min-h-screen flex flex-col md:flex-row justify-evenly gap-4 items-center">
-            <PlayerInfo statsJoueurData={statsJoueurData} />
-            <ChartsStatsPlayer statsJoueurData={statsJoueurData} />
-            <FullStatsPlayer statsJoueurData={statsJoueurData} />
+            {PlayerHasNoStats ? (
+              <>
+              <p>Participez a un match pour voir vos statistiques</p>
+              </>
+            ) : (
+   <>
+                <PlayerInfo statsJoueurData={statsJoueurData} />
+                <ChartsStatsPlayer statsJoueurData={statsJoueurData} />
+                <FullStatsPlayer statsJoueurData={statsJoueurData} />
+              </>
+            )}
           </div>
         </div>
       ) : (
@@ -50,7 +66,10 @@ function ComponentsPageStats() {
           {idEquipe ? (
             <>
               <div className="min-h-screen flex flex-col md:flex-row justify-evenly gap-4 items-center">
-                <TeamInfo StatsEquipeData={StatsEquipeData} TeamName={TeamName} />
+                <TeamInfo
+                  StatsEquipeData={StatsEquipeData}
+                  TeamName={TeamName}
+                />
                 <ChartsStatsTeam StatsEquipeData={StatsEquipeData} />
                 <FullStatsTeam StatsEquipeData={StatsEquipeData} />
               </div>

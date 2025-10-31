@@ -42,7 +42,7 @@ const BadgeResultat = (resultat: $Enums.ResultatMatch | null | undefined) => {
 
 function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
   const { mutate, isPending } = useSupprimerStatsEquipe();
-  const { data, isLoading } = useInfosClub();
+  const { data, isPending: isPendingInfosClub } = useInfosClub();
 
   const entraineur = data?.role === "ENTRAINEUR";
 
@@ -56,13 +56,15 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
       statsEquipeId: IdStatsandEvent.idstatsequipe!,
     });
   };
-  
 const now = dayjs();
 const matchDate = dayjs(infosmatch.date);
 const threeHoursAfterMatch = matchDate.add(3, "hours");
 
 const canCreateStats = now.isAfter(threeHoursAfterMatch);
 
+
+if(isPendingInfosClub || isPending )
+  return <p>Ca charge gros bg </p>
 
   return (
     <div>
@@ -101,13 +103,7 @@ const canCreateStats = now.isAfter(threeHoursAfterMatch);
             ) : (
               <Badge className="text-xs md:text-xl font-bold tracking-tighter rounded-xl bg-gray-500">
                 <div className="flex items-center gap-2">
-                  <p className="flex items-center text-[10px] md:text-sm gap-1">
-                    <CalendarDays
-                      size={14}
-                      className="md:w-5 md:h-5 w-3.5 h-3.5"
-                    />
-                    {dayjs(infosmatch.date?.toString()).format("DD/MM/YYYY")}
-                  </p>
+                 
                   <p className="flex items-center text-[10px] md:text-sm gap-1">
                     <House size={14} className="md:w-5 md:h-5 w-3.5 h-3.5" />{" "}
                     {infosmatch.lieu}
@@ -117,7 +113,7 @@ const canCreateStats = now.isAfter(threeHoursAfterMatch);
                       size={14}
                       className="md:w-5 md:h-5 w-3.5 h-3.5"
                     />{" "}
-                    Début : {dayjs(infosmatch.date?.toString()).format("H")}
+{dayjs(infosmatch.date?.toString()).format("H")}
                     {"h"}
                     {dayjs(infosmatch.date?.toString()).format("mm")}
                   </p>
@@ -128,7 +124,7 @@ const canCreateStats = now.isAfter(threeHoursAfterMatch);
 
           <div className="flex items-center justify-between w-full mt-4 gap-2 flex-wrap">
             {/* Équipe 1 */}
-            <div className="flex flex-col items-center flex-1 min-w-[0]">
+            <div className="flex flex-col items-center flex-1 min-w-0">
               <div className="w-8 h-8 md:w-16 md:h-16 mb-1 md:mb-0 relative">
                 <Image
                   src={City}
@@ -144,16 +140,15 @@ const canCreateStats = now.isAfter(threeHoursAfterMatch);
             </div>
             {/* Score */}
             <div className="flex items-center">
-              <span className="text-base md:text-5xl font-bold text-center mx-1 min-w-[20px]">
-                {infosmatch.score?.butsMarques ?? "-"}
+              <span className="text-base md:text-5xl font-bold text-center mx-1 min-w-5">
+                {infosmatch.score?.butsMarques}
               </span>
-              <span className="text-base md:text-2xl font-bold mx-1">-</span>
-              <span className="text-base md:text-5xl font-bold text-center mx-1 min-w-[20px]">
-                {infosmatch.score?.butsEncaisses ?? "-"}
+              <span className="text-base md:text-5xl font-bold text-center mx-1 min-w-5">
+                {infosmatch.score?.butsEncaisses}
               </span>
             </div>
             {/* Équipe 2 */}
-            <div className="flex flex-col items-center flex-1 min-w-[0]">
+            <div className="flex flex-col items-center flex-1 min-w-0">
               <div className="w-8 h-8 md:w-16 md:h-16 mb-1 md:mb-0 relative">
                 <Image
                   src={City}
