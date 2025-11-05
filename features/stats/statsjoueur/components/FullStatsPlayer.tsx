@@ -9,8 +9,6 @@ interface Props {
 function FullStatsPlayer({ statsJoueurData }: Props) {
     const stats = statsJoueurData?.statsjoueur
 
-    console.log(stats?.notemoyenne)
-
     if (!stats) {
         return <div>Aucune donnée disponible</div>
     }
@@ -51,7 +49,7 @@ function FullStatsPlayer({ statsJoueurData }: Props) {
 
                 <div className="flex gap-2 items-center">
                     <Badge className="bg-zinc-800 rounded-sm text-white text-sm w-12 h-6 flex items-center justify-center">
-                        {stats.notemoyenne.toFixed(1) ?? "-"}
+                  {stats.notemoyenne !== null ? stats.notemoyenne.toFixed(1) : "-"}
                     </Badge>
                     <p className="tracking-tight">Note moyenne</p>
                 </div>

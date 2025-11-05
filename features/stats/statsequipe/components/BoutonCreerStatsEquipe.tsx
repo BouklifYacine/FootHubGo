@@ -29,6 +29,7 @@ import { useCreerStatsEquipe } from "@/features/stats/statsequipe/hooks/useCreer
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { AjouterStatsEquipeSchema } from "@/features/stats/statsequipe/schema/AjouterStatsEquipeSchema";
+import { $Enums } from "@prisma/client";
 
 const enumsResultat = ["VICTOIRE", "DEFAITE", "NUL"] as const;
 const enumsCompetition = ["CHAMPIONNAT", "COUPE"] as const;
@@ -37,11 +38,19 @@ type FormData = z.infer<typeof AjouterStatsEquipeSchema>;
 
 interface Props {
   eventid: string;
+  typeEvenement :  $Enums.TypeEvenement;
 }
 
-function BoutonCreerStatsEquipe({ eventid }: Props) {
+function BoutonCreerStatsEquipe({ eventid, typeEvenement }: Props) {
   const [open, setOpen] = useState(false);
   const { mutate, isPending } = useCreerStatsEquipe(eventid);
+
+  function normalizeCompetition(value: $Enums.TypeEvenement): "CHAMPIONNAT" | "COUPE" | undefined {
+  if (value === "CHAMPIONNAT" || value === "COUPE") {
+    return value;
+  }
+  return undefined; 
+}
 
   const {
     register,
@@ -58,7 +67,7 @@ function BoutonCreerStatsEquipe({ eventid }: Props) {
       resultatMatch: "VICTOIRE",
       cleanSheet: false,
       domicile: true,
-      competition: "CHAMPIONNAT",
+      competition: normalizeCompetition(typeEvenement),
     },
   });
 
@@ -89,7 +98,7 @@ function BoutonCreerStatsEquipe({ eventid }: Props) {
       </DialogTrigger>
       <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Ajouter des statistiques d'équipe</DialogTitle>
+          <DialogTitle>Ajouter des statistiques d&apos;équipe</DialogTitle>
           <DialogDescription>
             Remplissez les informations sur la performance de votre équipe
           </DialogDescription>
@@ -226,7 +235,7 @@ function BoutonCreerStatsEquipe({ eventid }: Props) {
           {/* Compétition */}
           <div>
             <Label htmlFor="competition">Compétition *</Label>
-            <Select
+            <Select disabled
               onValueChange={(value) =>
                 setValue("competition", value as FormData["competition"])
               }

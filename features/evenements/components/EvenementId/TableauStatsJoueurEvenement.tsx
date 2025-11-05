@@ -1,12 +1,13 @@
 "use client";
+
 import React, { useState } from "react";
-import { Presence, StatsJoueur } from "../../types/TypesEvenements";
-import { Button } from "@/components/ui/button";
+import { StatsJoueur } from "../../types/TypesEvenements";
 import ArrayPlayerStatsEventsId from "@/features/stats/statsequipe/components/ArrayPlayerStatsEventsId";
 import ArrayPlayerStatusEventId from "@/features/CallUp/components/ArrayPlayerStatusEventId";
+import { ToggleViewButton } from "./ToggleViewButton";
+
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
-  presences: Presence[] | undefined;
   IdStatsandEvent: {
     idstatsequipe: string | undefined;
     eventid: string;
@@ -15,33 +16,28 @@ interface Props {
 
 function TableauStatsJoueurEvenement({
   statsJoueur,
-  presences,
   IdStatsandEvent,
 }: Props) {
-  const [affichage, setAffichage] = useState(false);
-
-  const GererAffichage = () => {
-    setAffichage(!affichage);
-  };
+  const [view, setView] = useState<"players" | "stats">("players");
 
   return (
     <div className="overflow-x-auto mt-10">
-      <div className="flex gap-2">
-        <Button onClick={GererAffichage} className="mb-4">
-          {" "}
-          {affichage && statsJoueur ? "Tableau Stats" : "Tableau présence"}{" "}
-        </Button>
+      <div className="flex gap-2 mb-4">
+        <ToggleViewButton
+          value={view}
+          onValueChange={setView}
+          leftLabel="Joueurs"
+          rightLabel="Statistiques"
+        />
       </div>
 
-      {affichage ? (
+      {view === "stats" ? (
         <ArrayPlayerStatsEventsId
           eventId={IdStatsandEvent.eventid}
           statsJoueur={statsJoueur}
-        ></ArrayPlayerStatsEventsId>
+        />
       ) : (
-        <ArrayPlayerStatusEventId
-          statsteamid={IdStatsandEvent}
-        ></ArrayPlayerStatusEventId>
+        <ArrayPlayerStatusEventId statsteamid={IdStatsandEvent} />
       )}
     </div>
   );

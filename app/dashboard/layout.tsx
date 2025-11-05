@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { AppSidebar } from "@/features/dashboard/components/app-sidebar";
@@ -8,12 +6,13 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/s
 import { BoutonDarkMode2 } from "@/components/BoutonDarkMode/BoutonDarkMode2";
 import React from "react";
 
-
 export default function DashboardUnLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
+
   return (
     <SidebarProvider>
       <div className="flex h-screen w-full overflow-hidden">

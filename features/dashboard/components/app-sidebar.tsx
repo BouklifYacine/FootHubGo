@@ -3,7 +3,7 @@
 import * as React from "react";
 import {
   Calendar,
-  House ,
+  House,
   UsersRound,
   ChartNoAxesCombined,
   CalendarPlus2,
@@ -18,14 +18,13 @@ import {
 import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
+import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 
-export type Role = "ENTRAINEUR" | "JOUEUR" | "SANSCLUB"; 
 interface Props {
   props?: React.ComponentProps<typeof Sidebar>;
-  role: Role;
 }
 
-const data = {
+const navigationData = {
   teams: [],
   navMain: [
     { title: "Accueil", url: "/dashboardfoothub", icon: House, isActive: true },
@@ -36,13 +35,41 @@ const data = {
   ],
 };
 
-export function AppSidebar({ props, role }: Props) {
-  const nav = React.useMemo(() => data.navMain.filter(item => item.title !== "Convocations" || role === "JOUEUR"),[role]);
+export function AppSidebar({ props }: Props) {
+  const { data: clubData, isPending } = useInfosClub();
+
+  const role = clubData?.role;
+
+  const nav = React.useMemo(() => {
+    if (!role) {
+      return navigationData.navMain.filter(item => item.title === "Accueil");
+    }
+
+    if (role === "SANSCLUB") {
+      return navigationData.navMain.filter(item => item.title === "Accueil");
+    }
+
+    if (role === "ENTRAINEUR") {
+      return navigationData.navMain.filter(item => item.title !== "Convocations");
+    }
+
+    return navigationData.navMain;
+  }, [role]);
+
+  if (isPending) {
+    return (
+      <Sidebar collapsible="icon" {...props}>
+        <SidebarHeader>
+          <div className="p-4">Chargement...</div>
+        </SidebarHeader>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={navigationData.teams} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={nav} />

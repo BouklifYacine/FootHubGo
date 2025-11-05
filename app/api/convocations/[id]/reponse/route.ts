@@ -1,45 +1,25 @@
-import { auth } from "@/auth";
+
 import { prisma } from "@/prisma";
-import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import dayjs from "dayjs";
 import { SchemaReponseConvocation } from "@/features/CallUp/schema/CallUpSchema";
 import { FindConvocationById } from "@/features/CallUp/repository/FindUniqueConvocationRepository";
 import { PrismaClient } from "@prisma/client";
+import { UpdateCallUpPlayerByCallUpId } from "@/features/CallUp/repository/UpdateCallUpPlayerByCallUpId";
+import { ZodValidationRequest } from "@/lib/ValidationZodApi/ValidationZodApi";
+import { GetSessionId } from "@/lib/SessionId/GetSessionId";
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(request: NextRequest,{ params }: { params: { id: string } }) {
   const { id: convocationId } = await params;
 
-  const session = await auth.api.getSession({ headers: await headers() });
-  const userId = session?.user?.id;
-
-  if (!userId) {
-    return NextResponse.json(
-      { message: "Authentification requise" },
-      { status: 401 }
-    );
-  }
+  const userId = await GetSessionId()
 
   try {
-    const body = await request.json();
-    const validation = SchemaReponseConvocation.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { message: validation.error.errors[0].message },
-        { status: 400 }
-      );
-    }
-
-    const { statut } = validation.data;
+    const { statut } = await ZodValidationRequest(request, SchemaReponseConvocation);
   
     const updatedConvocation = await prisma.$transaction(async (tx) => {
 
    const convocation = await FindConvocationById(convocationId, tx as PrismaClient);
-
 
       if (!convocation) {
         throw new Error("Convocation introuvable");
@@ -78,20 +58,7 @@ export async function PATCH(
           "Vous devez répondre au moins 3h avant le début du match"
         );
       }
-
-      // 3. Update atomique, toujours dans la transaction
-      return await tx.convocation.update({
-        where: { id: convocationId, statut: "EN_ATTENTE" },
-        data: {
-          statut: statut,
-          dateReponse: new Date(),
-        },
-        select: {
-          id: true,
-          statut: true,
-          dateReponse: true,
-        },
-      });
+        await UpdateCallUpPlayerByCallUpId(convocationId, tx as PrismaClient,statut)
     });
 
     // Si tout a réussi, on retourne à l'extérieur de la transaction
