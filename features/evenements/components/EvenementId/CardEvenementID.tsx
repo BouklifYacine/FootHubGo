@@ -68,7 +68,7 @@ if(isPendingInfosClub || isPending )
 
   return (
     <div>
-   {entraineur && (
+ {entraineur && (
   <div className="mb-2 flex gap-2">
     {IdStatsandEvent.idstatsequipe ? (
       <>
@@ -80,24 +80,14 @@ if(isPendingInfosClub || isPending )
           Supprimer Stats
         </Button>
       </>
-<<<<<<< HEAD
-<<<<<<< HEAD
-    ) : (
-      <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} typeEvenement={infosmatch.typeEvenement!} />
-=======
-=======
->>>>>>> 809cfe76a368ec28c3ea7ab136062b3aa13ce997
     ) : canCreateStats ? (
-      <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} />
+      <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} typeEvenement={infosmatch.typeEvenement!} />
     ) : (
-     ""
-<<<<<<< HEAD
->>>>>>> 809cfe76a368ec28c3ea7ab136062b3aa13ce997
-=======
->>>>>>> 809cfe76a368ec28c3ea7ab136062b3aa13ce997
+      ""
     )}
   </div>
 )}
+
 
 
       <div className="flex items-center justify-center">
