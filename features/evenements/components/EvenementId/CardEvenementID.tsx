@@ -81,13 +81,19 @@ if(isPendingInfosClub || isPending )
         </Button>
       </>
 <<<<<<< HEAD
+<<<<<<< HEAD
     ) : (
       <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} typeEvenement={infosmatch.typeEvenement!} />
 =======
+=======
+>>>>>>> 809cfe76a368ec28c3ea7ab136062b3aa13ce997
     ) : canCreateStats ? (
       <BoutonCreerStatsEquipe eventid={IdStatsandEvent.eventid} />
     ) : (
      ""
+<<<<<<< HEAD
+>>>>>>> 809cfe76a368ec28c3ea7ab136062b3aa13ce997
+=======
 >>>>>>> 809cfe76a368ec28c3ea7ab136062b3aa13ce997
     )}
   </div>
