@@ -34,12 +34,12 @@ import {
 
 interface Props {
   eventid: string;
-  playerid: string;
+  playerId: string;
 }
 
-export function ModalButtonAddPlayerStats({ eventid, playerid }: Props) {
+export function ModalButtonAddPlayerStats({ eventid, playerId }: Props) {
   const [open, setOpen] = useState(false);
-  const { mutate, isPending } = useAjouterStatsJoueur(playerid, eventid);
+  const { mutate, isPending } = useAjouterStatsJoueur(playerId, eventid);
 
   const {
     register,

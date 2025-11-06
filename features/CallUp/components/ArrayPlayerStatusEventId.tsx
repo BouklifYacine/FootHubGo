@@ -10,20 +10,24 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { UseTeamList } from "@/features/CallUp/hooks/UseTeamList";
-import { CircleCheck, CircleX, Dot } from "lucide-react";
+import { CircleCheck, CircleX } from "lucide-react";
 import CallUpButton from "@/features/CallUp/components/CallUpButton";
 import dayjs from "dayjs";
 import "dayjs/locale/fr";
 import DeleteCallUpButton from "./DeleteCallUpButton";
+import { ModalButtonAddPlayerStats } from "@/features/stats/statsjoueur/components/ModalButtonAddPlayerStats";
+import { StatsJoueur } from "@/features/evenements/types/TypesEvenements";
 
 interface Props {
+    statsJoueur: StatsJoueur[] | undefined;
   statsteamid: {
     idstatsequipe: string | undefined;
     eventid: string;
+    dateEvent : Date | undefined
   };
 }
 
-function ArrayPlayerStatusEventId({ statsteamid }: Props) {
+function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
   const { data, isPending } = useInfosClub();
   const TeamId = data?.equipe.id;
   const eventId = statsteamid.eventid;
@@ -32,7 +36,7 @@ function ArrayPlayerStatusEventId({ statsteamid }: Props) {
     eventId
   );
 
-  console.log(TeamListData);
+  console.log(statsJoueur?.map((m) => m.idUtilisateur))
 
   const entraineur = data?.role === "ENTRAINEUR";
 
@@ -68,161 +72,181 @@ function ArrayPlayerStatusEventId({ statsteamid }: Props) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {TeamListData.equipe.membres.filter((m) => m.position !== "ENTRAINEUR").map((m) => {
-          const convocation = m.convocations.find(
-            (conv) => conv.evenementId === statsteamid.eventid
-          );
+        {TeamListData.equipe.membres
+          .filter((m) => m.position !== "ENTRAINEUR")
+          .map((m) => {
+            const convocation = m.convocations.find(
+              (conv) => conv.evenementId === statsteamid.eventid
+            );
+            console.log(m.id)
 
-          const isCalled = m.convocations.length > 0;
+            const isCalled = m.convocations.length > 0;
 
-          return (
-            <TableRow key={m.id}>
-              <TableCell></TableCell>
-              <TableCell>
-                {m.image ? (
-                  <Image
-                    src={m.image}
-                    width={35}
-                    height={35}
-                    alt={m.name}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300">
-                    <span className="text-lg font-medium ">
-                      {m.name?.charAt(0).toUpperCase() || "?"}
-                    </span>
-                  </div>
-                )}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.name}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {m.position || "ENTRAINEUR"}
-              </TableCell>
-              <TableCell>
-                <Badge
-                  className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
-                    m.isLicensed
-                      ? "border-emerald-800 bg-emerald-100 text-emerald-800"
-                      : "border-red-800 bg-red-200 text-red-800"
-                  }`}
-                >
-                  {m.isLicensed ? (
-                    <CircleCheck size={16} />
-                  ) : (
-                    <CircleX size={16} />
-                  )}
-                  {m.isLicensed ? "Oui" : "Non"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge
-                  className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
-                    m.isBlessed
-                      ? "border-emerald-800 bg-emerald-100 text-emerald-800"
-                      : "border-red-800 bg-red-200 text-red-800"
-                  }`}
-                >
-                  {m.isBlessed ? (
-                    <CircleCheck size={16} />
-                  ) : (
-                    <CircleX size={16} />
-                  )}
-                  {m.isBlessed ? "Oui" : "Non"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge
-                  className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
-                    isCalled
-                      ? "border-emerald-800 bg-emerald-100 text-emerald-800"
-                      : "border-red-800 bg-red-200 text-red-800"
-                  }`}
-                >
-                  {isCalled ? <CircleCheck size={16} /> : <CircleX size={16}  />}
-                  {isCalled ? "Oui" : "Non"}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {convocation ? (
-                  <Badge
-                    className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
-                      convocation.statut === "EN_ATTENTE"
-                        ? "border-orange-500 bg-orange-100 text-orange-700"
-                        : convocation.statut === "CONFIRME"
-                          ? "border-green-500 bg-green-100 text-green-700"
-                          : "border-red-500 bg-red-100 text-red-700"
-                    }`}
-                  >
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        convocation.statut === "EN_ATTENTE"
-                          ? "bg-orange-500"
-                          : convocation.statut === "CONFIRME"
-                            ? "bg-green-500"
-                            : "bg-red-500"
-                      }`}
-                    />
-                    {convocation.statut === "EN_ATTENTE"
-                      ? "En attente"
-                      : convocation.statut === "CONFIRME"
-                        ? "Confirmé"
-                        : "Refusé"}
-                  </Badge>
-                ) : (
-                  <span className="text-gray-400 text-sm">-</span>
-                )}
-              </TableCell>
-
-              <TableCell className="text-black dark:text-white">
-                {convocation ? (
-                  <span className="text-md">
-                    {dayjs(convocation.dateEnvoi).format("DD/MM/YYYY à HH:mm")}
-                  </span>
-                ) : (
-                  <span className="text-gray-400 text-sm">-</span>
-                )}
-              </TableCell>
-              <TableCell className="text-black dark:text-white">
-                {convocation?.dateReponse ? (
-                  <span className="text-xs">
-                    {dayjs(convocation.dateReponse).format(
-                      "DD/MM/YYYY à HH:mm"
-                    )}
-                  </span>
-                ) : (
-                  <span className="text-gray-400 text-sm">-</span>
-                )}
-              </TableCell>
-              {entraineur && (
+            return (
+              <TableRow key={m.id}>
+                <TableCell></TableCell>
                 <TableCell>
-                  {m.position !== "ENTRAINEUR" && (
-                    <div className="flex gap-2">
-                   {isCalled ? "" :    
-                   <CallUpButton
-                        injured={m.isBlessed}
-                        playerId={m.id}
-                        eventId={statsteamid.eventid}
-                        teamId={TeamId}
-                        isCalled={isCalled}
-                      />}
-                      {convocation && (
-                        <DeleteCallUpButton
-                          callUpId={convocation.id} // ← Plus de ?, donc jamais undefined
-                          eventId={statsteamid.eventid}
-                          teamId={TeamId!}
-                        />
-                        
-                      )}
+                  {m.image ? (
+                    <Image
+                      src={m.image}
+                      width={35}
+                      height={35}
+                      alt={m.name}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-300">
+                      <span className="text-lg font-medium ">
+                        {m.name?.charAt(0).toUpperCase() || "?"}
+                      </span>
                     </div>
                   )}
                 </TableCell>
-              )}
-            </TableRow>
-          );
-        })}
+                <TableCell className="text-black dark:text-white">
+                  {m.name}
+                </TableCell>
+                <TableCell className="text-black dark:text-white">
+                  {m.position || "ENTRAINEUR"}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
+                      m.isLicensed
+                        ? "border-emerald-800 bg-emerald-100 text-emerald-800"
+                        : "border-red-800 bg-red-200 text-red-800"
+                    }`}
+                  >
+                    {m.isLicensed ? (
+                      <CircleCheck size={16} />
+                    ) : (
+                      <CircleX size={16} />
+                    )}
+                    {m.isLicensed ? "Oui" : "Non"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
+                      m.isBlessed
+                        ? "border-emerald-800 bg-emerald-100 text-emerald-800"
+                        : "border-red-800 bg-red-200 text-red-800"
+                    }`}
+                  >
+                    {m.isBlessed ? (
+                      <CircleCheck size={16} />
+                    ) : (
+                      <CircleX size={16} />
+                    )}
+                    {m.isBlessed ? "Oui" : "Non"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
+                      isCalled
+                        ? "border-emerald-800 bg-emerald-100 text-emerald-800"
+                        : "border-red-800 bg-red-200 text-red-800"
+                    }`}
+                  >
+                    {isCalled ? (
+                      <CircleCheck size={16} />
+                    ) : (
+                      <CircleX size={16} />
+                    )}
+                    {isCalled ? "Oui" : "Non"}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {convocation ? (
+                    <Badge
+                      className={`rounded-md border text-md inline-flex items-center gap-1 px-2 py-1 ${
+                        convocation.statut === "EN_ATTENTE"
+                          ? "border-orange-500 bg-orange-100 text-orange-700"
+                          : convocation.statut === "CONFIRME"
+                            ? "border-green-500 bg-green-100 text-green-700"
+                            : "border-red-500 bg-red-100 text-red-700"
+                      }`}
+                    >
+                      <div
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          convocation.statut === "EN_ATTENTE"
+                            ? "bg-orange-500"
+                            : convocation.statut === "CONFIRME"
+                              ? "bg-green-500"
+                              : "bg-red-500"
+                        }`}
+                      />
+                      {convocation.statut === "EN_ATTENTE"
+                        ? "En attente"
+                        : convocation.statut === "CONFIRME"
+                          ? "Confirmé"
+                          : "Refusé"}
+                    </Badge>
+                  ) : (
+                    <span className="text-gray-400 text-sm">-</span>
+                  )}
+                </TableCell>
+
+                <TableCell className="text-black dark:text-white">
+                  {convocation ? (
+                    <span className="text-md">
+                      {dayjs(convocation.dateEnvoi).format(
+                        "DD/MM/YYYY à HH:mm"
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-sm">-</span>
+                  )}
+                </TableCell>
+                <TableCell className="text-black dark:text-white">
+                  {convocation?.dateReponse ? (
+                    <span className="text-xs">
+                      {dayjs(convocation.dateReponse).format(
+                        "DD/MM/YYYY à HH:mm"
+                      )}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 text-sm">-</span>
+                  )}
+                </TableCell>
+                {entraineur && (
+                  <TableCell>
+                    {m.position !== "ENTRAINEUR" && (
+                      <div className="flex gap-2">
+                        {isCalled ? (
+                          ""
+                        ) : (
+                          <CallUpButton
+                            injured={m.isBlessed}
+                            playerId={m.id}
+                            eventId={statsteamid.eventid}
+                            teamId={TeamId}
+                            isCalled={isCalled}
+                          />
+                        )}
+                        {convocation && (
+                          <>
+                            {" "}
+                            <ModalButtonAddPlayerStats
+                              eventid={statsteamid.eventid}
+                              playerId={m.id}
+                            ></ModalButtonAddPlayerStats>{" "}
+                           {dayjs().isBefore(dayjs(statsteamid.dateEvent)) && (
+                              <DeleteCallUpButton
+                                callUpId={convocation.id} // toujours défini
+                                eventId={statsteamid.eventid}
+                                teamId={TeamId!}
+                              />
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );

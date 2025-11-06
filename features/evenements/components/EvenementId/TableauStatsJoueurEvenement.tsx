@@ -11,6 +11,7 @@ interface Props {
   IdStatsandEvent: {
     idstatsequipe: string | undefined;
     eventid: string;
+    dateEvent : Date | undefined
   };
 }
 
@@ -37,7 +38,7 @@ function TableauStatsJoueurEvenement({
           statsJoueur={statsJoueur}
         />
       ) : (
-        <ArrayPlayerStatusEventId statsteamid={IdStatsandEvent} />
+        <ArrayPlayerStatusEventId statsteamid={IdStatsandEvent} statsJoueur={statsJoueur} />
       )}
     </div>
   );

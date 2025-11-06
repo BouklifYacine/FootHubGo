@@ -1,4 +1,4 @@
-'use server';
+"use server";
 
 import { auth } from "@/auth";
 import {
@@ -77,16 +77,25 @@ export async function AjouterStatsJoueurAction(
       };
     }
 
-    const presence = evenement.presences.find((p) => p.userId === joueurid);
+    const convocation = await prisma.convocation.findUnique({
+      where: {
+        userId_evenementId: { userId: joueurid, evenementId: id },
+      },
+    });
     const membreJoueur = await prisma.membreEquipe.findFirst({
       where: { userId: joueurid, equipeId: evenement.equipeId },
       select: { role: true, user: { select: { name: true } } },
     });
-    if (presence?.statut !== "PRESENT" || membreJoueur?.role !== "JOUEUR") {
+    if (
+      !convocation ||
+      convocation.statut === "REFUSE" ||
+      convocation.statut === "EXPIRE" ||
+      membreJoueur?.role !== "JOUEUR"
+    ) {
       return {
         success: false,
         message:
-          "Ce joueur n'est pas présent à cet événement ou n'est pas un joueur",
+          "Ce joueur n'est pas convoqué à cet événement ou n'est pas un joueur",
       };
     }
 

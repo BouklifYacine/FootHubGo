@@ -31,6 +31,7 @@ export default function EvenementIdPage() {
     const IdStatsandEvent = {
     idstatsequipe: evenement?.statsEquipe?.id,
     eventid: id, 
+    dateEvent : infosmatch.date
   };
 
   if (isLoading) {
