@@ -65,7 +65,6 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
     }
   };
 
-  // Cas où il n'y a aucun match récent
   if (!recentmatch || recentmatch.length === 0) {
     return (
       <div className="flex items-center justify-center w-full h-full py-12">
@@ -75,7 +74,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
             Aucun match joué
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500">
-            Les 5 derniers matchs s'afficheront ici après les premières rencontres
+            Les 5 derniers matchs s&apos;afficheront ici après les premières rencontres
           </p>
         </div>
       </div>
@@ -119,7 +118,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
             <Badge
               className={`${GetRatingColor(averageRating)} text-sm md:text-lg rounded-2xl font-extralight tracking-tight`}
             >
-              {averageRating.toFixed(2)}
+              {averageRating === 0 ? "?" : averageRating.toFixed(2) }
             </Badge>
           </div>
         ) : (
@@ -170,7 +169,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Badge
-                          className={`${GetRatingColor(match.statsJoueur?.[0]?.note || 0)} rounded-full w-6 h-6 sm:w-8 sm:h-8 lg:w-10 lg:h-10 flex items-center justify-center text-xs sm:text-sm lg:text-base`}
+                          className={`${GetRatingColor(match.statsJoueur?.[0]?.note || 0)} rounded-full w-10 h-10  md:w-14 md:h-14 flex items-center justify-center text-md md:text-xl font-bold`}
                         >
                           {match.statsJoueur?.[0]?.note || "?"}
                         </Badge>
