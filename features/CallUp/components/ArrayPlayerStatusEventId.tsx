@@ -35,9 +35,7 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
     TeamId,
     eventId
   );
-
-  console.log(statsJoueur?.map((m) => m.idUtilisateur))
-
+  
   const entraineur = data?.role === "ENTRAINEUR";
 
   if (isPending || isPendingTeamList) {
@@ -226,24 +224,25 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
                           />
                         )}
                         {convocation && (
-                          <>
-                            {" "}
-                             {hasStats ? <span> - </span> : (
-                      <ModalButtonAddPlayerStats
-                        poste={m.poste}
-                        eventid={statsteamid.eventid}
-                        playerId={m.id}
-                      />
-                    )}
-                           {dayjs().isBefore(dayjs(statsteamid.dateEvent)) && (
-                              <DeleteCallUpButton
-                                callUpId={convocation.id} 
-                                eventId={statsteamid.eventid}
-                                teamId={TeamId!}
-                              />
-                            )}
-                          </>
-                        )}
+  <>
+    {!hasStats && statsteamid.idstatsequipe  ? (
+      <ModalButtonAddPlayerStats
+        poste={m.poste}
+        eventid={statsteamid.eventid}
+        playerId={m.id}
+      />
+    ) : <span> - </span>}
+    
+    {dayjs().isBefore(dayjs(statsteamid.dateEvent)) && (
+      <DeleteCallUpButton
+        callUpId={convocation.id}
+        eventId={statsteamid.eventid}
+        teamId={TeamId!}
+      />
+    )}
+  </>
+)}
+
                       </div>
                     )}
                   </TableCell>

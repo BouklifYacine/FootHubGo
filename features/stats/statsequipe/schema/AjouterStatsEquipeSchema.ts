@@ -7,21 +7,41 @@ export const AjouterStatsEquipeSchema = z
   .object({
     resultatMatch: z.enum(enumsResultat),
     cleanSheet: z.coerce.boolean(),
-    butsMarques: z.coerce.number()  
+    butsMarques: z.coerce
+      .number()
       .min(0, "Rentrez le nombre de buts")
       .max(99, "Maximum 99 buts"),
-    butsEncaisses: z.coerce.number()  
+    butsEncaisses: z.coerce
+      .number()
       .min(0, "Rentrez le nombre de buts")
       .max(99, "Maximum 99 buts"),
     domicile: z.coerce.boolean(),
-    tirsTotal: z.coerce.number() 
-      .min(0, "Rentrez le nombre de tirs")
-      .max(99, "Maximum 99 tirs")
-      .optional(),
-    tirsCadres: z.coerce.number() 
-      .min(0, "Rentrez le nombre de tirs")
-      .max(99, "Maximum 99 tirs")
-      .optional(),
+    
+    // ✅ CORRECTION : Transforme les champs vides en undefined
+    tirsTotal: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((val) => {
+        if (val === "" || val === null || val === undefined) return undefined;
+        const num = Number(val);
+        return isNaN(num) ? undefined : num;
+      })
+      .refine((val) => val === undefined || (val >= 0 && val <= 99), {
+        message: "Entre 0 et 99 tirs",
+      }),
+    
+    tirsCadres: z
+      .union([z.string(), z.number()])
+      .optional()
+      .transform((val) => {
+        if (val === "" || val === null || val === undefined) return undefined;
+        const num = Number(val);
+        return isNaN(num) ? undefined : num;
+      })
+      .refine((val) => val === undefined || (val >= 0 && val <= 99), {
+        message: "Entre 0 et 99 tirs",
+      }),
+    
     competition: z.enum(enumsCompetition),
   })
   .superRefine((data, ctx) => {
@@ -34,7 +54,6 @@ export const AjouterStatsEquipeSchema = z
       tirsTotal,
     } = data;
 
-
     if (resultatMatch === "VICTOIRE" && butsEncaisses >= butsMarques) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -46,7 +65,7 @@ export const AjouterStatsEquipeSchema = z
     if (resultatMatch === "NUL" && butsMarques !== butsEncaisses) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Si match nul, le nombre de buts encaissés et marqués doivent être égaux",
+        message: "Si match nul, les buts doivent être égaux",
         path: ["butsEncaisses"],
       });
     }
@@ -54,7 +73,7 @@ export const AjouterStatsEquipeSchema = z
     if (resultatMatch === "DEFAITE" && butsMarques >= butsEncaisses) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Vous ne pouvez pas avoir plus de buts marqués qu'encaissés en cas de défaite",
+        message: "Stats de buts marqués et encaissé incorrect en cas de défaite",
         path: ["butsMarques"],
       });
     }
@@ -62,24 +81,31 @@ export const AjouterStatsEquipeSchema = z
     if (cleanSheet && butsEncaisses > 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Vous ne pouvez pas avoir de buts encaissés en cas de clean sheet",
+        message: "Pas de buts encaissés en clean sheet",
         path: ["cleanSheet"],
       });
     }
 
-
-  if (!cleanSheet && butsEncaisses === 0) {
-     ctx.addIssue({
+    if (!cleanSheet && butsEncaisses === 0) {
+      ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Cochez le champ Clean Sheet",
         path: ["cleanSheet"],
       });
-  }
+    }
+
+    if (tirsTotal !== undefined && butsMarques > tirsTotal) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Vous ne pouvez pas avoir plus de buts que de tirs totaux",
+        path: ["butsMarques"],
+      });
+    }
 
     if (tirsTotal !== undefined && tirsCadres !== undefined && tirsCadres > tirsTotal) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Vous ne pouvez pas avoir plus de tirs cadrés que de tirs totaux",
+        message: "Tirs cadrés ne peuvent pas dépasser tirs totaux",
         path: ["tirsCadres"],
       });
     }

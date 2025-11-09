@@ -24,8 +24,6 @@ export default function EvenementIdPage() {
     nomequipe: evenement?.nomEquipe,
   };
 
-  const presences = evenement?.presences;
-
   const statsJoueur = evenement?.statsJoueurs;
 
     const IdStatsandEvent = {
