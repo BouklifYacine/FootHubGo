@@ -64,7 +64,7 @@
     "framer-motion": "^12.16.0",
     "gsap": "^3.13.0",
     "input-otp": "^1.4.2",
-    "ky": "^1.13.0",
+    "ky": "^1.14.0",
     "lottie-react": "^2.4.1",
     "lottie-web": "^5.12.2",
     "lucide-react": "^0.546.0",

@@ -22,11 +22,10 @@ interface Props {
 
 function ResultLastFiveMatches({ Role, recentmatch }: Props) {
 
-  console.log(recentmatch)
   const IsAPlayer = Role === "JOUEUR";
 
   const rating = recentmatch
-    ?.map((r) => r.statsJoueur?.[0].note)
+    ?.map((r) => r.statsJoueur?.[0]?.note)
     .filter((note) => note != null);
 
   const averageRating =

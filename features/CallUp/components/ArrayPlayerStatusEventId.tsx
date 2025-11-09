@@ -46,6 +46,14 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
     return <div>Aucun membre à afficher</div>;
   }
 
+  const joueurs = TeamListData.equipe.membres.filter(
+    (m) => m.position !== "ENTRAINEUR"
+  );
+
+  if (joueurs.length === 0) {
+    return <p className="p-4 text-center">Aucun joueur à afficher</p>;
+  }
+
   return (
     <Table>
       <TableHeader>
