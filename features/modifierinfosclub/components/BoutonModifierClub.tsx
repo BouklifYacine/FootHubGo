@@ -23,32 +23,45 @@ import { Pencil } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useModifierInfosClub } from "@/features/modifierinfosclub/hooks/useModifierInfosClub";
-import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { useState } from "react";
 import { SchemaModifierInfosClub } from "../schemas/SchemaModifierInfosClub";
 import z from "zod";
+import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
 
 type FormData = z.infer<typeof SchemaModifierInfosClub>;
 
-function BoutonModifierClub() {
-  const { data: clubData } = useInfosClub();
-  const [open, setOpen] = useState(false);
+interface Props {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  hideButton?: boolean;
+  clubData: InfosClubApiResponse | undefined;
+}
+
+function BoutonModifierClub({
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+  hideButton = false,
+  clubData,
+}: Props) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const { mutate, isPending } = useModifierInfosClub();
+
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     setValue,
     watch,
   } = useForm<FormData>({
     resolver: zodResolver(SchemaModifierInfosClub),
-    defaultValues: {
-      nom: clubData?.equipe.nom,
-      description: clubData?.equipe.description || "",
-      niveau: clubData?.equipe.niveau,
-    },
+  values: {
+    nom: clubData?.equipe.nom || "",
+    description: clubData?.equipe.description || "",
+    niveau: clubData?.equipe.niveau,
+  },
   });
 
   function onSubmit(data: FormData) {
@@ -58,7 +71,6 @@ function BoutonModifierClub() {
       {
         onSuccess: () => {
           setOpen(false);
-          reset();
         },
       }
     );
@@ -68,12 +80,16 @@ function BoutonModifierClub() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="rounded-xl border border-white cursor-pointer">
-          <Pencil size={16} />
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
+      {!hideButton && (
+        <DialogTrigger asChild>
+          <Button className="rounded-xl border border-white cursor-pointer">
+            <Pencil size={16} />
+          </Button>
+        </DialogTrigger>
+      )}
+      <DialogContent 
+        className="w-[95vw] max-w-md sm:max-w-lg"
+      >
         <DialogHeader>
           <DialogTitle>Modifier les informations du club</DialogTitle>
           <DialogDescription>
@@ -81,7 +97,6 @@ function BoutonModifierClub() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Nom du club */}
           <div>
             <Label htmlFor="nom">Nom du club</Label>
             <Input
@@ -95,7 +110,6 @@ function BoutonModifierClub() {
             )}
           </div>
 
-          {/* Niveau du club */}
           <div>
             <Label htmlFor="niveau">Niveau</Label>
             <Select
@@ -124,7 +138,6 @@ function BoutonModifierClub() {
             )}
           </div>
 
-          {/* Description */}
           <div>
             <Label htmlFor="description">Description</Label>
             <Input
