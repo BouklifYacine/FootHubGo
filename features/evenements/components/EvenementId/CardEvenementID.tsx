@@ -142,7 +142,7 @@ if(isPendingInfosClub || isPending )
             {/* Score */}
             <div className="flex items-center">
               <span className="text-base md:text-5xl font-bold text-center mx-1 min-w-5">
-                {infosmatch.score?.butsMarques}
+                {infosmatch.score?.butsMarques} -
               </span>
               <span className="text-base md:text-5xl font-bold text-center mx-1 min-w-5">
                 {infosmatch.score?.butsEncaisses}

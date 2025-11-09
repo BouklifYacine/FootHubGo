@@ -31,13 +31,16 @@ import {
   enumsPoste,
   schemaAjouterStatsJoueurSchema,
 } from "../schema/AjouterStatsJoueurSchema";
+import { $Enums } from "@prisma/client";
+
 
 interface Props {
   eventid: string;
   playerId: string;
+  poste: $Enums.PosteJoueur | null
 }
 
-export function ModalButtonAddPlayerStats({ eventid, playerId }: Props) {
+export function ModalButtonAddPlayerStats({ eventid, playerId, poste }: Props) {
   const [open, setOpen] = useState(false);
   const { mutate, isPending } = useAjouterStatsJoueur(playerId, eventid);
 
@@ -51,7 +54,7 @@ export function ModalButtonAddPlayerStats({ eventid, playerId }: Props) {
   } = useForm<schemaAjouterStatsJoueurSchema>({
     resolver: zodResolver(AjouterStatsJoueurSchema),
     defaultValues: {
-      poste: "GARDIEN",
+      poste: poste || "GARDIEN",
       buts: 0,
       passesdecisive: 0,
       minutesJouees: 90,

@@ -78,6 +78,7 @@ export async function GET(
       image: membre.user.image,
       position: membre.role,
       isLicensed: membre.isLicensed,
+      poste : membre.poste,
       isBlessed: membre.user.blessures.length > 0,
       convocations: membre.user.Convocation.map(conv => ({
         id: conv.id,

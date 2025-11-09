@@ -78,9 +78,10 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
             const convocation = m.convocations.find(
               (conv) => conv.evenementId === statsteamid.eventid
             );
-            console.log(m.id)
 
             const isCalled = m.convocations.length > 0;
+
+            const hasStats = statsJoueur?.some(stat => stat.idUtilisateur === m.id);
 
             return (
               <TableRow key={m.id}>
@@ -106,7 +107,7 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
                   {m.name}
                 </TableCell>
                 <TableCell className="text-black dark:text-white">
-                  {m.position || "ENTRAINEUR"}
+                  {m.poste || "Aucun"}
                 </TableCell>
                 <TableCell>
                   <Badge
@@ -227,13 +228,16 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
                         {convocation && (
                           <>
                             {" "}
-                            <ModalButtonAddPlayerStats
-                              eventid={statsteamid.eventid}
-                              playerId={m.id}
-                            ></ModalButtonAddPlayerStats>{" "}
+                             {hasStats ? <span> - </span> : (
+                      <ModalButtonAddPlayerStats
+                        poste={m.poste}
+                        eventid={statsteamid.eventid}
+                        playerId={m.id}
+                      />
+                    )}
                            {dayjs().isBefore(dayjs(statsteamid.dateEvent)) && (
                               <DeleteCallUpButton
-                                callUpId={convocation.id} // toujours défini
+                                callUpId={convocation.id} 
                                 eventId={statsteamid.eventid}
                                 teamId={TeamId!}
                               />

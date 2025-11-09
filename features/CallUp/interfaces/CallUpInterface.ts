@@ -15,6 +15,7 @@ interface TeamMembersCallUp {
     email: string;
     image: string | null;
     position: $Enums.RoleEquipe;
+    poste: $Enums.PosteJoueur | null
     isLicensed: boolean;
     isBlessed: boolean;
     convocations: ConvocationInfo[];
