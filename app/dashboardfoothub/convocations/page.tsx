@@ -1,12 +1,14 @@
-import { auth } from '@/auth';
+import { MiddlewareUtilisateurNonConnecte } from '@/app/(middleware)/MiddlewareUtilisateurNonConnecte';
+import { requireUserWithClub } from '@/app/(middleware)/requireUserWithClub';
 import CallUpCard from '@/features/CallUp/components/CallUpCard';
 import { prisma } from '@/prisma'
-import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 async function ConvocationPage() {
 
-const session = await auth.api.getSession({ headers: await headers() });
+ const session = await MiddlewareUtilisateurNonConnecte();
+ await requireUserWithClub()
+
   const DataRoleUser = await prisma.membreEquipe.findFirst(({
     where : {userId : session?.user.id },
     select : {role : true}
