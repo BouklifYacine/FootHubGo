@@ -30,6 +30,7 @@ export function useCreationClub() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["clubs"] });
+      queryClient.invalidateQueries({ queryKey: ["infosclub"] });
     },
   });
 }

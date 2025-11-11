@@ -64,6 +64,10 @@ function BoutonModifierClub({
   },
   });
 
+     if (!clubData || !clubData.equipe || clubData.role !== "ENTRAINEUR") {
+    return <p>Chargement ou accès non autorisé...</p>;
+  }
+
   function onSubmit(data: FormData) {
     if (!clubData?.equipe.id) return;
     mutate(
@@ -76,7 +80,6 @@ function BoutonModifierClub({
     );
   }
 
-  if (!clubData || clubData.role !== "ENTRAINEUR") return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
