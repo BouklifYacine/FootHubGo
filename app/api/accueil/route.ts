@@ -13,13 +13,12 @@ type StatWithSum = {
 
 type TeamPlayer = {
   userId: string;
-  poste: string | null;        
+  poste: string | null;
   user: {
     name: string;
-    image: string | null;      
+    image: string | null;
   };
 };
-
 
 export async function GET() {
   try {
@@ -63,7 +62,7 @@ export async function GET() {
         statEquipe: { isNot: null },
       },
       select: {
-        id: true,             
+        id: true,
         lieu: true,
         typeEvenement: true,
         dateDebut: true,
@@ -86,19 +85,22 @@ export async function GET() {
 
     const currenDate = new Date();
 
-    const UpcomingEvents = await prisma.evenement.findMany({
-      where: { equipeId: TeamMember.equipeId, dateDebut: { gte: currenDate } },
+    const UpcomingMatches = await prisma.evenement.findMany({
+      where: {
+        equipeId: TeamMember.equipeId,
+        dateDebut: { gte: currenDate },
+        typeEvenement: { in: ["COUPE", "CHAMPIONNAT"] },
+      },
       select: {
-        id: true,             
+        id: true,
         typeEvenement: true,
         dateDebut: true,
         lieu: true,
-        adversaire : true
+        adversaire: true,
       },
       orderBy: { dateDebut: "asc" },
+      take: 3, 
     });
-
-    const ThreeNextEvents = UpcomingEvents.slice(0, 3);
 
     const TotalTeamMembers = await prisma.membreEquipe.count({
       where: {
@@ -106,21 +108,20 @@ export async function GET() {
       },
     });
 
-  const teamPlayers = await prisma.membreEquipe.findMany({
-  where: { equipeId: TeamMember.equipeId },
-  select: {                    
-    userId: true,              
-    poste: true,               
-    user: { 
-      select: { 
-        id: true,          
-        name: true, 
-        image: true,        
-      } 
-    } 
-  },
-});
-
+    const teamPlayers = await prisma.membreEquipe.findMany({
+      where: { equipeId: TeamMember.equipeId },
+      select: {
+        userId: true,
+        poste: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+      },
+    });
 
     const PlayerIds = teamPlayers.map((p) => p.userId);
 
@@ -140,22 +141,21 @@ export async function GET() {
       take: 5,
     });
 
-   const addPlayerNames = (
-  stats: StatWithSum[],
-  teamPlayers: TeamPlayer[]
-) => {
-  return stats.map((stat) => {
-    const player = teamPlayers.find((p) => p.userId === stat.userId);
-    return {
-      id: stat.userId,       
-      ...stat,
-      playerName: player?.user?.name,
-      playerImage: player?.user?.image,    
-      playerPosition: player?.poste,       
+    const addPlayerNames = (
+      stats: StatWithSum[],
+      teamPlayers: TeamPlayer[]
+    ) => {
+      return stats.map((stat) => {
+        const player = teamPlayers.find((p) => p.userId === stat.userId);
+        return {
+          id: stat.userId,
+          ...stat,
+          playerName: player?.user?.name,
+          playerImage: player?.user?.image,
+          playerPosition: player?.poste,
+        };
+      });
     };
-  });
-};
-
 
     const buteursWithNames = addPlayerNames(topGoalScorer, teamPlayers);
     const passeursWithNames = addPlayerNames(TopPasseur, teamPlayers);
@@ -170,13 +170,13 @@ export async function GET() {
       },
 
       matches: {
-        recent: FiveLastResults,       
-        upcoming: ThreeNextEvents,     
+        recent: FiveLastResults,
+        upcoming: UpcomingMatches,
       },
 
       leaderboards: {
-        topScorers: buteursWithNames,   
-        topAssisters: passeursWithNames, 
+        topScorers: buteursWithNames,
+        topAssisters: passeursWithNames,
       },
     });
   } catch (error) {

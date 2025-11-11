@@ -45,7 +45,8 @@ export function useCreerEvenement() {
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["evenements"] });
+      queryClient.invalidateQueries({ queryKey: ["evenements"] })
+      queryClient.invalidateQueries({ queryKey: ["accueil"]});
     },
   });
 }

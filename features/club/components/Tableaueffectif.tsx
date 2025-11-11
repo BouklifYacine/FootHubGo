@@ -56,7 +56,7 @@ export function TableauEffectif({
        <TableHeader>
   <TableRow>
     <TableHead className="p-4">
-      <Checkbox />
+ 
     </TableHead>
     <TableHead className="text-black dark:text-white">Avatar</TableHead>
     <TableHead className="text-black dark:text-white">Nom</TableHead>
@@ -76,7 +76,7 @@ export function TableauEffectif({
             return (
               <TableRow key={m.id}>
                 <TableCell className="p-4">
-                  <Checkbox />
+                
                 </TableCell>
                 <TableCell>
                   {m.user.image ? (

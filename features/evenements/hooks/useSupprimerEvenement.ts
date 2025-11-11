@@ -53,6 +53,6 @@ export function useSupprimerEvenement() {
     onSettled: (data, error,id) => {
       queryClient.invalidateQueries({ queryKey: ["evenements"] });
       queryClient.invalidateQueries({ queryKey: ["evenements", id] });
-    },
+      queryClient.invalidateQueries({ queryKey: ["accueil"]})    },
   });
 }
