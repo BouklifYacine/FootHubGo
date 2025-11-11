@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import z from "zod";
 import { RejoindreEquipeSchema } from "../schema/schemaRejoindreEquipe";
-import { RejoindreEquipeAction } from "../actions/CodeInvitationaction";
+import { RejoindreEquipeAction } from "../actions/RejoindreEquipeAction";
 
 type schema = z.infer<typeof RejoindreEquipeSchema>;
 type CreationClubResult = {

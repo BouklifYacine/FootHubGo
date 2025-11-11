@@ -22,7 +22,7 @@ model User {
   resetToken       String?
   resetTokenExpiry DateTime?
   createdAt        DateTime
-  updatedAt        DateTime
+  updatedAt        DateTime  
   sessions         Session[]
   accounts         Account[]
   presences        Presence[]
@@ -46,6 +46,7 @@ model User {
   @@unique([email])
   @@map("user")
   Convocation Convocation[]
+  notifications Notification[]
 }
 
 model Equipe {
@@ -340,11 +341,45 @@ model StatistiqueEquipe {
   @@map("statistique_equipe")
 }
 
+
+model Notification {
+  id        String            @id @default(cuid())
+  type      TypeNotification
+  title     String
+  message   String
+  data      Json?             // Données contextuelles (matchId, blessureId, etc.)
+  read      Boolean           @default(false)
+  delivered Boolean           @default(false)  // Si envoyée via WebSocket
+  createdAt DateTime          @default(now())
+  
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  
+  @@index([userId, read])      // Optimise les requêtes "notifications non lues"
+  @@index([userId, delivered]) // Optimise les requêtes "notifications manquées"
+  @@index([createdAt])         // Pour trier par date
+  @@map("notification")
+}
+
+
+
+
 // ==============================================
 // ENUMS
 // ==============================================
 
-// Existants
+enum TypeNotification {
+  CONVOCATION_MATCH
+  DEMANDE_ADHESION
+  BLESSURE_DECLAREE
+  FINANCE_ECHEANCE
+  SONDAGE_NOUVEAU
+  EVENEMENT_RAPPEL
+  REJOINT_CLUB
+  QUITTER_CLUB
+  MESSAGE
+}
+
 enum Roles {
   Admin
   utilisateur

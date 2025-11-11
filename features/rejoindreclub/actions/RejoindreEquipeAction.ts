@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { RejoindreEquipeSchema } from "@/features/rejoindreclub/schema/schemaRejoindreEquipe";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
+import { notifyUser } from "@/lib/notifyUser";
 import z from "zod";
 
 type Schema = z.infer<typeof RejoindreEquipeSchema>;
@@ -13,6 +14,7 @@ export async function RejoindreEquipeAction(data: Schema) {
     headers: await headers(),
   });
   const userId = session?.user.id;
+  const userName = session?.user.name;
 
   if (!userId) {
     return {
@@ -61,6 +63,23 @@ export async function RejoindreEquipeAction(data: Schema) {
       role: "JOUEUR",
     },
   });
+
+  const entraineurs = await prisma.membreEquipe.findMany({
+    where: {
+      equipeId: equipe.id,
+      role: "ENTRAINEUR",
+    },
+  });
+
+  for (const entraineur of entraineurs) {
+    await notifyUser({
+      userId: entraineur.userId,
+      type: "DEMANDE_ADHESION",
+      title: "Nouveau membre",
+      message: `${userName} a rejoint ${equipe.nom}`,
+      data: { joueurId: userId, equipeId: equipe.id },
+    });
+  }
 
   return {
     success: true,

@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
@@ -5,6 +6,9 @@ import clsx from "clsx";
 import QueryProvider from "./(providers)/QueryProvider";
 import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { NotificationListener } from "@/components/NotificationListener";
+import { auth } from "@/auth";
+import { headers } from "next/headers";
 
 const dmSans = DM_Sans({
   subsets: ["latin"], 
@@ -17,11 +21,13 @@ export const metadata: Metadata = {
   description: "Avec Foothubgo gérez votre club de football amateur de manière professionnelle",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth.api.getSession({ headers: await headers()})
+
   return (
     <html lang="fr" className="relative" suppressHydrationWarning> 
       <body className={clsx(
@@ -29,7 +35,7 @@ export default function RootLayout({
         "antialiased " 
       )}>
         <QueryProvider>
-
+<NotificationListener userId={session?.user?.id} />
         <ThemeProvider
             attribute="class"
             defaultTheme="system"
