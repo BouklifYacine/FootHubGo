@@ -7,8 +7,10 @@ import { useModifierRoleClub } from "@/features/modifierrole/hook/useModifierRol
 import { useQuitterClub } from "@/features/quitterclub/hook/useQuitterClub";
 import { TableauEffectif } from "./Tableaueffectif";
 import { useModifierPosteClub } from "@/features/modifierposte/hook/useModifierPoste";
+import { useRouter } from "next/navigation"; 
 
 function Listemembreequipe() {
+  const router = useRouter(); 
   const { data, isLoading } = useInfosClub();
   const { mutate: supprimer, isPending: isPendingSuppression } = useSupprimerJoueurClub();
   const { mutate: modifierRole, isPending: isPendingRole } = useModifierRoleClub();
@@ -19,21 +21,29 @@ function Listemembreequipe() {
   const estEntraineur = data?.role === "ENTRAINEUR";
 
   if (isLoading) return <p>Chargement...</p>;
-  if (!data) return <p>Aucune donnée disponible</p>
+  if (!data) return <p>Aucune donnée disponible</p>;
 
   return (
     <TableauEffectif
       membres={data.membres}
       estEntraineur={estEntraineur}
       sessionId={sessionId || ""}
-      onModifierRole={(userId : string, role ) => 
+      onModifierRole={(userId: string, role) => 
         modifierRole({ id: userId, data: { role: role as "ENTRAINEUR" | "JOUEUR" } })
       }
-      onModifierPoste={(userId : string, poste) => 
+      onModifierPoste={(userId: string, poste) => 
         modifierPoste({ id: userId, data: { poste: poste as "GARDIEN" | "DEFENSEUR" | "MILIEU" | "ATTAQUANT" } })
       }
-      onSupprimer={(membreId : string) => supprimer(membreId)}
-      onQuitter={quitterClub}
+      onSupprimer={(membreId: string) => supprimer(membreId)}
+      onQuitter={() => 
+        quitterClub(undefined, {
+          onSuccess: (data) => {
+            if (data.success) {
+              router.push("/dashboardfoothub");
+            }
+          }
+        })
+      }
       isPendingRole={isPendingRole}
       isPendingPoste={isPendingPoste}
       isPendingSuppression={isPendingSuppression}

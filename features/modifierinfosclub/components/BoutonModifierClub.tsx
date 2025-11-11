@@ -64,7 +64,7 @@ function BoutonModifierClub({
   },
   });
 
-     if (!clubData || !clubData.equipe || clubData.role !== "ENTRAINEUR") {
+     if (!clubData || !clubData.equipe) {
     return <p>Chargement ou accès non autorisé...</p>;
   }
 

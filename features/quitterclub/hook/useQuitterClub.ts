@@ -1,11 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { quitterClubAction } from "../actions/quitterclubaction";
-import { useRouter } from "next/navigation";
 
 export function useQuitterClub() {
   const queryClient = useQueryClient();
-    const router = useRouter();
 
   return useMutation({
     mutationFn: quitterClubAction,
@@ -16,7 +14,6 @@ export function useQuitterClub() {
     },
     onSuccess: (data) => {
       if (data.success) {
-        router.push("/dashboardfoothub")
         toast.success(data.message);
       } else {
         toast.error(data.message);

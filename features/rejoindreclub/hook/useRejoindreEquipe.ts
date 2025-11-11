@@ -35,6 +35,7 @@ export function useRejoindreEquipe() {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["clubs"] });
+      queryClient.invalidateQueries({ queryKey: ["infosclub"] })
     },
   });
 }

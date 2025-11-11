@@ -126,7 +126,7 @@ function BlockEffectif() {
             <p className="text-sm md:text-lg tracking-tighter font-light mt-1">Niveau</p>
           </div>
 
-          {entraineur && code && (
+          { code && (
             <div className="flex flex-col items-center">
               <p className="text-xl md:text-3xl font-bold font-mono">{code}</p>
               <p className="text-sm md:text-lg tracking-tighter font-light">Code</p>
