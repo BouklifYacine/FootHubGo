@@ -127,17 +127,17 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
       </div>
 
       <div className="px-2 sm:px-4 lg:px-6 pb-4 sm:pb-6 mt-2 ">
-        <div className="flex flex-wrap justify-center md:justify-evenly gap-2 sm:gap-3 lg:gap-4">
+        <div className="flex flex-wrap justify-between bg-red-700 gap-2 sm:gap-3 lg:gap-4">
           {prepareMatchesData()?.map((match) => (
             <div
               key={match.id}
-              className="flex flex-col items-center space-y-1 sm:space-y-2 p-2 hover:bg-white/10 rounded-xl transition-all duration-300 group min-w-[80px] sm:min-w-[100px] lg:min-w-[120px]"
+              className="flex  flex-col items-center space-y-1 sm:space-y-2 p-2  rounded-xl   sm:min-w-[100px] lg:min-w-[70px]"
             >
               <div className="">
                 <Image
                   alt="Logo Club"
                   src={LogoLiverpool}
-                  className="w-18 h-18  md:w-[110px] md:h-[110px] rounded-full ring-2 ring-white/20 group-hover:ring-white/40 transition-all duration-300"
+                  className="w-18 h-18  md:w-[70px] md:h-[70px] rounded-full"
                 />
               </div>
 
