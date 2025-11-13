@@ -55,11 +55,12 @@ function ListeEvenement() {
 
   return (
    <div>
-    <div className="flex items-center gap-4 mb-4">
-      <BoutonCreerEvenement />
-      <FiltersEventsByDate onChangeFiltre={setFiltreDate} />
-      <FiltersEventsByType onChangeFiltre={setFiltreTypeEvent} />
-    </div>
+   <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4 mb-4">
+  <BoutonCreerEvenement />
+  <FiltersEventsByDate onChangeFiltre={setFiltreDate} />
+  <FiltersEventsByType onChangeFiltre={setFiltreTypeEvent} />
+</div>
+
     <div className="flex gap-7 flex-wrap items-center">
       {filteredEvents?.evenements.length ? (
         <CardEvenement

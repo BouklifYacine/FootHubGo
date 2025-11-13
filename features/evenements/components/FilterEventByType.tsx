@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-type FiltreEventType = "touss" | "CHAMPIONNAT" | "ENTRAINEMENT" | "COUPE";
+type FiltreEventType = "tous" | "CHAMPIONNAT" | "ENTRAINEMENT" | "COUPE";
 
 interface Props {
   onChangeFiltre: (filtre: FiltreEventType) => void;
@@ -17,8 +17,8 @@ interface Props {
 
 function FiltersEventsByType({onChangeFiltre} : Props) {
   return (
-       <Select onValueChange={onChangeFiltre}>
-      <SelectTrigger className="w-[180px]">
+    <Select onValueChange={onChangeFiltre}>
+      <SelectTrigger className="w-full md:w-[180px]">
         <SelectValue placeholder="Type entrainement" />
       </SelectTrigger>
       <SelectContent>
@@ -33,6 +33,5 @@ function FiltersEventsByType({onChangeFiltre} : Props) {
     </Select>
   );
 }
-
 
 export default FiltersEventsByType

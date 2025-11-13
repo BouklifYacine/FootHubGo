@@ -17,8 +17,8 @@ interface Props {
 
 function FiltersEventsByDate({onChangeFiltre} : Props) {
   return (
-       <Select onValueChange={onChangeFiltre}>
-      <SelectTrigger className="w-[180px]">
+    <Select onValueChange={onChangeFiltre}>
+      <SelectTrigger className="w-full md:w-[180px]">
         <SelectValue placeholder="Date évenement" />
       </SelectTrigger>
       <SelectContent>
@@ -32,6 +32,5 @@ function FiltersEventsByDate({onChangeFiltre} : Props) {
     </Select>
   );
 }
-
 
 export default FiltersEventsByDate
