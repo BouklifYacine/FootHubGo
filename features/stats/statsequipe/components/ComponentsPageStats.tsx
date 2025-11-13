@@ -26,13 +26,12 @@ function ComponentsPageStats() {
 
   console.log(PlayerHasNoStats)
 
-
   // Vérifie si les stats équipe sont vides
   // const hasTeamStats = StatsEquipeData && StatsEquipeData.statsequipe.totalMatch == 0;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col md:flex-row justify-evenly gap-4 items-center">
+      <div className="min-h-screen flex flex-col lg:flex-row justify-evenly gap-4 items-center">
         <TeamInfoSkeleton />
         <ChartsStatsTeamSkeleton />
         <FullStatsTeamSkeleton />
@@ -47,13 +46,13 @@ function ComponentsPageStats() {
     <>
       {role === "JOUEUR" ? (
         <div className="">
-          <div className="min-h-screen flex flex-col md:flex-row justify-evenly gap-4 items-center">
+          <div className="min-h-screen flex flex-col lg:flex-row justify-evenly gap-4 items-center">
             {PlayerHasNoStats ? (
               <>
-              <p>Participez a un match pour voir vos statistiques</p>
+                <p>Participez a un match pour voir vos statistiques</p>
               </>
             ) : (
-   <>
+              <>
                 <PlayerInfo statsJoueurData={statsJoueurData} />
                 <ChartsStatsPlayer statsJoueurData={statsJoueurData} />
                 <FullStatsPlayer statsJoueurData={statsJoueurData} />
@@ -65,7 +64,7 @@ function ComponentsPageStats() {
         <>
           {idEquipe ? (
             <>
-              <div className="min-h-screen flex flex-col md:flex-row justify-evenly gap-4 items-center">
+              <div className="min-h-screen flex flex-col lg:flex-row justify-evenly gap-4 items-center">
                 <TeamInfo
                   StatsEquipeData={StatsEquipeData}
                   TeamName={TeamName}
