@@ -127,7 +127,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
       </div>
 
       <div className="px-2 sm:px-4 lg:px-6 pb-4 sm:pb-6 mt-2 ">
-        <div className="flex flex-wrap justify-between bg-red-700 gap-2 sm:gap-3 lg:gap-4">
+        <div className="flex flex-wrap justify-between gap-2 sm:gap-3 lg:gap-4">
           {prepareMatchesData()?.map((match) => (
             <div
               key={match.id}

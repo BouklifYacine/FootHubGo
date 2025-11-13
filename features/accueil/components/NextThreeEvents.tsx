@@ -19,14 +19,14 @@ function NextThreeEvents({ data }: Props) {
 
   if (upcomingMatches.length === 0) {
     return (
-      <div className="flex items-center justify-center w-full py-12">
-        <div className="flex flex-col items-center gap-4 text-center">
-          <CalendarX size={48} className="text-gray-400 dark:text-gray-600" />
-          <p className="text-lg font-semibold text-gray-600 dark:text-gray-400">
+      <div className="flex items-center justify-center w-full py-8 lg:py-12">
+        <div className="flex flex-col items-center gap-3 lg:gap-4 text-center px-4">
+          <CalendarX className="w-10 h-10 lg:w-12 lg:h-12 text-gray-400 dark:text-gray-600" />
+          <p className="text-base lg:text-lg font-semibold text-gray-600 dark:text-gray-400">
             Aucun match à venir
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-500">
-            Les prochains matchs s'afficheront ici une fois programmés
+          <p className="text-xs lg:text-sm text-gray-500 dark:text-gray-500">
+            Les prochains matchs s&apos;afficheront ici une fois programmés
           </p>
         </div>
       </div>
@@ -35,56 +35,67 @@ function NextThreeEvents({ data }: Props) {
 
   return (
     <div className="w-full">
-      <div className="mb-6">
-        <p className="text-lg md:text-xl font-medium tracking-tighter">
+      {/* Header */}
+      <div className="mb-4 lg:mb-6">
+        <h3 className="text-base lg:text-lg font-medium tracking-tight">
           Prochains matchs
-        </p>
+        </h3>
       </div>
 
-      <div className="flex flex-col md:flex-row justify-center gap-6 w-full">
-        {upcomingMatches.map((m) => (
+      {/* Container des cartes - Flexbox avec wrap */}
+      <div className="flex flex-wrap justify-center gap-4 lg:gap-6">
+        {upcomingMatches.slice(0, 3).map((m) => (
           <div
             key={m.id}
-            className="relative group border border-gray-200/60 dark:border-gray-700/50 rounded-2xl p-6 w-full md:min-w-[280px] md:max-w-[320px] hover:shadow-2xl hover:shadow-gray-300/50 dark:hover:shadow-black/50 hover:scale-[1.02] transition-all duration-300"
+            className="flex flex-col w-full sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-1rem)] min-w-0 border border-gray-200/60 dark:border-gray-700/50 rounded-xl lg:rounded-2xl p-4 lg:p-6 hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
           >
-            <div className="flex justify-between items-center mb-5">
+            {/* Badge + Lieu */}
+            <div className="flex justify-between items-center mb-4 gap-2">
               <Badge
                 className={`${ColorBadgeEvent(
                   m.typeEvenement || ""
-                )} text-xs px-3 py-1 rounded-full tracking-tight font-semibold shadow-md transition-all duration-200`}
+                )} text-xs px-2.5 py-0.5 lg:px-3 lg:py-1 rounded-full tracking-tight font-semibold`}
               >
                 {m.typeEvenement}
               </Badge>
-              <div className="flex items-center gap-1.5">
-                <MapPin size={18} />
-                <p className="text-sm tracking-tight font-semibold">{m.lieu}</p>
+              
+              <div className="flex items-center gap-1.5 min-w-0">
+                <MapPin className="w-4 h-4 flex-shrink-0" />
+                <p className="text-xs lg:text-sm tracking-tight font-medium truncate">
+                  {m.lieu}
+                </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-4 mb-6">
-              <div className="flex items-center gap-2">
-                <Calendar size={16} />
-                <p className="text-sm font-semibold">
+            {/* Date + Heure */}
+            <div className="flex items-center justify-center gap-3 lg:gap-4 mb-4 lg:mb-5">
+              <div className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4" />
+                <p className="text-xs lg:text-sm font-medium">
                   {dayjs(m.dateDebut).format("DD/MM/YYYY")}
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <Timer size={16} />
-                <p className="text-sm font-semibold">
+              
+              <div className="flex items-center gap-1.5">
+                <Timer className="w-4 h-4" />
+                <p className="text-xs lg:text-sm font-medium">
                   {dayjs(m.dateDebut).format("HH:mm")}
                 </p>
               </div>
             </div>
 
-            <div className="flex flex-col items-center gap-4 mt-5">
-              <Image
-                src={LogoCity}
-                width={85}
-                height={85}
-                alt="Logo Équipe"
-                className="object-contain"
-              />
-              <p className="text-base font-bold tracking-tight text-center">
+            {/* Logo + Adversaire */}
+            <div className="flex flex-col items-center gap-3 lg:gap-4 mt-auto">
+              <div className="relative w-16 h-16 lg:w-18 lg:h-18">
+                <Image
+                  src={LogoCity}
+                  fill
+                  alt={`Logo ${m.adversaire}`}
+                  className="object-contain"
+                />
+              </div>
+              
+              <p className="text-sm lg:text-base font-bold tracking-tight text-center line-clamp-2">
                 {m.adversaire}
               </p>
             </div>

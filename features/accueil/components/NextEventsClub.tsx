@@ -30,7 +30,6 @@ function NextEventsClub({ data, TeamName }: Props) {
     return "";
   };
 
-  // Cas où il n'y a pas de prochain match
   if (!FirstUpcomingMatch) {
     return (
       <div className="flex items-center justify-center w-full h-full py-12">
@@ -40,7 +39,7 @@ function NextEventsClub({ data, TeamName }: Props) {
             Aucun match programmé
           </p>
           <p className="text-sm text-gray-500 dark:text-gray-500">
-            Le prochain match s'affichera ici une fois planifié
+            Le prochain match s&apos;affichera ici une fois planifié
           </p>
         </div>
       </div>
@@ -49,37 +48,36 @@ function NextEventsClub({ data, TeamName }: Props) {
 
   return (
     <div className="max-w-3xl rounded-3xl p-4">
-      <div className="flex justify-between ">
-        <p className="text-sm md:text-xl font-medium tracking-tighter">
+      <div className="flex justify-between">
+        <p className="text-sm md:text-xl lg:text-base font-medium tracking-tighter">
           Prochain Match
         </p>
-        <p className="text-sm md:text-xl font-medium tracking-tighter flex items-center gap-1.5">
+        <p className="text-sm md:text-xl lg:text-sm font-medium tracking-tighter flex items-center gap-1.5">
           {FirstUpcomingMatch.lieu} <MapPin size={21} />
         </p>
       </div>
 
-      <div className="flex items-center justify-center gap-2 mt-2.5 ">
-        <p className="flex items-center text-md gap-1 md:text-lg text-xs ">
+      <div className="flex items-center justify-center gap-2 mt-2.5">
+        <p className="flex items-center gap-1 text-xs md:text-lg lg:text-sm">
           <Calendar size={18} />
           {dayjs(FirstUpcomingMatch.dateDebut).format("DD/MM/YYYY")}
         </p>
         <p>|</p>
-        <p className="flex items-center text-md gap-1 md:text-lg text-xs">
+        <p className="flex items-center gap-1 text-xs md:text-lg lg:text-sm">
           <Timer size={18} />
-          {dayjs(FirstUpcomingMatch.dateDebut).format("H")}
-          {"h"}
+          {dayjs(FirstUpcomingMatch.dateDebut).format("H")}h
           {dayjs(FirstUpcomingMatch.dateDebut).format("mm")}
         </p>
       </div>
 
-      <div className="flex justify-center items-center gap-12 mt-6">
+      <div className="flex justify-center items-center gap-12 lg:gap-8 mt-6">
         <div className="flex flex-col items-center gap-2">
           <Image
             src={LogoLiverpool}
             alt="logo équipe"
-            className="w-[70px] h-[90px] md:w-[100px] md:h-[120px]"
+            className="w-[70px] h-[90px] md:w-[100px] md:h-[120px] lg:w-[70px] lg:h-[85px]"
           />
-          <p className="font-medium text-sm md:text-xl tracking-tighter">
+          <p className="font-medium text-sm md:text-xl lg:text-sm tracking-tighter">
             {TeamName}
           </p>
         </div>
@@ -87,20 +85,21 @@ function NextEventsClub({ data, TeamName }: Props) {
         <Image
           src={LogoVS}
           alt="logo vs"
-          className="w-[45px] h-[55px] md:w-[90px] md:h-[90px]"
+          className="w-[45px] h-[55px] md:w-[90px] md:h-[90px] lg:w-[40px] lg:h-[50px]"
         />
 
         <div className="flex flex-col items-center gap-2">
           <Image
             src={LogoLiverpool}
             alt="logo adversaire"
-            className="w-[70px] h-[90px] md:w-[100px] md:h-[120px]"
+            className="w-[70px] h-[90px] md:w-[100px] md:h-[120px] lg:w-[70px] lg:h-[85px]"
           />
-          <p className="font-medium text-sm md:text-xl tracking-tighter">
+          <p className="font-medium text-sm md:text-xl lg:text-sm tracking-tighter">
             {FirstUpcomingMatch.adversaire}
           </p>
         </div>
       </div>
+
       <div className="flex items-center justify-center mt-2 mb-4">
         <Badge
           className={`${ColorBadgeEvent(
