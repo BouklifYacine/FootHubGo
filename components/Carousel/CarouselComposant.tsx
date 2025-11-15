@@ -8,14 +8,13 @@ import {
   CarouselItem,
 } from "@/components/ui/carousel";
 import Image from "next/image";
-import Coca from "@/public/coca-cola-logo-svgrepo-com.svg";
-import Instagram from "@/public/instagram-2-1-logo-svgrepo-com.svg";
-import Whatsapp from "@/public/whatsapp-icon-logo-svgrepo-com.svg";
-import Youtube from "@/public/youtube-icon-logo-svgrepo-com.svg";
+import LogoArsenal from "@/public/england_arsenal.svg";
 import ManCity from "@/public/Logo_Manchester_City_2016.svg";
-import Snapchat from "@/public/snapchat-logo-svgrepo-com.svg"
-import Paypal from "@/public/paypal-icon-logo-svgrepo-com.svg"
-import BMW from "@/public/bmw-logo-svgrepo-com.svg"
+import Liverpool from "@/public/england_liverpool.svg";
+import Chelsea from "@/public/england_chelsea.svg";
+import ManchesterUnited from "@/public/england_manchester-united.svg";
+import Tottenham from "@/public/england_tottenham.svg";
+import Newcastle from "@/public/england_newcastle.svg";
 
 interface Logo {
   id: string;
@@ -31,55 +30,49 @@ interface Logos3Props {
 }
 
 const CarouselComposant = ({
-  heading = "Ces marques nous font confiance",
+  heading = "Ces clubs font confiance a Foothubgo",
   logos = [
     {
       id: "logo-1",
       description: "Logo 1",
-      image: Coca,
-      className: "h-30 w-auto",
+      image: Newcastle,
+        className: "h-20 w-auto",
     },
     {
       id: "logo-2",
       description: "Logo 2",
-      image: Instagram,
-      className: "h-15 w-auto",
+      image: LogoArsenal,
+        className: "h-20 w-auto",
     },
     {
       id: "logo-3",
       description: "Logo 3",
       image: ManCity,
-      className: "h-20 w-auto",
+        className: "h-20 w-auto",
     },
     {
       id: "logo-4",
       description: "Logo 4",
-      image: Whatsapp,
-      className: "h-15 w-auto",
+      image: Tottenham,
+        className: "h-20 w-auto",
     },
     {
       id: "logo-5",
       description: "Logo 5",
-      image: Youtube,
-      className: "h-20 w-auto",
+      image: ManchesterUnited,
+        className: "h-20 w-auto",
     },
     {
       id: "logo-6",
       description: "Logo 6",
-      image: BMW,
-      className: "h-15 w-auto",
+      image: Chelsea,
+       className: "h-20 w-auto",
     },
     {
       id: "logo-7",
       description: "Logo 7",
-      image: Paypal,
-      className: "h-15 w-auto",
-    },
-    {
-      id: "logo-8",
-      description: "Logo 8",
-      image: Snapchat,
-      className: "h-15 w-auto",
+      image: Liverpool,
+      className: "h-20 w-auto",
     },
   ],
 }: Logos3Props) => {

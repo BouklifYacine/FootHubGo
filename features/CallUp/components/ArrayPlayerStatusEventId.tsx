@@ -233,13 +233,13 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
                         )}
                         {convocation && (
   <>
-    {!hasStats && statsteamid.idstatsequipe  ? (
+    {!hasStats && statsteamid.idstatsequipe  && (
       <ModalButtonAddPlayerStats
         poste={m.poste}
         eventid={statsteamid.eventid}
         playerId={m.id}
       />
-    ) : <span> - </span>}
+    ) }
     
     {dayjs().isBefore(dayjs(statsteamid.dateEvent)) && (
       <DeleteCallUpButton

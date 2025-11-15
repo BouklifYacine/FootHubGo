@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import React from "react";
 import LogoBayern from "@/public/FC_Bayern_München_logo_(2017).svg.png";
 import Link from "next/link";
 import { CreditCard, DoorOpen, Settings, Table } from "lucide-react";

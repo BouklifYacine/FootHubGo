@@ -48,40 +48,38 @@ const Section = () => {
   return (
     <section>
       <div className="mx-auto pt-20 h-full">
-        <HandWrittenTitle title="DevGogogo" subtitle="" />
         <div className="flex flex-col justify-center items-center gap-6 py-2">
           <div className="flex justify-center items-center pb-2">
         
           </div>
 
-          <h1 className="text-5xl md:text-6xl lg:text-7xl xl:text-9xl font-bold tracking-tighter  text-center px-4 max-w-8xl">
-            Créer votre{" "}
+          <h1 className="text-2xl md:text-4xl lg:text-6xl xl:text-8xl font-bold tracking-tighter  text-center px-4 max-w-8xl">
+            Gérez votre club de {" "}
             <span className="bg-linear-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text inline-block">
-              projet
+              football
             </span>{" "}
-            à <br className="hidden md:block" />
-            une vitesse{" "}
+             <br className="hidden md:block" />
+            en quelques{" "}
             <span className="bg-linear-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text inline-block">
-              éclair
+              clics
             </span>
           </h1>
 
           <p className="max-w-2xl text-base md:text-lg lg:text-xl text-center px-4  pt-3">
-            Grace à notre boilerplate gagnez plus de 80% de temps de
-            configuration redondante pour des projets full-stack en NextJS.
+           Arrêtez de perdre 3 heures chaque semaine à relancer les joueurs <br></br> Votre club mérite mieux.
           </p>
 
           <div className="flex justify-center items-center pb-2 pt-3">
             <Link href={"/connexion"}>
            
-              <GlowEffectButton texte="Rejoindre"></GlowEffectButton>
+              <GlowEffectButton texte="Créer mon club"></GlowEffectButton>
             </Link>
           </div>
 
           <div className="flex flex-col items-center justify-center md:flex-row gap-3">
             <AvatarCircles numPeople={100} avatarUrls={avatars} />
             <span className="text-base md:text-lg ">
-              Approuvé par +100 utilisateurs
+              Approuvé par +100 coachs
             </span>
           </div>
 

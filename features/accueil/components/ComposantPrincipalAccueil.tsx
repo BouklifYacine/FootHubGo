@@ -46,7 +46,7 @@ function ComposantPrincipalAccueil() {
     <div className="w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
       {/* Titre */}
       <h1 className="text-xl sm:text-2xl lg:text-3xl tracking-tight font-medium mb-6 lg:mb-10">
-        Bienvenue {session?.user.name}
+        Bienvenue {session?.user.name} 
       </h1>
 
       {/* Grid Container */}
