@@ -51,16 +51,7 @@ const Header = () => {
     <header className=" top-0 z-50 pt-4 px-4 ">
       <div className="mx-auto max-w-7xl px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          <Link href="/">
-            <Image
-              src={LogoBayern}
-              alt="LogoBayern"
-              height={50}
-              width={50}
-              className="hover:scale-110 transition-transform"
-              priority
-            />
-          </Link>
+          <p className="lg:text-2xl tracking-tighter">Foothubgo</p>
 
           <div className="md:hidden flex items-center gap-4 relative">
             <MenuDeroulant

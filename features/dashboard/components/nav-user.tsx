@@ -33,6 +33,7 @@ import { authClient } from "@/lib/auth-client";
 import { DeconnexionClient } from "@/lib/FonctionDeconnexionClient";
 import { useProfil } from "@/features/parametres/hooks/useProfil";
 import { Loader } from "@/components/ui/loader";
+import { Badge } from "@/components/ui/badge";
 
 export function NavUser() {
   const { isMobile } = useSidebar();
@@ -67,6 +68,9 @@ export function NavUser() {
               ) : (
                 <Avatar className="h-8 w-8 rounded-lg shrink-0">
                   <AvatarImage src={imageUrl} alt={"Logo profil"} />
+                  <Badge className="absolute -top-2 left-full min-w-5 -translate-x-1/2 px-1">
+          {2}
+        </Badge>
                   <AvatarFallback className="rounded-lg">
                     {firstLetter}
                   </AvatarFallback>

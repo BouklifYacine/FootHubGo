@@ -73,12 +73,12 @@ export const Footer = ({
     url: "https://www.shadcnblocks.com",
     src: "https://www.shadcnblocks.com/images/block/logos/shadcnblockscom-icon.svg",
     alt: "logo",
-    title: "Shadcnblocks.com",
+    title: "Foothubgo",
   },
   sections = defaultSections,
-  description = ".",
+  description = "",
   socialLinks = defaultSocialLinks,
-  copyright = "© 2025 Footygogo. All rights reserved.",
+  copyright = "© 2025 Foothubgo. All rights reserved.",
   legalLinks = defaultLegalLinks,
 }: Footer7Props) => {
   return (

@@ -4,6 +4,7 @@ import { IoStarSharp } from "react-icons/io5";
 import { HandWrittenTitle } from "./ui/hand-writing-text";
 import { GlowEffectButton } from "./Boutons/BoutonGlowCTA";
 import Link from "next/link";
+import { AnimatedShinyTextDemo } from "./ui/TestShinyText";
 
 const avatars = [
   {
@@ -50,9 +51,8 @@ const Section = () => {
       <div className="mx-auto pt-20 h-full">
         <div className="flex flex-col justify-center items-center gap-6 py-2">
           <div className="flex justify-center items-center pb-2">
-        
+        <AnimatedShinyTextDemo></AnimatedShinyTextDemo>
           </div>
-
           <h1 className="text-2xl md:text-4xl lg:text-6xl xl:text-8xl font-bold tracking-tighter  text-center px-4 max-w-8xl">
             Gérez votre club de {" "}
             <span className="bg-linear-to-r from-purple-500 to-blue-500 text-transparent bg-clip-text inline-block">
