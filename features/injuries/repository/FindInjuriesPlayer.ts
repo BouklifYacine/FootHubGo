@@ -12,5 +12,4 @@ export async function Findinjuriesplayer( sessionId : string){
             equipeId : true
         }
     })
-
 }

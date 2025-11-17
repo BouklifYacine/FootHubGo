@@ -3,7 +3,7 @@ import { z } from "zod";
 export const createInjurySchema = z.object({
   type: z.string({
     message: "Le type de blessure est requis"
-  }).min(5),
+  }).min(3),
   
   description: z.string({
     message: "La description est requise"
