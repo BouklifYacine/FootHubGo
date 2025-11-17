@@ -1,15 +1,16 @@
 import { prisma } from "@/prisma";
 
-export async function Findinjuriesplayer( sessionId : string){
-    return await prisma.blessure.findMany({
-        where : {userId : sessionId}, 
-        select : {
-            type : true, 
-            description : true, 
-            startDate : true, 
-            endDate : true, 
-            equipe : true , 
-            equipeId : true
-        }
-    })
+export async function FindInjuriesPlayer(userId: string) {
+  return await prisma.blessure.findMany({
+    where: { userId },
+    orderBy: { startDate: "desc" },
+    select: {
+      id: true,
+      type: true,
+      description: true,
+      startDate: true,
+      endDate: true,
+      equipeId: true,
+    },
+  });
 }

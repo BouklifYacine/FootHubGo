@@ -1,4 +1,4 @@
-import { Findinjuriesplayer } from "@/features/injuries/repository/FindInjuriesPlayer";
+import { FindInjuriesPlayer } from "@/features/injuries/repository/FindInjuriesPlayer";
 import { createInjurySchema } from "@/features/injuries/schema/createinjuryschema";
 import { GetSessionId } from "@/lib/SessionId/GetSessionId";
 import { ZodValidationRequest } from "@/lib/ValidationZodApi/ValidationZodApi";
@@ -7,9 +7,29 @@ import { NextRequest, NextResponse } from "next/server";
 import dayjs from "dayjs";
 import { FindUserIsPlayer } from "@/features/injuries/repository/FindUserHasClub";
 
+export async function GET(request: NextRequest) {
+  try {
+    const userId = await GetSessionId();
+
+    if (!userId) {
+      return NextResponse.json({ error: "Utilisateur non authentifié" }, { status: 401 });
+    }
+
+    const injuries = await FindInjuriesPlayer(userId);
+
+    return NextResponse.json({ injuries }, { status: 200 });
+  } catch (error) {
+    console.error("Erreur GET blessures:", error);
+    return NextResponse.json(
+      { error: "Une erreur interne est survenue" },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const userId = "Ppg1324s5DWiX7HRzx90TYom4VnxV9wD"
+    const userId = await GetSessionId();
 
     if (!userId) {
       return NextResponse.json(
@@ -49,7 +69,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const allInjuriesPlayer = await Findinjuriesplayer(userId);
+    const allInjuriesPlayer = await FindInjuriesPlayer(userId);
 
     const hasActiveInjury = allInjuriesPlayer.some((injury) =>
       dayjs(injury.endDate).isAfter(today)
