@@ -32,6 +32,7 @@ const navigationData = {
     { title: "Evenements", url: "/dashboardfoothub/evenements", icon: Calendar },
     { title: "Statistiques", url: "/dashboardfoothub/statistiques", icon: ChartNoAxesCombined },
     { title: "Convocations", url: "/dashboardfoothub/convocations", icon: CalendarPlus2 },
+    { title: "Blessures", url: "/dashboardfoothub/blessures", icon: CalendarPlus2 },
   ],
 };
 

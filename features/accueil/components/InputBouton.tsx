@@ -47,6 +47,7 @@ export function InputBouton({ texte, placeholder }: Props) {
       <div className="flex items-center gap-2">
         <Input
           type="text"
+          className="placeholder:opacity-40"
           placeholder={placeholder}
           {...register("codeInvitation")}
           disabled={isSubmitting || mutation.isPending}
