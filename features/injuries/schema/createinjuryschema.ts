@@ -1,9 +1,7 @@
-import { z } from "zod";
+import * as z from "zod";
 
 export const createInjurySchema = z.object({
-  type: z.string({
-    message: "Le type de blessure est requis"
-  }).min(3),
+  type: z.string().min(3, "Le type de blessure est requis"),
   
   description: z.string({
     message: "La description est requise"
@@ -11,7 +9,7 @@ export const createInjurySchema = z.object({
     message: "La description doit contenir au moins 10 caractères"
   }),
   
-  endDate: z.coerce.date({
+  endDate: z.date({
     message: "La date de fin doit être une date valide"
   }).refine((date) => date > new Date(), {
     message: "La date de fin doit être dans le futur"
