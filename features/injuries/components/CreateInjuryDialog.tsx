@@ -18,7 +18,7 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Activity, FileText, AlertCircle } from "lucide-react";
+import { Plus, Activity } from "lucide-react";
 import { createInjurySchema } from "@/features/injuries/schema/createinjuryschema";
 import { cn } from "@/lib/utils";
 
@@ -39,17 +39,14 @@ const validateEndDate = ({ value }: { value: Date }) => {
 
 const typeValidators = {
   onChange: validateType,
-  onBlur: validateType,
 };
 
 const descriptionValidators = {
   onChange: validateDescription,
-  onBlur: validateDescription,
 };
 
 const endDateValidators = {
   onChange: validateEndDate,
-  onBlur: validateEndDate,
 };
 
 export const CreateInjuryDialog = () => {
@@ -63,13 +60,9 @@ export const CreateInjuryDialog = () => {
       endDate: new Date(new Date().setDate(new Date().getDate() + 4)),
     },
     onSubmit: async ({ value }) => {
-      try {
-        await createInjury.mutateAsync(value);
-        setOpen(false);
-        form.reset();
-      } catch (error) {
-        // Error handled by hook
-      }
+      await createInjury.mutateAsync(value);
+      setOpen(false);
+      form.reset();
     },
   });
 
@@ -112,10 +105,8 @@ export const CreateInjuryDialog = () => {
             }}
             className="space-y-6"
           >
-            <form.Field
-              name="type"
-              validators={typeValidators}
-              children={(field) => (
+            <form.Field name="type" validators={typeValidators}>
+              {(field) => (
                 <div className="space-y-2 group">
                   <Label
                     htmlFor={field.name}
@@ -146,12 +137,13 @@ export const CreateInjuryDialog = () => {
                   )}
                 </div>
               )}
-            />
+            </form.Field>
 
             <form.Field
               name="description"
               validators={descriptionValidators}
-              children={(field) => (
+            >
+              {(field) => (
                 <div className="space-y-2 group">
                   <Label
                     htmlFor={field.name}
@@ -181,12 +173,10 @@ export const CreateInjuryDialog = () => {
                   )}
                 </div>
               )}
-            />
+            </form.Field>
 
-            <form.Field
-              name="endDate"
-              validators={endDateValidators}
-              children={(field) => (
+            <form.Field name="endDate" validators={endDateValidators}>
+              {(field) => (
                 <div className="space-y-2 group">
                   <Label className="text-sm font-semibold text-foreground/80 group-focus-within:text-primary transition-colors">
                     Date de retour estimée
@@ -210,7 +200,7 @@ export const CreateInjuryDialog = () => {
                   )}
                 </div>
               )}
-            />
+            </form.Field>
 
             <DialogFooter className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-4 border-t dark:border-zinc-800 mt-6">
               <DialogClose asChild>

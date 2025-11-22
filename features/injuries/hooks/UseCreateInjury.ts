@@ -33,7 +33,6 @@ export function useCreateInjury() {
 
       let errorMessage = error.message;
 
-      // Attempt to parse the error response if it exists (e.g. from ky)
       if (error.response) {
         try {
           const errorData = await error.response.json();
@@ -45,7 +44,6 @@ export function useCreateInjury() {
             }
           }
         } catch (e) {
-          // Failed to parse JSON, stick to default error.message
         }
       }
 
