@@ -1,34 +1,38 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-
 import { CreateInjuryTypeAPI } from "../types/CreateInjuries.types";
-import { CreateInjuryService } from "../services/CreateInjuryService";
+import { InjuryService } from "../services/InjuryService";
+import { Blessure } from "@prisma/client";
 
-export function useCreateInjury() {
+export function useCreateInjury(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (newInjury: Partial<CreateInjuryTypeAPI["injuryType"]>) => {
-      const data = await CreateInjuryService.createinjuryresponse(newInjury);
+    mutationFn: async (
+      newInjury: Partial<CreateInjuryTypeAPI["injuryType"]>
+    ) => {
+      const data = await InjuryService.createInjury(newInjury);
       return data;
     },
-    onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ["injury"] });
-      const previousData = queryClient.getQueryData<CreateInjuryTypeAPI>(["injury"]);
+    onMutate: async (newInjury) => {
+      await queryClient.cancelQueries({ queryKey: ["playerInjuries", id] });
 
-      if (previousData) {
-        queryClient.setQueryData(["injury"], {
-          ...previousData,
-        });
-        return { previousData };
-      }
+      const previousInjuries = queryClient.getQueryData<Blessure[]>([
+        "playerInjuries",
+        id,
+      ]);
+
+      return { previousInjuries };
     },
     onSuccess: (data) => {
       toast.success(data.message);
     },
     onError: async (error: any, variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(["injury"], context.previousData);
+      if (context?.previousInjuries) {
+        queryClient.setQueryData(
+          ["playerInjuries", id],
+          context.previousInjuries
+        );
       }
 
       let errorMessage = error.message;
@@ -43,14 +47,14 @@ export function useCreateInjury() {
               errorMessage = errorData.message;
             }
           }
-        } catch (e) {
-        }
+        } catch (e) {}
       }
 
       toast.error(errorMessage);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["injury"] });
+      queryClient.invalidateQueries({ queryKey: ["playerInjuries", id] });
+      queryClient.invalidateQueries({ queryKey: ["clubInjuries"] });
     },
   });
 }

@@ -31,6 +31,7 @@ import {
 import { useCreationClub } from "@/features/creationclub/hooks/useCreationClub";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { formatNiveauClub } from "@/lib/formatEnums";
 
 type FormData = z.infer<typeof SchemaCreationClub>;
 
@@ -58,7 +59,7 @@ function BoutonAjouter({ texte }: Props) {
     mutate(data, {
       onSuccess: () => {
         reset();
-        setOpen(false); // Ferme la modal seulement si succès
+        setOpen(false);
         router.push("/dashboardfoothub/effectif");
       },
     });
@@ -85,11 +86,10 @@ function BoutonAjouter({ texte }: Props) {
           <DialogTitle>Créer un club</DialogTitle>
           <DialogDescription>
             Remplis le formulaire pour créer un nouveau club. <br></br>
-            Les élements avec un * sont obligatoire 
+            Les élements avec un * sont obligatoire
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Nom du club */}
           <div>
             <Label htmlFor="nom">Nom du club *</Label>
             <Input
@@ -102,8 +102,8 @@ function BoutonAjouter({ texte }: Props) {
               <p className="text-red-500 text-sm mt-1">{errors.nom.message}</p>
             )}
           </div>
-     
- <div>
+
+          <div>
             <Label htmlFor="NiveauClub">Niveau du club *</Label>
             <Select
               onValueChange={(value) =>
@@ -120,7 +120,7 @@ function BoutonAjouter({ texte }: Props) {
               <SelectContent>
                 {niveau.map((n) => (
                   <SelectItem key={n} value={n}>
-                    {n}
+                    {formatNiveauClub(n)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -146,9 +146,7 @@ function BoutonAjouter({ texte }: Props) {
               </p>
             )}
           </div>
-     
-     
-         
+
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <DialogClose asChild>
               <Button type="button" variant="outline">

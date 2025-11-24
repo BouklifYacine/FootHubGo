@@ -1,7 +1,3 @@
-type teamname = {
-    nom : string
-}
-
 export type injuryType = {
     type: string;
     description: string | null;

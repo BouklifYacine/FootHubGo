@@ -9,13 +9,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Image from "next/image";
-import { CircleCheck, CircleX, Loader2 } from "lucide-react";
+import { CircleCheck, CircleX, Loader2, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { BoutonSupprimer } from "@/components/Boutons/BoutonSupprimer";
 import { BoutonSupprimerTexte } from "@/components/Boutons/BoutonSupprimerTexte";
 import { MembreEquipeWithUser } from "../hooks/useinfosclub";
+import { formatPosteJoueur, getFormattedPosteOptions } from "@/lib/formatEnums";
 
 interface TableauEffectifProps {
   membres: MembreEquipeWithUser[];
@@ -53,31 +61,34 @@ export function TableauEffectif({
   return (
     <div className="overflow-x-auto mt-10">
       <Table>
-       <TableHeader>
-  <TableRow>
-    <TableHead className="p-4">
- 
-    </TableHead>
-    <TableHead className="text-black dark:text-white">Avatar</TableHead>
-    <TableHead className="text-black dark:text-white">Nom</TableHead>
-    <TableHead className="text-black dark:text-white">Rôle</TableHead>
-    <TableHead className="text-black dark:text-white">Poste</TableHead>
-    <TableHead className="text-black dark:text-white">Licencié</TableHead>
-    <TableHead className="text-black dark:text-white">Rejoins le</TableHead>
-    <TableHead className="text-black dark:text-white">Actions</TableHead>
-  </TableRow>
-</TableHeader>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="p-4"></TableHead>
+            <TableHead className="text-black dark:text-white">Avatar</TableHead>
+            <TableHead className="text-black dark:text-white">Nom</TableHead>
+            <TableHead className="text-black dark:text-white">Rôle</TableHead>
+            <TableHead className="text-black dark:text-white">Poste</TableHead>
+            <TableHead className="text-black dark:text-white">
+              Licencié
+            </TableHead>
+            <TableHead className="text-black dark:text-white">
+              Rejoins le
+            </TableHead>
+            <TableHead className="text-black dark:text-white">
+              Actions
+            </TableHead>
+          </TableRow>
+        </TableHeader>
         <TableBody className="divide-y">
           {membres.map((m) => {
             const estUtilisateurActuel = m.userId === sessionId;
-            const afficherSupprimer = estEntraineur && !estUtilisateurActuel && m.role !== "ENTRAINEUR";
+            const afficherSupprimer =
+              estEntraineur && !estUtilisateurActuel && m.role !== "ENTRAINEUR";
             const peutModifier = estEntraineur && !estUtilisateurActuel;
 
             return (
               <TableRow key={m.id}>
-                <TableCell className="p-4">
-                
-                </TableCell>
+                <TableCell className="p-4"></TableCell>
                 <TableCell>
                   {m.user.image ? (
                     <Image
@@ -95,23 +106,29 @@ export function TableauEffectif({
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="text-black dark:text-white">{m.user.name}</TableCell>
+                <TableCell className="text-black dark:text-white">
+                  {m.user.name}
+                </TableCell>
                 <TableCell>
                   {peutModifier ? (
                     <div className="relative">
                       <Select
                         value={m.role}
-                        onValueChange={(value) => onModifierRole(m.userId, value)}
+                        onValueChange={(value) =>
+                          onModifierRole(m.userId, value)
+                        }
                         disabled={isPendingPoste}
                       >
-                        <SelectTrigger className="w-[160px] border border-black text-black dark:border-white dark:text-white">
+                        <SelectTrigger className="w-40 border border-black text-black dark:border-white dark:text-white">
                           <SelectValue placeholder="Choisir un poste" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>Roles</SelectLabel>
                             <SelectItem value="JOUEUR">Joueur</SelectItem>
-                            <SelectItem value="ENTRAINEUR">Entraîneur</SelectItem>
+                            <SelectItem value="ENTRAINEUR">
+                              Entraîneur
+                            </SelectItem>
                           </SelectGroup>
                         </SelectContent>
                       </Select>
@@ -123,10 +140,11 @@ export function TableauEffectif({
                     </div>
                   ) : (
                     <Badge
-                      className={`text-md ${m.role === "ENTRAINEUR"
-                        ? "bg-emerald-500 text-white"
-                        : "bg-sky-500 text-white"
-                        }`}
+                      className={`text-md ${
+                        m.role === "ENTRAINEUR"
+                          ? "bg-emerald-500 text-white"
+                          : "bg-sky-500 text-white"
+                      }`}
                     >
                       {m.role === "ENTRAINEUR" ? "Entraîneur" : "Joueur"}
                     </Badge>
@@ -136,14 +154,18 @@ export function TableauEffectif({
                   {peutModifier ? (
                     <div className="relative">
                       {m.role === "ENTRAINEUR" ? (
-                        <span className="text-black dark:text-white">Sans poste</span>
+                        <span className="text-black dark:text-white">
+                          Sans poste
+                        </span>
                       ) : (
                         <Select
                           value={m.poste || ""}
-                          onValueChange={(value) => onModifierPoste(m.userId, value)}
+                          onValueChange={(value) =>
+                            onModifierPoste(m.userId, value)
+                          }
                           disabled={isPendingPoste}
                         >
-                          <SelectTrigger className="w-[160px] border border-black text-black dark:border-white dark:text-white">
+                          <SelectTrigger className="w-40 border border-black text-black dark:border-white dark:text-white">
                             <SelectValue
                               placeholder="Choisir un poste"
                               className="placeholder:text-yellow-500"
@@ -152,17 +174,23 @@ export function TableauEffectif({
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>Postes</SelectLabel>
-                              <SelectItem value="GARDIEN">Gardien</SelectItem>
-                              <SelectItem value="DEFENSEUR">Défenseur</SelectItem>
-                              <SelectItem value="MILIEU">Milieu</SelectItem>
-                              <SelectItem value="ATTAQUANT">Attaquant</SelectItem>
+                              {getFormattedPosteOptions().map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))}
                             </SelectGroup>
                           </SelectContent>
                         </Select>
                       )}
                     </div>
                   ) : (
-                    <span className="text-black dark:text-white">{m.poste || "Sans poste"}</span>
+                    <span className="text-black dark:text-white">
+                      {m.poste ? formatPosteJoueur(m.poste) : "Sans poste"}
+                    </span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -171,7 +199,7 @@ export function TableauEffectif({
                       m.isLicensed
                         ? "border-emerald-800 bg-emerald-100 text-emerald-800"
                         : "border-red-800 bg-red-200 text-red-800"
-                      }`}
+                    }`}
                   >
                     {m.isLicensed ? (
                       <CircleCheck size={16} className="mr-1" />
@@ -184,12 +212,12 @@ export function TableauEffectif({
                 <TableCell className="text-black dark:text-white">
                   {m.joinedAt
                     ? new Date(m.joinedAt)
-                      .toLocaleDateString("fr-FR", {
-                        day: "numeric",
-                        month: "numeric",
-                        year: "numeric",
-                      })
-                      .toLowerCase()
+                        .toLocaleDateString("fr-FR", {
+                          day: "numeric",
+                          month: "numeric",
+                          year: "numeric",
+                        })
+                        .toLowerCase()
                     : "N/A"}
                 </TableCell>
                 <TableCell>
@@ -204,6 +232,14 @@ export function TableauEffectif({
                       onClick={QuitterClub}
                       disabled={isPendingQuitter}
                       texte="Quitter Club"
+                      icon={
+                        <Trash2
+                          className=" text-white "
+                          size={16}
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
+                      }
                     />
                   )}
                 </TableCell>

@@ -1,7 +1,22 @@
 // schema/AjouterStatsJoueurSchema.ts
 import { z } from "zod";
 
-export const enumsPoste = ["GARDIEN", "DEFENSEUR", "MILIEU", "ATTAQUANT"] as const;
+export const enumsPoste = [
+  "GARDIEN",
+  "DEFENSEUR_LATERAL_DROIT",
+  "DEFENSEUR_CENTRAL",
+  "DEFENSEUR_LATERAL_GAUCHE",
+  "MILIEU_DEFENSIF",
+  "MILIEU_CENTRAL",
+  "MILIEU_OFFENSIF",
+  "MILIEU_RECUPERATEUR",
+  "MILIEU_RELAYEUR",
+  "ATTAQUANT_DE_POINTE",
+  "ATTAQUANT_DE_SOUTIEN",
+  "AILIER_GAUCHE",
+  "AILIER_DROIT",
+  "SECOND_ATTAQUANT",
+] as const;
 
 export const AjouterStatsJoueurSchema = z.object({
   poste: z.enum(enumsPoste),

@@ -6,11 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { DatePicker } from "@/components/ui/date-picker";
 import { Label } from "@/components/ui/label";
 import { useForm } from "@tanstack/react-form";
-import { useCreateInjury } from "@/features/injuries/hooks/UseCreateInjury";
-import { useState } from "react";
+import { useUpdateInjury } from "@/features/injuries/hooks/UseUpdateInjury";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
   DialogHeader,
   DialogTitle,
@@ -18,9 +16,10 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
-import { Plus, Activity } from "lucide-react";
+import { Activity } from "lucide-react";
 import { createInjurySchema } from "@/features/injuries/schema/createinjuryschema";
 import { cn } from "@/lib/utils";
+import { Blessure } from "@prisma/client";
 
 const validateType = ({ value }: { value: string }) => {
   const result = createInjurySchema.shape.type.safeParse(value);
@@ -49,38 +48,38 @@ const endDateValidators = {
   onChange: validateEndDate,
 };
 
-export const CreateInjuryDialog = ({ sessionId }: { sessionId: string }) => {
-  const createInjury = useCreateInjury(sessionId);
-  const [open, setOpen] = useState(false);
+interface EditInjuryDialogProps {
+  injury: Blessure;
+  sessionId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const EditInjuryDialog = ({
+  injury,
+  sessionId,
+  open,
+  onOpenChange,
+}: EditInjuryDialogProps) => {
+  const updateInjury = useUpdateInjury(sessionId);
 
   const form = useForm({
     defaultValues: {
-      type: "",
-      description: "",
-      endDate: new Date(new Date().setDate(new Date().getDate() + 4)),
+      type: injury.type,
+      description: injury.description || "",
+      endDate: new Date(injury.endDate),
     },
     onSubmit: async ({ value }) => {
-      await createInjury.mutateAsync(value);
-      setOpen(false);
-      form.reset();
+      await updateInjury.mutateAsync({
+        id: injury.id,
+        data: value,
+      });
+      onOpenChange(false);
     },
   });
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button
-          size="default"
-          className="group relative overflow-hidden bg-primary hover:bg-primary/90 transition-all hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <div className="absolute inset-0 bg-white/20 group-hover:translate-x-full transition-transform duration-500 ease-out -skew-x-12 -translate-x-full" />
-          <span className="flex items-center gap-2 font-semibold">
-            <Plus className="h-4 w-4" />
-            Signaler une blessure
-          </span>
-        </Button>
-      </DialogTrigger>
-
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px] p-0 gap-0 overflow-hidden border-none shadow-2xl dark:bg-zinc-950/95 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
         <div className="px-6 py-6 border-b dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
           <DialogHeader>
@@ -88,10 +87,10 @@ export const CreateInjuryDialog = ({ sessionId }: { sessionId: string }) => {
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Activity className="h-6 w-6 text-primary" />
               </div>
-              Nouvelle Blessure
+              Modifier la Blessure
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
-              Remplissez les informations ci-dessous pour informer le staff.
+              Mettez à jour les informations de la blessure.
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -199,29 +198,29 @@ export const CreateInjuryDialog = ({ sessionId }: { sessionId: string }) => {
               )}
             </form.Field>
 
-            <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-4 border-t dark:border-zinc-800 mt-6">
+            <DialogFooter className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end pt-4 border-t dark:border-zinc-800 mt-6">
               <DialogClose asChild>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => form.reset()}
-                  className="h-10 px-5 text-sm font-medium border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                  className="h-11 px-6 cursor-pointer border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 dark:text-zinc-300"
                 >
                   Annuler
                 </Button>
               </DialogClose>
               <Button
                 type="submit"
-                disabled={createInjury.isPending}
-                className="h-10 px-6 text-sm font-semibold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                disabled={updateInjury.isPending}
+                className="h-11 px-8 cursor-pointer bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
               >
-                {createInjury.isPending ? (
+                {updateInjury.isPending ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Enregistrement...
                   </span>
                 ) : (
-                  "Enregistrer"
+                  "Mettre à jour"
                 )}
               </Button>
             </DialogFooter>

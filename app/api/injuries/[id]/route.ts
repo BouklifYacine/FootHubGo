@@ -7,20 +7,33 @@ import { prisma } from "@/prisma";
 import { ZodValidationRequest } from "@/lib/ValidationZodApi/ValidationZodApi";
 import { createInjurySchema } from "@/features/injuries/schema/createinjuryschema";
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const userId = await GetSessionId();
     if (!userId) {
-      return NextResponse.json({ error: "Utilisateur non authentifié" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
     }
 
-    const injuryId = params.id;
+    const { id } = await params;
+    const injuryId = id;
 
-    const { type, description, endDate } = await ZodValidationRequest(request, createInjurySchema);
+    const { type, description, endDate } = await ZodValidationRequest(
+      request,
+      createInjurySchema
+    );
 
     const injury = await FindInjuryById(injuryId, userId);
     if (!injury) {
-      return NextResponse.json({ error: "Blessure introuvable ou accès refusé" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Blessure introuvable ou accès refusé" },
+        { status: 404 }
+      );
     }
 
     const today = dayjs().startOf("day");
@@ -50,7 +63,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       },
     });
 
-    return NextResponse.json({ message: "Blessure mise à jour avec succès", injury: updatedInjury }, { status: 200 });
+    return NextResponse.json(
+      { message: "Blessure mise à jour avec succès", injury: updatedInjury },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Erreur PATCH blessure:", error);
     return NextResponse.json(
@@ -60,39 +76,52 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const userId = await GetSessionId();
 
     if (!userId) {
-      return NextResponse.json({ error: "Utilisateur non authentifié" }, { status: 401 });
+      return NextResponse.json(
+        { error: "Utilisateur non authentifié" },
+        { status: 401 }
+      );
     }
 
     const player = await FindUserIsPlayer(userId);
 
     if (!player) {
       return NextResponse.json(
-        { error: "Vous devez être joueur dans un club pour supprimer une blessure" },
+        {
+          error:
+            "Vous devez être joueur dans un club pour supprimer une blessure",
+        },
         { status: 403 }
       );
     }
 
-    const injuryId = params.id;
+    const { id } = await params;
+    const injuryId = id;
 
     const injury = await FindInjuryById(injuryId, userId);
 
     if (!injury) {
-      return NextResponse.json({ error: "Blessure introuvable ou accès refusé" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Blessure introuvable ou accès refusé" },
+        { status: 404 }
+      );
     }
 
-   const now = dayjs();
+    const now = dayjs();
 
-if (now.isAfter(dayjs(injury.endDate))) {
-  return NextResponse.json(
-    { error: "Impossible de supprimer une blessure déjà terminée" },
-    { status: 400 }
-  );
-}
+    if (now.isAfter(dayjs(injury.endDate))) {
+      return NextResponse.json(
+        { error: "Impossible de supprimer une blessure déjà terminée" },
+        { status: 400 }
+      );
+    }
     await prisma.blessure.delete({
       where: { id: injuryId },
     });

@@ -23,7 +23,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { CircleFadingPlus, MoreVertical, Pencil, Trash2, KeyRound } from "lucide-react";
+import {
+  CircleFadingPlus,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  KeyRound,
+} from "lucide-react";
 import { useInfosClub } from "../hooks/useinfosclub";
 import { useSupprimerCodeInvitation } from "@/features/codeinvitation/hooks/useSupprimerCodeInvitation";
 import { useCreerouGenererCodeInvitation } from "@/features/codeinvitation/hooks/useCreerouGenererCodeInvitation";
@@ -32,14 +38,17 @@ import { BoutonModifierClub } from "@/features/modifierinfosclub/components/Bout
 import Image from "next/image";
 import LogoCity from "@/public/Logo_Manchester_City_2016.svg";
 import { Badge } from "@/components/ui/badge";
+import { formatNiveauClub } from "@/lib/formatEnums";
 import { BoutonDisabled } from "@/components/Boutons/BoutonDisabled";
 import { useState } from "react";
 
 function BlockEffectif() {
   const { data, isPending } = useInfosClub();
-  const { mutate, isPending: DeleteInvitationCode } = useSupprimerCodeInvitation();
-  const { mutate: MutationCreationCode, isPending: PendingCreationCode } = useCreerouGenererCodeInvitation();
-  
+  const { mutate, isPending: DeleteInvitationCode } =
+    useSupprimerCodeInvitation();
+  const { mutate: MutationCreationCode, isPending: PendingCreationCode } =
+    useCreerouGenererCodeInvitation();
+
   const [openCodeDialog, setOpenCodeDialog] = useState(false);
   const [openModifierDialog, setOpenModifierDialog] = useState(false);
   const [openSupprimerDialog, setOpenSupprimerDialog] = useState(false);
@@ -76,20 +85,20 @@ function BlockEffectif() {
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Actions du club</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                
+
                 <DropdownMenuItem onClick={() => setOpenCodeDialog(true)}>
                   <KeyRound className="mr-2 h-4 w-4" />
                   <span>Gérer le code d&apos;invitation</span>
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuItem onClick={() => setOpenModifierDialog(true)}>
                   <Pencil className="mr-2 h-4 w-4" />
                   <span>Modifier le club</span>
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuSeparator />
-                
-                <DropdownMenuItem 
+
+                <DropdownMenuItem
                   onClick={() => setOpenSupprimerDialog(true)}
                   className="text-red-600 focus:text-red-600"
                 >
@@ -116,20 +125,26 @@ function BlockEffectif() {
         <div className="flex gap-10 mt-6">
           <div className="flex flex-col items-center">
             <p className="text-xl md:text-3xl font-bold">{nombreMembres}</p>
-            <p className="text-sm md:text-lg tracking-tighter font-light">Membres</p>
+            <p className="text-sm md:text-lg tracking-tighter font-light">
+              Membres
+            </p>
           </div>
 
           <div className="flex flex-col items-center">
             <Badge className="rounded-xl text-xs md:text-sm px-3 py-1">
-              {data?.equipe?.niveau?.toLowerCase()}
+              {data?.equipe?.niveau ? formatNiveauClub(data.equipe.niveau) : ""}
             </Badge>
-            <p className="text-sm md:text-lg tracking-tighter font-light mt-1">Niveau</p>
+            <p className="text-sm md:text-lg tracking-tighter font-light mt-1">
+              Niveau
+            </p>
           </div>
 
-          { code && (
+          {code && (
             <div className="flex flex-col items-center">
               <p className="text-xl md:text-3xl font-bold font-mono">{code}</p>
-              <p className="text-sm md:text-lg tracking-tighter font-light">Code</p>
+              <p className="text-sm md:text-lg tracking-tighter font-light">
+                Code
+              </p>
             </div>
           )}
         </div>
@@ -197,15 +212,15 @@ function BlockEffectif() {
         </DialogContent>
       </Dialog>
 
-      <BoutonModifierClub 
+      <BoutonModifierClub
         clubData={data}
-        open={openModifierDialog} 
+        open={openModifierDialog}
         onOpenChange={setOpenModifierDialog}
         hideButton={true}
       />
 
-      <BoutonSupprimerClub 
-        equipeid={data?.equipe?.id || ""} 
+      <BoutonSupprimerClub
+        equipeid={data?.equipe?.id || ""}
         open={openSupprimerDialog}
         onOpenChange={setOpenSupprimerDialog}
         hideButton={true}

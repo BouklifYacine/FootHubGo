@@ -7,26 +7,6 @@ import { NextRequest, NextResponse } from "next/server";
 import dayjs from "dayjs";
 import { FindUserIsPlayer } from "@/features/injuries/repository/FindUserHasClub";
 
-export async function GET(request: NextRequest) {
-  try {
-    const userId = await GetSessionId();
-
-    if (!userId) {
-      return NextResponse.json({ error: "Utilisateur non authentifié" }, { status: 401 });
-    }
-
-    const injuries = await FindInjuriesPlayer(userId);
-
-    return NextResponse.json({ injuries }, { status: 200 });
-  } catch (error) {
-    console.error("Erreur GET blessures:", error);
-    return NextResponse.json(
-      { error: "Une erreur interne est survenue" },
-      { status: 500 }
-    );
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
     const userId = await GetSessionId();
@@ -94,19 +74,12 @@ export async function POST(request: NextRequest) {
         userId,
         equipeId: playerClubMembership.equipeId,
       },
-      include: {
-        equipe: {
-          select: {
-            nom: true,
-          },
-        },
-      },
     });
 
     return NextResponse.json(
       {
-        message: "Blessure enregistrée avec succès",
-        injury: newInjury,
+        message: "Blessure créée avec succès",
+        injuryType: newInjury,
       },
       { status: 201 }
     );

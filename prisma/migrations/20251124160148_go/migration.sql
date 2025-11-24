@@ -2,6 +2,9 @@
 CREATE TYPE "StatutConvocation" AS ENUM ('EN_ATTENTE', 'CONFIRME', 'REFUSE', 'EXPIRE');
 
 -- CreateEnum
+CREATE TYPE "TypeNotification" AS ENUM ('CONVOCATION_MATCH', 'DEMANDE_ADHESION', 'BLESSURE_DECLAREE', 'FINANCE_ECHEANCE', 'SONDAGE_NOUVEAU', 'EVENEMENT_RAPPEL', 'REJOINT_CLUB', 'QUITTER_CLUB', 'MESSAGE');
+
+-- CreateEnum
 CREATE TYPE "Roles" AS ENUM ('Admin', 'utilisateur');
 
 -- CreateEnum
@@ -14,7 +17,7 @@ CREATE TYPE "PlanAbonnement" AS ENUM ('mois', 'année');
 CREATE TYPE "RoleEquipe" AS ENUM ('SANSCLUB', 'ENTRAINEUR', 'JOUEUR');
 
 -- CreateEnum
-CREATE TYPE "PosteJoueur" AS ENUM ('GARDIEN', 'DEFENSEUR', 'MILIEU', 'ATTAQUANT');
+CREATE TYPE "PosteJoueur" AS ENUM ('GARDIEN', 'DEFENSEUR', 'DEFENSEUR_LATERAL_DROIT', 'DEFENSEUR_CENTRAL', 'DEFENSEUR_LATERAL_GAUCHE', 'MILIEU', 'MILIEU_DEFENSIF', 'MILIEU_CENTRAL', 'MILIEU_OFFENSIF', 'MILIEU_RECUPERATEUR', 'MILIEU_RELAYEUR', 'ATTAQUANT', 'ATTAQUANT_DE_POINTE', 'ATTAQUANT_DE_SOUTIEN', 'AILIER_GAUCHE', 'AILIER_DROIT', 'SECOND_ATTAQUANT');
 
 -- CreateEnum
 CREATE TYPE "TypeEvenement" AS ENUM ('ENTRAINEMENT', 'CHAMPIONNAT', 'COUPE');
@@ -32,7 +35,7 @@ CREATE TYPE "competition" AS ENUM ('CHAMPIONNAT', 'COUPE');
 CREATE TYPE "StatutClub" AS ENUM ('PUBLIC', 'PRIVE', 'INVITATION');
 
 -- CreateEnum
-CREATE TYPE "NiveauClub" AS ENUM ('DEPARTEMENTAL', 'REGIONAL', 'NATIONAL', 'LOISIR');
+CREATE TYPE "NiveauClub" AS ENUM ('DEPARTEMENTAL_1', 'DEPARTEMENTAL_2', 'DEPARTEMENTAL_3', 'REGIONAL_1', 'REGIONAL_2', 'REGIONAL_3', 'NATIONAL_1', 'NATIONAL_2', 'NATIONAL_3', 'LOISIR');
 
 -- CreateEnum
 CREATE TYPE "StatutDemande" AS ENUM ('ATTENTE', 'ACCEPTEE', 'REFUSEE');
@@ -285,6 +288,21 @@ CREATE TABLE "statistique_equipe" (
 );
 
 -- CreateTable
+CREATE TABLE "notification" (
+    "id" TEXT NOT NULL,
+    "type" "TypeNotification" NOT NULL,
+    "title" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "data" JSONB,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "delivered" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "userId" TEXT NOT NULL,
+
+    CONSTRAINT "notification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "_JoueursFavoris" (
     "A" TEXT NOT NULL,
     "B" TEXT NOT NULL,
@@ -341,6 +359,15 @@ CREATE UNIQUE INDEX "statistique_equipe_evenementId_key" ON "statistique_equipe"
 
 -- CreateIndex
 CREATE INDEX "statistique_equipe_equipeId_idx" ON "statistique_equipe"("equipeId");
+
+-- CreateIndex
+CREATE INDEX "notification_userId_read_idx" ON "notification"("userId", "read");
+
+-- CreateIndex
+CREATE INDEX "notification_userId_delivered_idx" ON "notification"("userId", "delivered");
+
+-- CreateIndex
+CREATE INDEX "notification_createdAt_idx" ON "notification"("createdAt");
 
 -- CreateIndex
 CREATE INDEX "_JoueursFavoris_B_index" ON "_JoueursFavoris"("B");
@@ -419,6 +446,9 @@ ALTER TABLE "statistique_equipe" ADD CONSTRAINT "statistique_equipe_equipeId_fke
 
 -- AddForeignKey
 ALTER TABLE "statistique_equipe" ADD CONSTRAINT "statistique_equipe_evenementId_fkey" FOREIGN KEY ("evenementId") REFERENCES "evenement"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "notification" ADD CONSTRAINT "notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_JoueursFavoris" ADD CONSTRAINT "_JoueursFavoris_A_fkey" FOREIGN KEY ("A") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;

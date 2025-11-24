@@ -7,8 +7,6 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
-
 model User {
   id               String              @id @default(cuid())
   name             String              @unique
@@ -22,7 +20,7 @@ model User {
   resetToken       String?
   resetTokenExpiry DateTime?
   createdAt        DateTime
-  updatedAt        DateTime  
+  updatedAt        DateTime
   sessions         Session[]
   accounts         Account[]
   presences        Presence[]
@@ -42,11 +40,11 @@ model User {
   // Relations sondages
   sondagesCrees    Sondage[]
   reponsesSondages ReponseSondage[]
+  Convocation      Convocation[]
+  notifications    Notification[]
 
   @@unique([email])
   @@map("user")
-  Convocation Convocation[]
-  notifications Notification[]
 }
 
 model Equipe {
@@ -119,13 +117,13 @@ model Blessure {
   endDate     DateTime
   isRecurring Boolean  @default(false)
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      String
-  equipe      Equipe   @relation(fields: [equipeId], references: [id], onDelete: Cascade)
-  equipeId    String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String
+  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  equipeId String
 
-  @@map("blessure")
   @@index([userId, startDate])
+  @@map("blessure")
 }
 
 model Finance {
@@ -145,13 +143,13 @@ model Finance {
 }
 
 model Convocation {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String            @id @default(cuid())
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
-  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  evenement   Evenement         @relation(fields: [evenementId], references: [id], onDelete: Cascade)
   evenementId String
   statut      StatutConvocation @default(EN_ATTENTE)
-  dateEnvoi   DateTime @default(now())
+  dateEnvoi   DateTime          @default(now())
   dateReponse DateTime?
 
   @@unique([userId, evenementId])
@@ -164,7 +162,6 @@ enum StatutConvocation {
   REFUSE
   EXPIRE
 }
-
 
 model Evenement {
   id            String              @id @default(cuid())
@@ -182,10 +179,10 @@ model Evenement {
   presences     Presence[]
   statsJoueur   StatistiqueJoueur[]
   statEquipe    StatistiqueEquipe?
+  Convocation   Convocation[]
 
   @@index([equipeId])
   @@map("evenement")
-  Convocation Convocation[]
 }
 
 // ==============================================
@@ -299,14 +296,14 @@ model Presence {
 }
 
 model StatistiqueJoueur {
-  id              String      @id @default(cuid())
-  buts            Int         @default(0)
+  id             String      @id @default(cuid())
+  buts           Int         @default(0)
   passesdecisive Int         @default(0)
-  note            Float       @default(6.0)
-  minutesJouees   Int         @default(0)
-  titulaire       Boolean     @default(false)
-  poste           PosteJoueur
-  dateCreation    DateTime    @default(now())
+  note           Float       @default(6.0)
+  minutesJouees  Int         @default(0)
+  titulaire      Boolean     @default(false)
+  poste          PosteJoueur
+  dateCreation   DateTime    @default(now())
 
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   userId      String
@@ -341,28 +338,24 @@ model StatistiqueEquipe {
   @@map("statistique_equipe")
 }
 
-
 model Notification {
-  id        String            @id @default(cuid())
+  id        String           @id @default(cuid())
   type      TypeNotification
   title     String
   message   String
-  data      Json?             // Données contextuelles (matchId, blessureId, etc.)
-  read      Boolean           @default(false)
-  delivered Boolean           @default(false)  // Si envoyée via WebSocket
-  createdAt DateTime          @default(now())
-  
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
-  
-  @@index([userId, read])      // Optimise les requêtes "notifications non lues"
+  data      Json? // Données contextuelles (matchId, blessureId, etc.)
+  read      Boolean          @default(false)
+  delivered Boolean          @default(false) // Si envoyée via WebSocket
+  createdAt DateTime         @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId, read]) // Optimise les requêtes "notifications non lues"
   @@index([userId, delivered]) // Optimise les requêtes "notifications manquées"
-  @@index([createdAt])         // Pour trier par date
+  @@index([createdAt]) // Pour trier par date
   @@map("notification")
 }
-
-
-
 
 // ==============================================
 // ENUMS
@@ -403,24 +396,24 @@ enum RoleEquipe {
 
 enum PosteJoueur {
   GARDIEN
-  DEFENSEUR
   DEFENSEUR_LATERAL_DROIT
   DEFENSEUR_CENTRAL
   DEFENSEUR_LATERAL_GAUCHE
-  MILIEU
+  MILIEU_DEFENSIF
   MILIEU_CENTRAL
   MILIEU_OFFENSIF
   MILIEU_RECUPERATEUR
-  ATTAQUANT
-  ATTAQUANT_DE_POINTE 
+  MILIEU_RELAYEUR
+  ATTAQUANT_DE_POINTE
   ATTAQUANT_DE_SOUTIEN
-  AILIER_GAUCHE 
+  AILIER_GAUCHE
   AILIER_DROIT
+  SECOND_ATTAQUANT
 }
 
 enum TypeEvenement {
   ENTRAINEMENT
-  CHAMPIONNAT 
+  CHAMPIONNAT
   COUPE
 }
 
@@ -449,9 +442,15 @@ enum StatutClub {
 }
 
 enum NiveauClub {
-  DEPARTEMENTAL
-  REGIONAL
-  NATIONAL
+  DEPARTEMENTAL_1
+  DEPARTEMENTAL_2
+  DEPARTEMENTAL_3
+  REGIONAL_1
+  REGIONAL_2
+  REGIONAL_3
+  NATIONAL_1
+  NATIONAL_2
+  NATIONAL_3
   LOISIR
 }
 
