@@ -1,13 +1,13 @@
 import React from "react";
 import { BoutonAjouter } from "./BoutonAjouter";
-import { InputBouton } from "./InputBouton";
+import { RejoindreClubModal } from "./RejoindreClubModal";
 
 function NoClub() {
   return (
     <div className="mx-8">
-      <div className="flex gap-8 flex-wrap justify-between items-center">
-        <BoutonAjouter texte="Créer un club"></BoutonAjouter>
-          <InputBouton texte="Rejoindre un club" placeholder="123456" />
+      <div className="flex items-center gap-4">
+        <BoutonAjouter texte="Créer un club" />
+        <RejoindreClubModal texte="Rejoindre un club" />
       </div>
     </div>
   );

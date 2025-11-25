@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
-import { useId } from "react"
-import { OTPInput, SlotProps } from "input-otp"
+import { useId } from "react";
+import { OTPInput, SlotProps } from "input-otp";
 
-import { cn } from "@/lib/utils"
-import { Label } from "@/components/ui/label"
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
-export default function Component() {
-  const id = useId()
+export default function OTPInputSpaced() {
+  const id = useId();
   return (
-    <div className="*:not-first:mt-2">
-      <Label htmlFor={id}>OTP input (spaced)</Label>
+    <div className="">
+      <Label htmlFor={id}>Code d'invitation</Label>
       <OTPInput
         id={id}
         containerClassName="flex items-center gap-3 has-disabled:opacity-50"
-        maxLength={4}
+        maxLength={6}
         render={({ slots }) => (
           <div className="flex gap-2">
             {slots.map((slot, idx) => (
@@ -23,23 +23,8 @@ export default function Component() {
           </div>
         )}
       />
-      <p
-        className="text-muted-foreground mt-2 text-xs"
-        role="region"
-        aria-live="polite"
-      >
-        Built with{" "}
-        <a
-          className="hover:text-foreground underline"
-          href="https://github.com/guilhermerodz/input-otp"
-          target="_blank"
-          rel="noopener nofollow"
-        >
-          Input OTP
-        </a>
-      </p>
     </div>
-  )
+  );
 }
 
 function Slot(props: SlotProps) {
@@ -52,5 +37,5 @@ function Slot(props: SlotProps) {
     >
       {props.char !== null && <div>{props.char}</div>}
     </div>
-  )
+  );
 }

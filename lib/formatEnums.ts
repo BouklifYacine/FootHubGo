@@ -1,9 +1,6 @@
 import { PosteJoueur, NiveauClub } from "@prisma/client";
 
-/**
- * Format PosteJoueur enum values for display
- * Converts MILIEU_DEFENSIF to "Milieu Défensif"
- */
+
 export function formatPosteJoueur(poste: PosteJoueur | string): string {
   const formattedPositions: Record<string, string> = {
     GARDIEN: "Gardien",
@@ -25,10 +22,6 @@ export function formatPosteJoueur(poste: PosteJoueur | string): string {
   return formattedPositions[poste] || poste;
 }
 
-/**
- * Format NiveauClub enum values for display
- * Converts NATIONAL_1 to "National 1"
- */
 export function formatNiveauClub(niveau: NiveauClub | string): string {
   const formattedLevels: Record<string, string> = {
     DEPARTEMENTAL_1: "Départemental 1",
@@ -46,9 +39,6 @@ export function formatNiveauClub(niveau: NiveauClub | string): string {
   return formattedLevels[niveau] || niveau;
 }
 
-/**
- * Get all formatted PosteJoueur options for select dropdowns
- */
 export function getFormattedPosteOptions() {
   const postes: PosteJoueur[] = [
     "GARDIEN",
@@ -73,9 +63,7 @@ export function getFormattedPosteOptions() {
   }));
 }
 
-/**
- * Get all formatted NiveauClub options for select dropdowns
- */
+
 export function getFormattedNiveauOptions() {
   const niveaux: NiveauClub[] = [
     "DEPARTEMENTAL_1",

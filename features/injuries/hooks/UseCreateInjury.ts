@@ -14,7 +14,7 @@ export function useCreateInjury(id: string) {
       const data = await InjuryService.createInjury(newInjury);
       return data;
     },
-    onMutate: async (newInjury) => {
+    onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ["playerInjuries", id] });
 
       const previousInjuries = queryClient.getQueryData<Blessure[]>([
@@ -27,28 +27,14 @@ export function useCreateInjury(id: string) {
     onSuccess: (data) => {
       toast.success(data.message);
     },
-    onError: async (error: any, variables, context) => {
+    onError: async (e, variables, context) => {
       if (context?.previousInjuries) {
         queryClient.setQueryData(
           ["playerInjuries", id],
           context.previousInjuries
         );
       }
-
-      let errorMessage = error.message;
-
-      if (error.response) {
-        try {
-          const errorData = await error.response.json();
-          if (errorData) {
-            if (errorData.error) {
-              errorMessage = errorData.error;
-            } else if (errorData.message) {
-              errorMessage = errorData.message;
-            }
-          }
-        } catch (e) {}
-      }
+      const errorMessage = e.message;
 
       toast.error(errorMessage);
     },

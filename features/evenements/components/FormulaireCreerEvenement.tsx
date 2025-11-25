@@ -25,10 +25,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import dayjs from "dayjs";
 
 type FormData = z.infer<typeof CreationEvenementSchema>;
 
 export default function FormulaireCreerEvenement() {
+ const Actualdate = dayjs()
+ const Date3DaysAfter = Actualdate.add(3, "day")
   const router = useRouter();
   const { mutate, isPending } = useCreerEvenement();
 
@@ -44,7 +47,7 @@ export default function FormulaireCreerEvenement() {
     resolver: zodResolver(CreationEvenementSchema),
     defaultValues: {
       typeEvenement: "ENTRAINEMENT",
-      dateDebut: new Date(),
+      dateDebut: Date3DaysAfter.toDate()
     },
     mode: "onChange",
   });
@@ -172,7 +175,7 @@ export default function FormulaireCreerEvenement() {
 
               {/* Lieu */}
               <div>
-                <Label htmlFor="lieu">Lieu</Label>
+                <Label htmlFor="lieu">Lieu *</Label>
                 <div className="relative">
                   <Input
                     id="lieu"

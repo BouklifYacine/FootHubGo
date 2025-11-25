@@ -61,8 +61,8 @@ export function InputBouton({ texte, placeholder }: Props) {
           <Send className="ml-1" />
         </Button>
       </div>
-      {/* Message d'erreur sous la ligne input/bouton */}
-      <div className="min-h-[20px] mt-1">
+    
+      <div className="min-h-5 mt-1">
         {errors.codeInvitation && (
           <p className="text-xs text-red-500">
             {errors.codeInvitation.message}
