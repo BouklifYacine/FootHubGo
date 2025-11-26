@@ -233,7 +233,7 @@ function ArrayPlayerStatusEventId({ statsteamid,statsJoueur }: Props) {
                         )}
                         {convocation && (
   <>
-    {!hasStats && statsteamid.idstatsequipe  && (
+    {!hasStats && statsteamid.idstatsequipe && convocation.statut === "CONFIRME" && (
       <ModalButtonAddPlayerStats
         poste={m.poste}
         eventid={statsteamid.eventid}

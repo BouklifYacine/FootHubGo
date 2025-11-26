@@ -108,13 +108,26 @@ export async function AjouterStatsJoueurAction(
       };
     }
 
-    const deja = await prisma.statistiqueJoueur.findFirst({
+    const HasStats = await prisma.statistiqueJoueur.findFirst({
       where: { evenementId: id, userId: joueurid },
     });
-    if (deja) {
+    if (HasStats) {
       return {
         success: false,
         message: "Des stats existent déjà pour ce joueur",
+      };
+    }
+
+    const CallUp = await prisma.convocation.findUnique({
+      where: {
+        userId_evenementId: { userId: joueurid, evenementId: id },  
+      },
+      select: { statut: true },
+    });
+    if (!CallUp || CallUp.statut !== "CONFIRME") {
+      return {
+        success: false,
+        message: "Le joueur n'a pas accepté la convocation ou n'a pas été convoqué",
       };
     }
 
