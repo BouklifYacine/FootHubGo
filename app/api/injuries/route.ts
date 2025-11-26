@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json(
-        { error: "Utilisateur non authentifié" },
+        { message: "Utilisateur non authentifié" },
         { status: 401 }
       );
     }
@@ -28,14 +28,14 @@ export async function POST(request: NextRequest) {
 
     if (dayjs(endDate).isBefore(today)) {
       return NextResponse.json(
-        { error: "La date de fin ne peut pas être antérieure à aujourd'hui." },
+        { message: "La date de fin ne peut pas être antérieure à aujourd'hui." },
         { status: 400 }
       );
     }
 
     if (dayjs(endDate).isBefore(minEndDate)) {
       return NextResponse.json(
-        { error: "Une blessure doit durer au minimum 3 jours." },
+        { message: "Une blessure doit durer au minimum 3 jours." },
         { status: 400 }
       );
     }
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
     if (!playerClubMembership) {
       return NextResponse.json(
-        { error: "Vous devez être un joueur pour déclarer une blessure" },
+        { message: "Vous devez être un joueur pour déclarer une blessure" },
         { status: 403 }
       );
     }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     if (hasActiveInjury) {
       return NextResponse.json(
         {
-          error:
+          message:
             "Vous avez déjà une blessure active. Vous ne pouvez pas en déclarer une nouvelle.",
         },
         { status: 400 }
@@ -86,12 +86,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Erreur lors de la création de la blessure:", error);
 
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
     return NextResponse.json(
-      { error: "Une erreur interne est survenue" },
+      { message: "Une erreur interne est survenue" },
       { status: 500 }
     );
   }

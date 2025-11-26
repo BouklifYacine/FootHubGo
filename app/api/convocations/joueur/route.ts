@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import dayjs from "dayjs";
 
 export async function GET(request: NextRequest) {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, name: true },
+    select: { id: true },
   });
 
   if (!user) {
@@ -27,61 +26,75 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const convocations = await prisma.convocation.findMany({
-    where: {
-      userId: userId,
-    },
-    select: {
-      id: true,
-      statut: true,
-      dateEnvoi: true,
-      dateReponse: true,
-      evenement: {
-        select: {
-          id: true,
-          titre: true,
-          dateDebut: true,
-          lieu: true,
-          typeEvenement: true,
-          adversaire: true,
-          equipe: {
-            select: {
-              id: true,
-              nom: true,
-              logoUrl: true,
-            },
+  const now = new Date();
+
+  const selectFields = {
+    id: true,
+    statut: true,
+    dateEnvoi: true,
+    dateReponse: true,
+    evenement: {
+      select: {
+        id: true,
+        titre: true,
+        dateDebut: true,
+        lieu: true,
+        typeEvenement: true,
+        adversaire: true,
+        equipe: {
+          select: {
+            id: true,
+            nom: true,
+            logoUrl: true,
           },
         },
       },
     },
-    orderBy: {
-      dateEnvoi: "desc",
-    },
-  });
+  };
 
-  const now = dayjs();
-  const convocationsFutures = convocations.filter((c) =>
-    dayjs(c.evenement.dateDebut).isAfter(now)
-  );
-  const convocationsPassees = convocations.filter((c) =>
-    dayjs(c.evenement.dateDebut).isBefore(now)
-  );
+  const [convocationsFutures, convocationsPassees] = await Promise.all([
+    prisma.convocation.findMany({
+      where: {
+        userId: userId,
+        evenement: {
+          dateDebut: { gte: now },
+        },
+      },
+      select: selectFields,
+      orderBy: {
+        evenement: { dateDebut: "asc" },
+      },
+    }),
+
+    prisma.convocation.findMany({
+      where: {
+        userId: userId,
+        evenement: {
+          dateDebut: { lt: now },
+        },
+      },
+      select: selectFields,
+      orderBy: {
+        evenement: { dateDebut: "desc" },
+      },
+    }),
+  ]);
+
+  const allConvocations = [...convocationsFutures, ...convocationsPassees];
 
   const stats = {
-    total: convocations.length,
-    futures: convocationsFutures.length,
+    total: allConvocations.length,
     passees: convocationsPassees.length,
-    // enAttente: convocations.filter((c) => c.statut === "EN_ATTENTE").length,
-    confirmes: convocations.filter((c) => c.statut === "CONFIRME").length,
-    refuses: convocations.filter((c) => c.statut === "REFUSE").length,
+    confirmes: allConvocations.filter((c) => c.statut === "CONFIRME").length,
+    refuses: allConvocations.filter((c) => c.statut === "REFUSE").length,
   };
 
   return NextResponse.json(
     {
       stats: stats,
-      convocations : convocations,
+      convocations: allConvocations, // La liste complète (pour ne pas casser ton code)
       // convocationsFutures: convocationsFutures,
-      // convocationsPassees: convocationsPassees,
+      convocationsPassees: convocationsPassees,
     },
     { status: 200 }
   );

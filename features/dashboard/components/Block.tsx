@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface StatsBlockProps {
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   title: string;
-  value: string | number;
+  value:  string | number;
 }
 
 export const StatsBlock: React.FC<StatsBlockProps> = ({ 

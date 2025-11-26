@@ -21,12 +21,12 @@ export const SectionStats: React.FC<StatsHeaderProps> = ({
       <StatsBlock
         icon={Users}
         title="Nombre utilisateurs"
-        value={statistiques.totalUtilisateurs.toString()}
+        value={statistiques.totalUtilisateurs}
       />
       <StatsBlock
         icon={UserPlus}
         title="Nombre abonnés"
-        value={statistiques.totalAbonnements.toString()}
+        value={statistiques.totalAbonnements}
       />
       <StatsBlock
         icon={Landmark}

@@ -7,7 +7,6 @@ export interface getCallUpApiResponse {
 
 interface stats {
     total: number;
-    futures: number;
     passees: number;
     confirmes: number;
     refuses: number;
