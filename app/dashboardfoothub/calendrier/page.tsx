@@ -3,6 +3,7 @@
 import { useState } from "react";
 import dayjs from "dayjs";
 import { EventCalendar, CalendarEvent } from "@/features/calendrier/components";
+import { useCalendarEvents } from "@/features/calendrier/hooks/use-calendar-events";
 
 const sampleEvents: CalendarEvent[] = [
   {
@@ -128,7 +129,9 @@ const sampleEvents: CalendarEvent[] = [
 ];
 
 export default function page() {
-  const [events, setEvents] = useState<CalendarEvent[]>(sampleEvents);
+  // const [events, setEvents] = useState<CalendarEvent[]>(sampleEvents);
+  const { data: eventsData, isPending } = useCalendarEvents();
+  console.log(eventsData);
 
   // const handleEventAdd = (event: CalendarEvent) => {
   //   setEvents([...events, event]);
@@ -146,5 +149,5 @@ export default function page() {
   //   setEvents(events.filter((event) => event.id !== eventId));
   // };
 
-  return <EventCalendar events={events} />;
+  return <EventCalendar events={eventsData || []} />;
 }

@@ -317,7 +317,7 @@ export function EventCalendar({
                 <ChevronRightIcon aria-hidden="true" size={16} />
               </Button>
             </div>
-            <h2 className="font-semibold text-sm sm:text-lg md:text-xl">
+            <h2 className="capitalize font-semibold text-sm sm:text-lg md:text-xl">
               {viewTitle}
             </h2>
           </div>
