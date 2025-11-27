@@ -56,7 +56,7 @@ export function EventCalendar({
   onEventUpdate,
   onEventDelete,
   className,
-  initialView = "month",
+  initialView = "Mois",
 }: EventCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<CalendarView>(initialView);
@@ -81,7 +81,7 @@ export function EventCalendar({
 
       switch (e.key.toLowerCase()) {
         case "m":
-          setView("month");
+          setView("Mois");
           break;
         case "w":
           setView("week");
@@ -103,7 +103,7 @@ export function EventCalendar({
   }, [isEventDialogOpen]);
 
   const handlePrevious = () => {
-    if (view === "month") {
+    if (view === "Mois") {
       setCurrentDate(subMonths(currentDate, 1));
     } else if (view === "week") {
       setCurrentDate(subWeeks(currentDate, 1));
@@ -116,7 +116,7 @@ export function EventCalendar({
   };
 
   const handleNext = () => {
-    if (view === "month") {
+    if (view === "Mois") {
       setCurrentDate(addMonths(currentDate, 1));
     } else if (view === "week") {
       setCurrentDate(addWeeks(currentDate, 1));
@@ -216,7 +216,7 @@ export function EventCalendar({
   };
 
   const viewTitle = useMemo(() => {
-    if (view === "month") {
+    if (view === "Mois") {
       return format(currentDate, "MMMM yyyy");
     }
     if (view === "week") {
@@ -328,14 +328,14 @@ export function EventCalendar({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-32">
-                <DropdownMenuItem onClick={() => setView("month")}>
-                  Month <DropdownMenuShortcut>M</DropdownMenuShortcut>
+                <DropdownMenuItem onClick={() => setView("Mois")}>
+                  Mois <DropdownMenuShortcut>M</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setView("week")}>
-                  Week <DropdownMenuShortcut>W</DropdownMenuShortcut>
+                  Semaine <DropdownMenuShortcut>W</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setView("day")}>
-                  Day <DropdownMenuShortcut>D</DropdownMenuShortcut>
+                  Jour <DropdownMenuShortcut>D</DropdownMenuShortcut>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setView("agenda")}>
                   Agenda <DropdownMenuShortcut>A</DropdownMenuShortcut>
@@ -361,7 +361,7 @@ export function EventCalendar({
         </div>
 
         <div className="flex flex-1 flex-col">
-          {view === "month" && (
+          {view === "Mois" && (
             <MonthView
               currentDate={currentDate}
               events={events}

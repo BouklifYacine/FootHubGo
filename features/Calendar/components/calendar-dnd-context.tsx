@@ -22,8 +22,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { CalendarEvent } from "./types";
-import { EventItem } from "./event-item";
+import { CalendarEvent } from "../types/types";
+import { EventItem } from "@/components";
+
 
 // Define the context type
 type CalendarDndContextType = {
