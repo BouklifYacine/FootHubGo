@@ -19,9 +19,10 @@ import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
+import { RoleEquipe } from "@prisma/client";
 
 interface Props {
-  props?: React.ComponentProps<typeof Sidebar>;
+  props?: RoleEquipe
 }
 
 const navigationData = {
@@ -33,6 +34,7 @@ const navigationData = {
     { title: "Statistiques", url: "/dashboardfoothub/statistiques", icon: ChartNoAxesCombined },
     { title: "Convocations", url: "/dashboardfoothub/convocations", icon: CalendarPlus2 },
     { title: "Blessures", url: "/dashboardfoothub/blessures", icon: CalendarPlus2 },
+    { title: "Calendrier", url: "/dashboardfoothub/calendrier", icon: CalendarPlus2 },
   ],
 };
 
