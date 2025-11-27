@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import dayjs from "dayjs";
-import { EventCalendar } from "@/components/event-calendar";
-import { CalendarEvent } from "@/components/types";
+import { EventCalendar, CalendarEvent } from "@/features/calendrier/components";
 
 const sampleEvents: CalendarEvent[] = [
   {
@@ -131,28 +130,21 @@ const sampleEvents: CalendarEvent[] = [
 export default function page() {
   const [events, setEvents] = useState<CalendarEvent[]>(sampleEvents);
 
-  const handleEventAdd = (event: CalendarEvent) => {
-    setEvents([...events, event]);
-  };
+  // const handleEventAdd = (event: CalendarEvent) => {
+  //   setEvents([...events, event]);
+  // };
 
-  const handleEventUpdate = (updatedEvent: CalendarEvent) => {
-    setEvents(
-      events.map((event) =>
-        event.id === updatedEvent.id ? updatedEvent : event,
-      ),
-    );
-  };
+  // const handleEventUpdate = (updatedEvent: CalendarEvent) => {
+  //   setEvents(
+  //     events.map((event) =>
+  //       event.id === updatedEvent.id ? updatedEvent : event
+  //     )
+  //   );
+  // };
 
-  const handleEventDelete = (eventId: string) => {
-    setEvents(events.filter((event) => event.id !== eventId));
-  };
+  // const handleEventDelete = (eventId: string) => {
+  //   setEvents(events.filter((event) => event.id !== eventId));
+  // };
 
-  return (
-    <EventCalendar
-      events={events}
-      onEventAdd={handleEventAdd}
-      onEventDelete={handleEventDelete}
-      onEventUpdate={handleEventUpdate}
-    />
-  );
+  return <EventCalendar events={events} />;
 }
