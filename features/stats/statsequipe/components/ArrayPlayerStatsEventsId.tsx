@@ -18,6 +18,7 @@ import { useSupprimerStatsJoueur } from "../../statsjoueur/hooks/useSupprimerSta
 import { BoutonSupprimer } from "@/components/Boutons/BoutonSupprimer";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { ModalButtonEditPlayerStats } from "../../statsjoueur/components/ModalButtonUpdatePlayerStats";
+import { formatPosteJoueur, getFormattedPosteOptions } from "@/lib/formatEnums";
 
 interface Props {
   statsJoueur: StatsJoueur[] | undefined;
@@ -88,7 +89,8 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
               <TableCell>{m.nom}</TableCell>
               <TableCell>{m.buts}</TableCell>
               <TableCell>{m.passesdecisive}</TableCell>
-              <TableCell>{m.poste || "Sans poste"}</TableCell>
+              <TableCell>{formatPosteJoueur(m.poste) || "Sans poste"}</TableCell>
+
               <TableCell>
                 <Badge
                   className={`rounded-md border text-md ${

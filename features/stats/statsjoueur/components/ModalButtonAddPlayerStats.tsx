@@ -32,12 +32,12 @@ import {
   schemaAjouterStatsJoueurSchema,
 } from "../schema/AjouterStatsJoueurSchema";
 import { $Enums } from "@prisma/client";
-
+import { getFormattedPosteOptions } from "@/lib/formatEnums";
 
 interface Props {
   eventid: string;
   playerId: string;
-  poste: $Enums.PosteJoueur | null
+  poste: $Enums.PosteJoueur | null;
 }
 
 export function ModalButtonAddPlayerStats({ eventid, playerId, poste }: Props) {
@@ -109,9 +109,9 @@ export function ModalButtonAddPlayerStats({ eventid, playerId, poste }: Props) {
                 <SelectValue placeholder="Sélectionnez un poste" />
               </SelectTrigger>
               <SelectContent>
-                {enumsPoste.map((poste) => (
-                  <SelectItem key={poste} value={poste}>
-                    {poste}
+                {getFormattedPosteOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
