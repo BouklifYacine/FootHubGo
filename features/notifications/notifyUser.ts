@@ -1,13 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// lib/notifyUser.ts
 import { prisma } from "@/prisma";
 
 type NotificationData = {
   userId: string;
-  type: "DEMANDE_ADHESION" | "CONVOCATION_MATCH" | "BLESSURE_DECLAREE" |
-   "REJOINT_CLUB" | "QUITTER_CLUB" |"EVENEMENT_RAPPEL" | " SONDAGE_NOUVEAU" | "MESSAGE" | "FINANCE_ECHEANCE";
+  fromUserName?: string;
+  fromUserImage?: string;
+  type:
+    | "DEMANDE_ADHESION"
+    | "CONVOCATION_MATCH"
+    | "BLESSURE_DECLAREE"
+    | "REJOINT_CLUB"
+    | "QUITTER_CLUB"
+    | "EVENEMENT_RAPPEL"
+    | "SONDAGE_NOUVEAU"
+    | "MESSAGE"
+    | "FINANCE_ECHEANCE";
   title: string;
   message: string;
-  data?: any;
 };
 
 export async function notifyUser(notification: NotificationData) {
@@ -17,15 +26,16 @@ export async function notifyUser(notification: NotificationData) {
       type: notification.type,
       title: notification.title,
       message: notification.message,
-      data: notification.data,
+      fromUserName: notification.fromUserName,
+      fromUserImage: notification.fromUserImage,
     },
   });
 
   try {
-    const io = (global as any).io;
+    const io = (globalThis as any).io;
     if (io) {
       io.to(`user:${notification.userId}`).emit("notification", notif);
-      
+
       await prisma.notification.update({
         where: { id: notif.id },
         data: { delivered: true },

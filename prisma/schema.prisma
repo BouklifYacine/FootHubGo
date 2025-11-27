@@ -348,12 +348,15 @@ model Notification {
   delivered Boolean          @default(false) // Si envoyée via WebSocket
   createdAt DateTime         @default(now())
 
+  fromUserName  String?
+  fromUserImage String?
+
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String
 
-  @@index([userId, read]) // Optimise les requêtes "notifications non lues"
-  @@index([userId, delivered]) // Optimise les requêtes "notifications manquées"
-  @@index([createdAt]) // Pour trier par date
+  @@index([userId, read])
+  @@index([userId, delivered])
+  @@index([createdAt])
   @@map("notification")
 }
 

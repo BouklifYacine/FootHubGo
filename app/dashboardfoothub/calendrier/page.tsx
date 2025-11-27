@@ -131,7 +131,6 @@ const sampleEvents: CalendarEvent[] = [
 export default function page() {
   // const [events, setEvents] = useState<CalendarEvent[]>(sampleEvents);
   const { data: eventsData, isPending } = useCalendarEvents();
-  console.log(eventsData);
 
   // const handleEventAdd = (event: CalendarEvent) => {
   //   setEvents([...events, event]);
