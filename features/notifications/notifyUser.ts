@@ -1,4 +1,3 @@
-// lib/notifyUser.ts
 import { prisma } from "@/prisma";
 
 type NotificationData = {

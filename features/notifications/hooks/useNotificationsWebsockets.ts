@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
-import { NotificationsResponse } from "../types/notifications.types";
-import { Notification } from "@prisma/client";
+import { NotificationsResponse, Notification } from "../types/notifications.types";
 
 export function useNotificationsWebSocket(userId?: string) {
   const queryClient = useQueryClient();

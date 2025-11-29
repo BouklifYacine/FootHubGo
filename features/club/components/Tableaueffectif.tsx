@@ -24,6 +24,7 @@ import { BoutonSupprimer } from "@/components/Boutons/BoutonSupprimer";
 import { BoutonSupprimerTexte } from "@/components/Boutons/BoutonSupprimerTexte";
 import { MembreEquipeWithUser } from "../hooks/useinfosclub";
 import { formatPosteJoueur, getFormattedPosteOptions } from "@/lib/formatEnums";
+import { authClient } from "@/lib/auth-client";
 
 interface TableauEffectifProps {
   membres: MembreEquipeWithUser[];
@@ -58,6 +59,11 @@ export function TableauEffectif({
 
   if (membres.length === 0) return <p>Pas de joueurs dans l&apos;effectif</p>;
 
+    const { 
+        data: session, 
+        isPending, 
+    } = authClient.useSession() 
+
   return (
     <div className="overflow-x-auto mt-10">
       <Table>
@@ -81,7 +87,7 @@ export function TableauEffectif({
         </TableHeader>
         <TableBody className="divide-y">
           {membres.map((m) => {
-            const estUtilisateurActuel = m.userId === sessionId;
+            const estUtilisateurActuel = session?.user.id == m.userId;
             const afficherSupprimer =
               estEntraineur && !estUtilisateurActuel && m.role !== "ENTRAINEUR";
             const peutModifier = estEntraineur && !estUtilisateurActuel;
