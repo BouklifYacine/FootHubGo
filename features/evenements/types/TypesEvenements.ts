@@ -14,6 +14,23 @@ export interface Evenements {
   statutPresence: $Enums.StatutPresence;
   locationData: JsonValue | null;
   weatherData: JsonValue | null;
+
+  statEquipe: {
+    id: string;
+    resultatMatch: $Enums.ResultatMatch;
+    butsMarques: number;
+    butsEncaisses: number;
+    cleanSheet: boolean;
+    tirsTotal: number | null;
+    tirsCadres: number | null;
+    domicile: boolean;
+    competition: $Enums.competition;
+    adversaire: string;
+    dateCreation: Date;
+    equipeId: string;
+    evenementId: string | null;
+  } | null;
+  hasStats: boolean;
 }
 
 export interface Pagination {

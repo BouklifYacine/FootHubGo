@@ -3,6 +3,7 @@ import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import dayjs from "dayjs";
+import { notifyUser } from "@/features/notifications/notifyUser";
 
 export async function POST(request: NextRequest,{ params }: { params: { id: string; playerid: string } }) {
   const { id: evenementid, playerid: playerId } = await params;
@@ -72,6 +73,7 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
       dateDebut: true,
       equipeId: true,
       Convocation: true,
+      titre : true
     },
   });
 
@@ -166,6 +168,15 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
       { status: 400 }
     );
   }
+
+ await notifyUser({
+   userId: playerId,
+   message: `Tu es convoqué pour le match du ${dayjs(Event.dateDebut).format("DD/MM/YYYY")}`,
+   fromUserName: session.user.name,
+   fromUserImage: session.user.image || "",
+   type: "CONVOCATION_MATCH",
+   title: `Convocation `
+ });
 
   await prisma.convocation.create({
     data: {

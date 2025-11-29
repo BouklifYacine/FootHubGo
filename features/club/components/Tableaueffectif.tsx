@@ -74,6 +74,7 @@ export function TableauEffectif({
             <TableHead className="text-black dark:text-white">Nom</TableHead>
             <TableHead className="text-black dark:text-white">Rôle</TableHead>
             <TableHead className="text-black dark:text-white">Poste</TableHead>
+            <TableHead className="text-black dark:text-white">Blessure</TableHead>
             <TableHead className="text-black dark:text-white">
               Licencié
             </TableHead>
@@ -213,6 +214,22 @@ export function TableauEffectif({
                       <CircleX size={16} className="mr-1" />
                     )}
                     {m.isLicensed ? "Oui" : "Non"}
+                  </Badge>
+                </TableCell>
+                  <TableCell>
+                  <Badge
+                    className={`rounded-md border text-md ${
+                      m.isInjured
+                        ? "border-emerald-800 bg-emerald-100 text-emerald-800"
+                        : "border-red-800 bg-red-200 text-red-800"
+                    }`}
+                  >
+                    {m.isInjured ? (
+                      <CircleCheck size={16} className="mr-1" />
+                    ) : (
+                      <CircleX size={16} className="mr-1" />
+                    )}
+                    {m.isInjured ? "Oui" : "Non"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-black dark:text-white">

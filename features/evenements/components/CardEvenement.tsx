@@ -46,7 +46,8 @@ function CardEvenement({ filteredEvents, infosdata, isPending, mutate }: Props) 
     <>
       {filteredEvents?.evenements.map((e) => {
         
-        const showMenu = entraineur || (player && e.typeEvenement !== "ENTRAINEMENT");
+       
+       const showMenu = entraineur || (player && e.typeEvenement !== "ENTRAINEMENT");
 
         return (
           <div className="rounded-xl border border-gray-400 w-2xl" key={e.id}>
@@ -68,7 +69,7 @@ function CardEvenement({ filteredEvents, infosdata, isPending, mutate }: Props) 
                       <DropdownMenuContent className="w-40" align="center">
                         
                         {/* ACTIONS RÉSERVÉES À L'ENTRAINEUR */}
-                        {entraineur && (
+                        {entraineur && !e.hasStats && (
                           <>
                             <DropdownMenuItem onClick={() => handleModifier(e.id)}>
                               Modifier

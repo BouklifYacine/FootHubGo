@@ -10,6 +10,13 @@ export async function GET(req: NextRequest) {
 
   const userId = session?.user.id;
 
+  if (!session){
+     return NextResponse.json(
+      { message: "Vous n'etes pas connecté." },
+      { status: 404 }
+    );
+  }
+
   const MembreEquipe = await prisma.membreEquipe.findFirst({
     where: { userId },
     select: { equipeId: true },
@@ -41,6 +48,7 @@ export async function GET(req: NextRequest) {
           where: { userId },
           select: { statut: true },
         },
+      statEquipe: true
       },
     }),
     prisma.evenement.count({ where: { equipeId } }),
@@ -51,6 +59,7 @@ export async function GET(req: NextRequest) {
       evenements: evenements.map((e) => ({
         ...e,
         statutPresence: e.presences[0]?.statut ?? "ATTENTE",
+        hasStats: e.statEquipe !== null,
       })),
       pagination: {
         page,

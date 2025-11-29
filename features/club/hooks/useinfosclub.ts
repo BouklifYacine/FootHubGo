@@ -1,8 +1,18 @@
-import { Equipe, MembreEquipe, User } from "@prisma/client";
+import { Equipe, MembreEquipe, User, Blessure } from "@prisma/client";
 import { useQuery } from "@tanstack/react-query";
 
+export type BlessureInfo = Pick<
+  Blessure,
+  "id" | "type" | "startDate" | "endDate" | "description"
+>;
+
+export type UserWithBlessures = Pick<User, "name" | "image" | "email"> & {
+  blessures: BlessureInfo[];
+};
+
 export type MembreEquipeWithUser = MembreEquipe & {
-  user: Pick<User, "name" | "image" | "email">;
+  user: UserWithBlessures;
+  isInjured: boolean;
 };
 
 export type InfosClubApiResponse = {
