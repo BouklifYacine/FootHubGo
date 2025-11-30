@@ -7,6 +7,7 @@ import {
   UsersRound,
   ChartNoAxesCombined,
   CalendarPlus2,
+  Hospital,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,7 +34,7 @@ const navigationData = {
     { title: "Evenements", url: "/dashboardfoothub/evenements", icon: Calendar },
     { title: "Statistiques", url: "/dashboardfoothub/statistiques", icon: ChartNoAxesCombined },
     { title: "Convocations", url: "/dashboardfoothub/convocations", icon: CalendarPlus2 },
-    { title: "Blessures", url: "/dashboardfoothub/blessures", icon: CalendarPlus2 },
+    { title: "Blessures", url: "/dashboardfoothub/blessures", icon: Hospital },
     { title: "Calendrier", url: "/dashboardfoothub/calendrier", icon: CalendarPlus2 },
   ],
 };

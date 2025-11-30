@@ -1,6 +1,15 @@
 import { z } from "zod";
 
-const niveauClubValues = ["DEPARTEMENTAL", "REGIONAL", "NATIONAL", "LOISIR"] as const;
+const niveauClubValues = ["DEPARTEMENTAL_1",
+    "DEPARTEMENTAL_2",
+    "DEPARTEMENTAL_3",
+    "REGIONAL_1",
+    "REGIONAL_2",
+    "REGIONAL_3",
+    "NATIONAL_1",
+    "NATIONAL_2",
+    "NATIONAL_3",
+    "LOISIR",] as const;
 
 export const SchemaModifierInfosClub = z
   .object({

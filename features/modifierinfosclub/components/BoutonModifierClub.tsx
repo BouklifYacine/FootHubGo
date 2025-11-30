@@ -20,13 +20,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "@tanstack/react-form";
 import { useModifierInfosClub } from "@/features/modifierinfosclub/hooks/useModifierInfosClub";
 import { useState } from "react";
 import { SchemaModifierInfosClub } from "../schemas/SchemaModifierInfosClub";
 import z from "zod";
 import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
+import { getFormattedNiveauOptions } from "@/lib/formatEnums";
 
 type FormData = z.infer<typeof SchemaModifierInfosClub>;
 
@@ -49,37 +49,37 @@ function BoutonModifierClub({
   const open = externalOpen !== undefined ? externalOpen : internalOpen;
   const setOpen = externalOnOpenChange || setInternalOpen;
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-  } = useForm<FormData>({
-    resolver: zodResolver(SchemaModifierInfosClub),
-  values: {
-    nom: clubData?.equipe.nom || "",
-    description: clubData?.equipe.description || "",
-    niveau: clubData?.equipe.niveau,
-  },
+  const niveauOptions = getFormattedNiveauOptions();
+
+  const form = useForm({
+    defaultValues: {
+      nom: clubData?.equipe.nom || "",
+      description: clubData?.equipe.description || "",
+      niveau: clubData?.equipe.niveau || "LOISIR",
+    } as FormData,
+    onSubmit: async ({ value }) => {
+      if (!clubData?.equipe.id) return;
+
+      const result = SchemaModifierInfosClub.safeParse(value);
+      if (!result.success) {
+        console.error("Erreur de validation:", result.error);
+        return;
+      }
+
+      mutate(
+        { clubId: clubData.equipe.id, clubData: result.data },
+        {
+          onSuccess: () => {
+            setOpen(false);
+          },
+        }
+      );
+    },
   });
 
-     if (!clubData || !clubData.equipe) {
+  if (!clubData || !clubData.equipe) {
     return <p>Chargement ou accès non autorisé...</p>;
   }
-
-  function onSubmit(data: FormData) {
-    if (!clubData?.equipe.id) return;
-    mutate(
-      { clubId: clubData.equipe.id, clubData: data },
-      {
-        onSuccess: () => {
-          setOpen(false);
-        },
-      }
-    );
-  }
-
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -90,71 +90,127 @@ function BoutonModifierClub({
           </Button>
         </DialogTrigger>
       )}
-      <DialogContent 
-        className="w-[95vw] max-w-md sm:max-w-lg"
-      >
+      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Modifier les informations du club</DialogTitle>
           <DialogDescription>
             Mettez à jour les informations de votre club.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="nom">Nom du club</Label>
-            <Input
-              id="nom"
-              {...register("nom")}
-              placeholder="Nom du club"
-              className={errors.nom ? "border-red-500" : ""}
-            />
-            {errors.nom && (
-              <p className="text-red-500 text-sm mt-1">{errors.nom.message}</p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-4"
+        >
+          <form.Field
+            name="nom"
+            validators={{
+              onChange: ({ value }) => {
+                const result = SchemaModifierInfosClub.shape.nom.safeParse(value);
+                return result.success ? undefined : result.error.errors[0].message;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <Label htmlFor="nom">Nom du club</Label>
+                <Input
+                  id="nom"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="Nom du club"
+                  className={
+                    field.state.meta.errors.length > 0 ? "border-red-500" : ""
+                  }
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+          </form.Field>
 
-          <div>
-            <Label htmlFor="niveau">Niveau</Label>
-            <Select
-              onValueChange={(value) =>
-                setValue("niveau", value as FormData["niveau"])
-              }
-              value={watch("niveau")}
-            >
-              <SelectTrigger
-                id="niveau"
-                className={errors.niveau ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Sélectionner un niveau" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="LOISIR">Loisir</SelectItem>
-                <SelectItem value="DEPARTEMENTAL">Départemental</SelectItem>
-                <SelectItem value="REGIONAL">Régional</SelectItem>
-                <SelectItem value="NATIONAL">National</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.niveau && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.niveau.message}
-              </p>
+          <form.Field
+            name="niveau"
+            validators={{
+              onChange: ({ value }) => {
+                const result = SchemaModifierInfosClub.shape.niveau.safeParse(value);
+                return result.success ? undefined : result.error.errors[0].message;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <Label htmlFor="niveau">Niveau</Label>
+                <Select
+                  onValueChange={(value) =>
+                    field.handleChange(value as FormData["niveau"])
+                  }
+                  value={field.state.value}
+                >
+                  <SelectTrigger
+                    id="niveau"
+                    className={
+                      field.state.meta.errors.length > 0 ? "border-red-500" : ""
+                    }
+                  >
+                    <SelectValue placeholder="Sélectionner un niveau" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {niveauOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+          </form.Field>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              {...register("description")}
-              placeholder="Description"
-              className={errors.description ? "border-red-500" : ""}
-            />
-            {errors.description && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.description.message}
-              </p>
+          <form.Field
+            name="description"
+            validators={{
+              onChange: ({ value }) => {
+                const result = SchemaModifierInfosClub.shape.description.safeParse(
+                  value
+                );
+                return result.success ? undefined : result.error.errors[0].message;
+              },
+            }}
+          >
+            {(field) => (
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Input
+                  id="description"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  onBlur={field.handleBlur}
+                  placeholder="Description"
+                  className={
+                    field.state.meta.errors.length > 0 ? "border-red-500" : ""
+                  }
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {field.state.meta.errors[0]}
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+          </form.Field>
 
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <DialogClose asChild>
@@ -162,9 +218,17 @@ function BoutonModifierClub({
                 Annuler
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Enregistrement..." : "Enregistrer"}
-            </Button>
+            <form.Subscribe
+              selector={(state) => [state.canSubmit, state.isSubmitting]}
+            >
+              {([canSubmit, isSubmitting]) => (
+                <Button type="submit" disabled={!canSubmit || isPending}>
+                  {isPending || isSubmitting
+                    ? "Enregistrement..."
+                    : "Enregistrer"}
+                </Button>
+              )}
+            </form.Subscribe>
           </DialogFooter>
         </form>
       </DialogContent>

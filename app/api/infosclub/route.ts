@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
 
   const membresAvecStatut = membres.map((m) => ({
     ...m,
-    isInujured: m.user.blessures.length > 0, 
+    isInjured: m.user.blessures.length > 0, 
   }));
 
   return NextResponse.json({

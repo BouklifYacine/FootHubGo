@@ -50,7 +50,7 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
         <TableHeader>
           <TableRow>
             <TableHead className="p-4">
-              <Checkbox />
+             
             </TableHead>
             <TableHead>Avatar</TableHead>
             <TableHead>Nom</TableHead>
@@ -67,7 +67,7 @@ function ArrayPlayerStatsEventsId({ statsJoueur, eventId }: Props) {
           {statsJoueur.map((m) => (
             <TableRow key={m.id}>
               <TableCell className="p-4">
-                <Checkbox />
+              
               </TableCell>
               <TableCell>
                 {m.image ? (
