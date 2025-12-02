@@ -3,45 +3,67 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
+    // 1. Récupérer toutes les équipes
     const equipes = await prisma.equipe.findMany({
-      include: {
-        statsEquipe: true,
+      select: {
+        id: true,
+        nom: true,
+        logoUrl: true,
+      },
+    });
+
+    const resultats = await prisma.statistiqueEquipe.groupBy({
+      by: ["equipeId", "resultatMatch"],
+      _count: {
+        resultatMatch: true,
+      },
+    });
+
+    const buts = await prisma.statistiqueEquipe.groupBy({
+      by: ["equipeId"],
+      _sum: {
+        butsMarques: true,
+        butsEncaisses: true,
+      },
+    });
+
+    const rawStats = await prisma.statistiqueEquipe.findMany({
+      select: {
+        equipeId: true,
+        resultatMatch: true,
+        dateCreation: true,
+      },
+      orderBy: {
+        dateCreation: "desc",
       },
     });
 
     const classementEquipes = equipes.map((equipe) => {
-      const statsEquipe = equipe.statsEquipe || [];
+      // Filtrer les agrégats pour l'équipe en cours
+      const equipeResultats = resultats.filter((r) => r.equipeId === equipe.id);
+      const equipeButs = buts.find((b) => b.equipeId === equipe.id);
 
-      const totalMatchs = statsEquipe.length;
-      const victoires = statsEquipe.filter(
-        (stat) => stat.resultatMatch === "VICTOIRE"
-      ).length;
-      const defaites = statsEquipe.filter(
-        (stat) => stat.resultatMatch === "DEFAITE"
-      ).length;
-      const nuls = statsEquipe.filter(
-        (stat) => stat.resultatMatch === "NUL"
-      ).length;
-      const butsMarques = statsEquipe.reduce(
-        (sum, stat) => sum + stat.butsMarques,
-        0
-      );
-      const butsEncaisses = statsEquipe.reduce(
-        (sum, stat) => sum + stat.butsEncaisses,
-        0
-      );
+      const victoires =
+        equipeResultats.find((r) => r.resultatMatch === "VICTOIRE")?._count
+          .resultatMatch || 0;
+      const defaites =
+        equipeResultats.find((r) => r.resultatMatch === "DEFAITE")?._count
+          .resultatMatch || 0;
+      const nuls =
+        equipeResultats.find((r) => r.resultatMatch === "NUL")?._count
+          .resultatMatch || 0;
+
+      const totalMatchs = victoires + defaites + nuls;
+      const butsMarques = equipeButs?._sum.butsMarques || 0;
+      const butsEncaisses = equipeButs?._sum.butsEncaisses || 0;
       const differenceDeButsGlobale = butsMarques - butsEncaisses;
-
       const points = victoires * 3 + nuls;
 
-      const matchsRecents = [...statsEquipe]
-        .sort(
-          (a, b) =>
-            new Date(b.dateCreation).getTime() -
-            new Date(a.dateCreation).getTime()
-        )
+      // Calcul de la forme récente (5 derniers matchs)
+      const matchsRecents = rawStats
+        .filter((s) => s.equipeId === equipe.id)
         .slice(0, 5)
-        .map((match) => match.resultatMatch);
+        .map((s) => s.resultatMatch);
 
       return {
         equipe: {
