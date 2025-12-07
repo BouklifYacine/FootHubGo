@@ -4,12 +4,14 @@ import { auth } from "@/auth";
 import { RejoindreEquipeSchema } from "@/features/rejoindreclub/schema/schemaRejoindreEquipe";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
-import { notifyUser } from "@/features/notifications/notifyUser";
+// Make sure this path is correct based on your project structure
+import { notifyUser } from "@/features/notifications/notifyUser"; 
 import z from "zod";
 
 type Schema = z.infer<typeof RejoindreEquipeSchema>;
 
 export async function RejoindreEquipeAction(data: Schema) {
+
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -52,16 +54,25 @@ export async function RejoindreEquipeAction(data: Schema) {
   if (dejaMembre) {
     return {
       success: false,
-      message: "Vous êtes déjà membre d'une équipe",
+      message: "Vous êtes déjà membre d'une équipe. Quittez-la d'abord.",
     };
   }
 
-  await prisma.membreEquipe.create({
-    data: {
-      equipeId: equipe.id,
-      userId,
-      role: "JOUEUR",
-    },
+  await prisma.$transaction(async (tx) => {
+    await tx.membreEquipe.create({
+      data: {
+        equipeId: equipe.id,
+        userId,
+        role: "JOUEUR",
+      },
+    });
+
+    await tx.demandeAdhesion.deleteMany({
+      where: {
+        userId: userId,
+        statut: "ATTENTE",
+      },
+    });
   });
 
   const entraineurs = await prisma.membreEquipe.findMany({
@@ -71,21 +82,23 @@ export async function RejoindreEquipeAction(data: Schema) {
     },
   });
 
-  for (const entraineur of entraineurs) {
-    if (entraineur.userId === userId) continue;
+  await Promise.all(
+    entraineurs.map((entraineur) => {
+      if (entraineur.userId === userId) return;
 
-    await notifyUser({
-      userId: entraineur.userId,
-      type: "DEMANDE_ADHESION",
-      title: "Nouveau membre",
-      message: `${userName} a rejoint ${equipe.nom}`,
-      fromUserName: userName,
-      fromUserImage: session?.user.image || "",
-    });
-  }
+      return notifyUser({
+        userId: entraineur.userId,
+        type: "REJOINT_CLUB",
+        title: "Nouveau membre !",
+        message: `${userName} a rejoint l'équipe avec le code d'invitation.`,
+        fromUserName: userName || undefined,
+        fromUserImage: session?.user.image || undefined,
+      });
+    })
+  );
 
   return {
     success: true,
-    message: `Vous avez rejoint l'équipe ${equipe.nom}`,
+    message: `Bienvenue ! Vous avez rejoint l'équipe ${equipe.nom}`,
   };
 }

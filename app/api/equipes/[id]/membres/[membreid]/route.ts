@@ -1,4 +1,5 @@
 import { ChangementDonneeJoueur } from "@/features/equipe/schemas/SchemaEquipe";
+import { GetSessionId } from "@/lib/SessionId/GetSessionId";
 import { prisma } from "@/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,7 +11,7 @@ interface RouteParams {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   const { role, posteJoueur } = await request.json();
   const { membreid, id } = await params;
-  const idUtilisateur = "cm7q0n4gp0000irv8pjkj764m";
+  const idUtilisateur = await GetSessionId();
 
   try {
     const validation = ChangementDonneeJoueur.safeParse({ role, posteJoueur });
@@ -35,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const joueurauclub = await prisma.membreEquipe.findUnique({
+    const joueurauclub = await prisma.membreEquipe.findFirst({
       where: { userId: membreid },
       include: { user: { select: { name: true } } },
     });
@@ -84,7 +85,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       message: `Le rôle et le poste de ${joueurauclub.user.name} ont été mis à jour`,
       role: result.role,
-      poste: result.posteJoueur,
+      poste: result.poste,
       nomJoueur: joueurauclub.user.name
     });
   } catch (error) {
@@ -101,7 +102,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const { id , membreid } = await params;
-  const idUtilisateur = "cm7q0n4gp0000irv8pjkj764m";
+  const idUtilisateur = await GetSessionId();
 
   try {
     const equipeID = await prisma.equipe.findUnique({
@@ -115,7 +116,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    const joueurauclub = await prisma.membreEquipe.findUnique({
+    const joueurauclub = await prisma.membreEquipe.findFirst({
       where: { userId: membreid },
       include: { user: { select: { name: true } } },
     });
