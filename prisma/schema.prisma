@@ -97,7 +97,7 @@ model DemandeAdhesion {
   id         String        @id @default(cuid())
   poste      PosteJoueur
   motivation String
-  dispo      String?
+  niveau      NiveauClub
   statut     StatutDemande @default(ATTENTE)
   createdAt  DateTime      @default(now())
 
