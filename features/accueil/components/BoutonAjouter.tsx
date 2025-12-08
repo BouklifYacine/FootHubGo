@@ -32,6 +32,7 @@ import { useCreationClub } from "@/features/creationclub/hooks/useCreationClub";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatNiveauClub } from "@/lib/formatEnums";
+import { StatutClub } from "@prisma/client";
 
 type FormData = z.infer<typeof SchemaCreationClub>;
 
@@ -128,6 +129,43 @@ function BoutonAjouter({ texte }: Props) {
             {errors.NiveauClub && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.NiveauClub.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="statut">Statut du club *</Label>
+            <Select
+              onValueChange={(value) =>
+                setValue("statut", value as FormData["statut"])
+              }
+              value={watch("statut")}
+            >
+              <SelectTrigger
+                id="statut"
+                className={errors.statut ? "border-red-500" : ""}
+              >
+                <SelectValue placeholder="Choisir un statut de club" />
+              </SelectTrigger>
+              <SelectContent defaultValue={StatutClub.PUBLIC}>
+
+                  <SelectItem
+                  value={StatutClub.PUBLIC}
+                >{StatutClub.PUBLIC}</SelectItem>
+
+                <SelectItem
+                  value={StatutClub.INVITATION}
+                > {StatutClub.INVITATION} </SelectItem>
+
+                <SelectItem
+                  value={StatutClub.PRIVE}
+                > {StatutClub.PRIVE} </SelectItem>
+
+              </SelectContent>
+            </Select>
+            {errors.statut && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.statut?.message}
               </p>
             )}
           </div>

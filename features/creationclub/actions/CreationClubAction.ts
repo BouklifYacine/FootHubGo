@@ -32,7 +32,7 @@ export async function CreationClubAction(data: schema) {
     };
   }
 
-  const { nom, description, NiveauClub } = validation.data;
+  const { nom, description, NiveauClub, statut } = validation.data;
 
   // A changer pour la version premium plus tard et permettre max 3 clubs avec mode payant
   const MembreEquipeExistant = await prisma.membreEquipe.findFirst({
@@ -86,6 +86,7 @@ export async function CreationClubAction(data: schema) {
           niveau: NiveauClub,
           dateCreation: new Date(),
           codeInvitation: resetCode,
+          statut : statut
         },
       });
 

@@ -1,3 +1,4 @@
+import { StatutClub } from "@prisma/client";
 import { z } from "zod";
 
 export const niveau = [
@@ -25,4 +26,6 @@ export const SchemaCreationClub = z.object({
     .optional()
     .or(z.literal("")),
   NiveauClub: z.enum(niveau, { message: "Rentrez un niveau " }),
+
+  statut : z.nativeEnum(StatutClub, { message: "Rentrez un statut " }),
 });
