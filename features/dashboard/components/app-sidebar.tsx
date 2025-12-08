@@ -30,6 +30,7 @@ const navigationData = {
   teams: [],
   navMain: [
     { title: "Accueil", url: "/dashboardfoothub", icon: House, isActive: true },
+    { title: "Transfert", url: "/dashboardfoothub/transfert", icon: House },
     { title: "Effectif", url: "/dashboardfoothub/effectif", icon: UsersRound },
     { title: "Evenements", url: "/dashboardfoothub/evenements", icon: Calendar },
     { title: "Statistiques", url: "/dashboardfoothub/statistiques", icon: ChartNoAxesCombined },
@@ -45,12 +46,8 @@ export function AppSidebar({ props }: Props) {
   const role = clubData?.role;
 
   const nav = React.useMemo(() => {
-    if (!role) {
-      return navigationData.navMain.filter(item => item.title === "Accueil");
-    }
-
-    if (role === "SANSCLUB") {
-      return navigationData.navMain.filter(item => item.title === "Accueil");
+    if (!role  || role === "SANSCLUB") {
+      return navigationData.navMain.filter(item => ["Accueil", "Transfert"].includes(item.title));
     }
 
     if (role === "ENTRAINEUR") {
