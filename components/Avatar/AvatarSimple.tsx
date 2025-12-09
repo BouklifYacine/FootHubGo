@@ -4,15 +4,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 interface Props {
     alt : string, 
     src : string, 
-    Fallback : string , 
+    Fallback? : string , 
+    classname? : string
 
 }
 
-const AvatarSimple = ({Fallback,alt,src} : Props) => {
+const AvatarSimple = ({Fallback,alt,src, classname} : Props) => {
   return (
     <>
       <div>
-        <Avatar className="border border-purple-600 cursor-pointer hover:scale-125 transition-transform">
+        <Avatar className={`${classname} "border border-purple-600 cursor-pointer hover:scale-125 transition-transform"`}>
           <AvatarImage
             src={src}
             alt={alt}
