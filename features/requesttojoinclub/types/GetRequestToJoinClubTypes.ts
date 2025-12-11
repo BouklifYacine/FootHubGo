@@ -1,15 +1,13 @@
-// GetRequestToJoinClubResponse
-
 import { $Enums } from "@prisma/client";
 
-type Team = {
+type TeamSummary = {
   id: string;
-  niveau: $Enums.NiveauClub;
   nom: string;
   logoUrl: string | null;
+  niveau: $Enums.NiveauClub;
 };
 
-type Request = {
+type RequestBase = {
   id: string;
   createdAt: Date;
   userId: string;
@@ -20,7 +18,16 @@ type Request = {
   niveau: $Enums.NiveauClub;
 };
 
-export type RequestToJoinClubApi = {
-  Request: Request[];
-  Team: Team;
+export type RequestToJoinClubApi = (RequestBase & {
+  equipe: TeamSummary;
+})[];
+
+export type JoinClubPayload = {
+  poste: $Enums.PosteJoueur;
+  motivation: string;
+  niveau: $Enums.NiveauClub;
+};
+
+export type JoinClubResponse = {
+  message: string;
 };
