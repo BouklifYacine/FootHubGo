@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { ClubStats } from "@/features/club/services/club.service";
 import Image from "next/image";
 import { Handshake } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import TransferRequestToaClubButton from "@/features/requesttojoinclub/component/TransferRequestToaClubButton";
 
 interface ClubTableProps {
   clubs: ClubStats[];
@@ -99,9 +106,7 @@ export function ClubTable({ clubs }: ClubTableProps) {
                 {item.stats.differenceDeButsGlobale}
               </TableCell>
               <TableCell className="text-right">
-                <Button variant="ghost" size="icon">
-                  <Handshake className="h-4 w-4" />
-                </Button>
+               <TransferRequestToaClubButton TeamId={item.equipe.id}></TransferRequestToaClubButton>
               </TableCell>
             </TableRow>
           ))}
