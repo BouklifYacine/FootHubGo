@@ -3,22 +3,44 @@
 import AvatarSimple from "@/components/Avatar/AvatarSimple";
 import { useGetRequestToJoinClub } from "../hooks/UseGetRequestToJoinClubUser";
 import LogoLiverpool from "@/public/england_arsenal.svg";
-import { Eye, Loader2 } from "lucide-react";
+import { 
+  Loader2, 
+  SearchX, 
+  MoreVertical, 
+  Eye, 
+  Trash2, 
+  Pencil, 
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-
-const formatText = (text: string) => {
-  if (!text) return "";
-  return text.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
-};
+import { formatNiveauClub, formatPosteJoueur } from "@/lib/formatEnums"; 
 
 function RequestToJoinClubCard() {
   const { data: requests, isPending } = useGetRequestToJoinClub();
+
+  const handleDelete = (id: string) => {
+    if(confirm("Voulez-vous vraiment annuler cette demande ?")) {
+        console.log("Suppression de la demande", id);
+    }
+  };
+
+  const handleEdit = (id: string) => {
+      console.log("Ouverture du formulaire de modification pour", id);
+      alert("Fonctionnalité de modification à venir !");
+  };
 
   return (
     <>
@@ -33,9 +55,17 @@ function RequestToJoinClubCard() {
           </div>
         )}
 
-        {!isPending && requests?.length === 0 && (
-           <div className="bg-zinc-50 border border-zinc-200 border-dashed rounded-xl p-10 text-center">
-             <p className="text-sm text-zinc-500">Aucune demande en cours.</p>
+        {!isPending && (!requests || requests.length === 0) && (
+           <div className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-center">
+             <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-full mb-4">
+                <SearchX className="h-8 w-8 text-zinc-400" />
+             </div>
+             <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+               Aucune candidature
+             </h3>
+             <p className="text-sm text-zinc-500 max-w-xs mt-2 leading-relaxed">
+               Vous n'avez pas encore postulé dans un club.
+             </p>
            </div>
         )}
 
@@ -44,7 +74,6 @@ function RequestToJoinClubCard() {
             key={req.id}
             className="group relative flex justify-between items-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-zinc-300 dark:hover:border-zinc-700 transition-all duration-300 ease-out hover:-translate-y-0.5"
           >
-            {/* Partie Gauche */}
             <div className="flex items-center gap-5">
               <div className="relative">
                 <div className="absolute inset-0 bg-zinc-900/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -58,24 +87,23 @@ function RequestToJoinClubCard() {
               </div>
 
               <div className="flex flex-col gap-1">
-                <p className="font-bold tracking-tight text-lg text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors">
+                <p className="font-bold tracking-tight text-xl text-zinc-900 dark:text-zinc-50 group-hover:text-primary transition-colors">
                     {req.equipe.nom}
                 </p>
                 <div className="flex items-center gap-3">
                     <span className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">
-                        {formatText(req.equipe.niveau)}
+                        {formatNiveauClub(req.equipe.niveau)}
                     </span>
-                    {/* Date agrandie (text-xs) et plus lisible (text-zinc-500) */}
-                    <span className="text-xs text-zinc-500 font-medium">
+                    <span className="text-md text-zinc-500 font-medium">
                         {new Date(req.createdAt).toLocaleDateString()}
                     </span>
                 </div>
               </div>
             </div>
 
-            {/* Partie Droite */}
+
             <div className="flex items-center gap-4">
-               {/* Badge Statut Minimaliste Pro */}
+               {/* Badge Statut */}
                <div className={`hidden sm:flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide border ${
                    req.statut === "ATTENTE" 
                     ? "bg-amber-50 text-amber-700 border-amber-200/60" 
@@ -85,17 +113,54 @@ function RequestToJoinClubCard() {
                </div>
 
               <Dialog>
-                <DialogTrigger asChild>
-                  {/* BOUTON PLUS PETIT (w-8 h-8) et icone 16px */}
-                  <div className="bg-zinc-950 dark:bg-white dark:text-zinc-950 text-white rounded-lg flex items-center justify-center w-8 h-8 cursor-pointer hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all shadow-sm">
-                    <Eye size={16} />
-                  </div>
-                </DialogTrigger>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+  
+                        <div className="h-8 w-8 rounded-lg flex items-center justify-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-900 transition-colors">
+                            <MoreVertical size={20} />
+                        </div>
+                    </DropdownMenuTrigger>
+                    
+                    <DropdownMenuContent align="end" className="w-52">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        
+                        {/* 1. VOIR */}
+                        <DialogTrigger asChild>
+                            <DropdownMenuItem className="cursor-pointer gap-2 py-2.5">
+                                <Eye size={16} className="text-zinc-500" />
+                                <span className="font-medium">Voir la demande</span>
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                        
+                        <DropdownMenuItem 
+                            className="cursor-pointer gap-2 py-2.5"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleEdit(req.id);
+                            }}
+                        >
+                             <Pencil size={16} className="text-zinc-500" /> 
+                             <span className="font-medium">Modifier la demande</span> 
+                        </DropdownMenuItem> 
 
-                {/* --- MODALE --- */}
+                        <DropdownMenuSeparator />
+                        
+                        <DropdownMenuItem 
+                            className="cursor-pointer gap-2 py-2.5 text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-900/10"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDelete(req.id);
+                            }}
+                        >
+                            <Trash2 size={16} />
+                            <span className="font-medium">Annuler la demande</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                 <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-none shadow-2xl bg-white dark:bg-zinc-950 font-sans">
                   
-                  {/* Header */}
                   <div className="bg-zinc-50/50 dark:bg-zinc-900/50 p-8 flex flex-col items-center text-center border-b border-zinc-100 dark:border-zinc-800">
                     <div className="scale-150 mb-4 shadow-xl rounded-full border-4 border-white dark:border-zinc-900">
                         <AvatarSimple
@@ -111,7 +176,6 @@ function RequestToJoinClubCard() {
                         Dossier de candidature
                     </p>
                     
-                    {/* Badge Modale Pro (Sans icône) */}
                     <div className={`mt-4 px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider border ${
                          req.statut === "ATTENTE" 
                          ? "bg-amber-50 text-amber-700 border-amber-200" 
@@ -121,16 +185,15 @@ function RequestToJoinClubCard() {
                     </div>
                   </div>
 
-                  {/* Corps */}
+  
                   <div className="p-8 space-y-8">
-                    {/* Grille Épurée (Sans icônes) */}
                     <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">
                                 Poste
                             </span>
                             <span className="font-bold text-base text-zinc-800 dark:text-zinc-100">
-                                {formatText(req.poste)}
+                                {formatPosteJoueur(req.poste)}
                             </span>
                         </div>
                         
@@ -139,7 +202,7 @@ function RequestToJoinClubCard() {
                                 Niveau
                             </span>
                             <span className="font-bold text-base text-zinc-800 dark:text-zinc-100">
-                                {formatText(req.niveau)}
+                                {formatNiveauClub(req.niveau)}
                             </span>
                         </div>
 
@@ -166,7 +229,6 @@ function RequestToJoinClubCard() {
 
                     <Separator className="bg-zinc-100 dark:bg-zinc-800" />
 
-                    {/* Bloc Motivation Clean (Sans l'icône de fond) */}
                     <div className="bg-zinc-50 dark:bg-zinc-900 rounded-xl p-5 border border-zinc-100 dark:border-zinc-800">
                         <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold mb-2 block">
                             Message au coach
