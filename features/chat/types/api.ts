@@ -70,3 +70,9 @@ export interface DeleteMessageInput {
   conversationId: string;
   type: "forMe" | "forAll";
 }
+
+export interface DeleteMessageInput {
+  messageId: string;
+  conversationId: string;
+  type: "forMe" | "forAll";
+}

@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { ConversationsResponse } from "../types/chat.types";
-import {
-  ChatService,
+import { ConversationService } from "../services";
+import type {
+  ConversationsResponse,
   PinConversationInput,
   PinConversationResponse,
-} from "../services/ChatService";
+} from "../types";
 
 export function usePinConversation() {
   const queryClient = useQueryClient();
@@ -12,9 +12,8 @@ export function usePinConversation() {
   return useMutation({
     mutationFn: (
       input: PinConversationInput
-    ): Promise<PinConversationResponse> => ChatService.pinConversation(input),
+    ): Promise<PinConversationResponse> => ConversationService.pin(input),
     onSuccess: (data) => {
-      // Update conversations cache to reflect pin status
       queryClient.setQueryData<ConversationsResponse>(
         ["conversations"],
         (old) => {

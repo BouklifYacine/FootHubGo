@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChatService } from "../services/ChatService";
-import { MessagesResponse } from "../types/chat.types";
+import { MessageService } from "../services";
+import type { MessagesResponse } from "../types";
 
 export function useMessages(conversationId: string | null) {
   return useQuery<MessagesResponse>({
     queryKey: ["messages", conversationId],
-    queryFn: () => ChatService.getMessages(conversationId!),
+    queryFn: () => MessageService.getByConversation(conversationId!),
     enabled: !!conversationId,
   });
 }

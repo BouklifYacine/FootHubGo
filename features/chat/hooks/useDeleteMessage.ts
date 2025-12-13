@@ -1,28 +1,20 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessagesResponse } from "../types/chat.types";
-import { ChatService } from "../services/ChatService";
-
-interface DeleteMessageInput {
-  messageId: string;
-  conversationId: string;
-  type: "forMe" | "forAll";
-}
+import { MessageService } from "../services";
+import type { MessagesResponse, DeleteMessageInput } from "../types";
 
 export function useDeleteMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: DeleteMessageInput) =>
-      ChatService.deleteMessage(input.messageId),
-    onSuccess: (data, variables) => {
-      // Update messages cache
+      MessageService.delete(input.messageId),
+    onSuccess: (_, variables) => {
       queryClient.setQueryData<MessagesResponse>(
         ["messages", variables.conversationId],
         (old) => {
           if (!old) return old;
 
           if (variables.type === "forMe") {
-            // Remove message from list
             return {
               ...old,
               messages: old.messages.filter(
@@ -30,7 +22,6 @@ export function useDeleteMessage() {
               ),
             };
           } else {
-            // Mark as deleted for all (show placeholder)
             return {
               ...old,
               messages: old.messages.map((msg) =>
@@ -42,8 +33,6 @@ export function useDeleteMessage() {
           }
         }
       );
-
-      // Invalidate conversations to update last message if needed
       queryClient.invalidateQueries({ queryKey: ["conversations"] });
     },
   });

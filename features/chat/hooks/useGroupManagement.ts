@@ -1,29 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Conversation, ConversationsResponse } from "../types/chat.types";
-import { ChatService } from "../services/ChatService";
-
-interface UpdateGroupInput {
-  conversationId: string;
-  name: string;
-}
-
-interface DeleteGroupInput {
-  conversationId: string;
-}
-
-interface ManageMembersInput {
-  conversationId: string;
-  memberIds?: string[];
-  targetUserId?: string;
-  action: "add" | "kick" | "leave";
-}
+import { ConversationService, MemberService } from "../services";
+import type {
+  ConversationsResponse,
+  UpdateGroupInput,
+  DeleteGroupInput,
+  ManageMembersInput,
+} from "../types";
 
 export function useUpdateGroup() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (input: UpdateGroupInput) =>
-      ChatService.updateConversation(input.conversationId, input.name),
+      ConversationService.update(input.conversationId, input.name),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: ["conversations"] });
       const previousConversations =
@@ -65,7 +54,7 @@ export function useDeleteGroup() {
 
   return useMutation({
     mutationFn: (input: DeleteGroupInput) =>
-      ChatService.deleteConversation(input.conversationId),
+      ConversationService.delete(input.conversationId),
     onMutate: async (variables) => {
       await queryClient.cancelQueries({ queryKey: ["conversations"] });
       const previousConversations =
@@ -106,9 +95,9 @@ export function useManageMembers() {
   return useMutation({
     mutationFn: (input: ManageMembersInput) => {
       if (input.action === "add" && input.memberIds) {
-        return ChatService.addMembers(input.conversationId, input.memberIds);
+        return MemberService.addToGroup(input.conversationId, input.memberIds);
       } else if (input.targetUserId) {
-        return ChatService.removeMember(
+        return MemberService.removeFromGroup(
           input.conversationId,
           input.targetUserId
         );

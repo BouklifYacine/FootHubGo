@@ -33,6 +33,7 @@ export interface ManageMembersInput {
 export interface PinMessageInput {
   conversationId: string;
   messageId: string;
+  action?: "pin" | "unpin";
 }
 
 // WebSocket types

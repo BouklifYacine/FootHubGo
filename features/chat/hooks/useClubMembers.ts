@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { ChatService } from "../services/ChatService";
-import { ClubMembersResponse } from "../types/chat.types";
+import { MemberService } from "../services";
+import type { ClubMembersResponse } from "../types";
 
 export function useClubMembers() {
   return useQuery<ClubMembersResponse>({
     queryKey: ["club-members"],
-    queryFn: ChatService.getClubMembers,
+    queryFn: MemberService.getClubMembers,
   });
 }

@@ -1,15 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  ChatService,
-  BlockUserInput,
-  BlockStatusResponse,
-} from "../services/ChatService";
+import { MemberService } from "../services";
+import type { BlockUserInput, BlockStatusResponse } from "../types";
 
 export function useBlockUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: BlockUserInput) => ChatService.blockUser(input),
+    mutationFn: (input: BlockUserInput) => MemberService.block(input),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["blockStatus", variables.userId],
@@ -22,7 +19,7 @@ export function useBlockUser() {
 export function useBlockStatus(targetId: string | undefined) {
   return useQuery<BlockStatusResponse>({
     queryKey: ["blockStatus", targetId],
-    queryFn: () => ChatService.getBlockStatus(targetId!),
+    queryFn: () => MemberService.getBlockStatus(targetId!),
     enabled: !!targetId,
   });
 }
