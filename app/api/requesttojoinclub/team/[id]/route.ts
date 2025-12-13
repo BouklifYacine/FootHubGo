@@ -1,5 +1,8 @@
 import { notifyUser } from "@/features/notifications/notifyUser";
-import { CheckRequestsLimit, FindPlayerById } from "@/features/requesttojoinclub/repository/FindPlayerById";
+import {
+  CheckRequestsLimit,
+  FindPlayerById,
+} from "@/features/requesttojoinclub/repository/FindPlayerById";
 import { requesttojoinclubSchema } from "@/features/requesttojoinclub/schema/requesttojoinclubschema";
 import { GetSessionId } from "@/lib/SessionId/GetSessionId";
 import { ZodValidationRequest } from "@/lib/ValidationZodApi/ValidationZodApi";
@@ -21,31 +24,41 @@ export async function POST(
 
     const team = await prisma.equipe.findUnique({
       where: { id: teamId },
-      select: { statut: true } 
+      select: { statut: true },
     });
 
     if (!team) {
-        return NextResponse.json({ message: "Équipe introuvable" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Équipe introuvable" },
+        { status: 404 }
+      );
     }
 
-  
     if (team.statut !== "PUBLIC") {
-        return NextResponse.json(
-            { message: `Ce club est ${team.statut.toLowerCase()}. Vous ne pouvez pas envoyer de demandes.` },
-            { status: 403 }
-        );
+      return NextResponse.json(
+        {
+          message: `Ce club est ${team.statut.toLowerCase()}. Vous ne pouvez pas envoyer de demandes.`,
+        },
+        { status: 403 }
+      );
     }
 
     const userId = await GetSessionId();
     const player = await FindPlayerById(userId, prisma);
 
     if (!player) {
-        return NextResponse.json({ message: "Joueur introuvable" }, { status: 404 });
+      return NextResponse.json(
+        { message: "Joueur introuvable" },
+        { status: 404 }
+      );
     }
 
     if (player.MembreEquipe.length > 0) {
       return NextResponse.json(
-        { message: "Vous avez déjà un club. Quittez-le avant de postuler ailleurs." },
+        {
+          message:
+            "Vous avez déjà un club. Quittez-le avant de postuler ailleurs.",
+        },
         { status: 403 }
       );
     }
@@ -59,18 +72,18 @@ export async function POST(
     }
 
     const existingRequest = await prisma.demandeAdhesion.findFirst({
-        where: {
-            userId: userId,
-            equipeId: teamId,
-            statut: "ATTENTE"
-        }
+      where: {
+        userId: userId,
+        equipeId: teamId,
+        statut: "ATTENTE",
+      },
     });
 
     if (existingRequest) {
-        return NextResponse.json(
-            { message: "Vous avez déjà une demande en cours pour ce club." },
-            { status: 409 } 
-        );
+      return NextResponse.json(
+        { message: "Vous avez déjà une demande en cours pour ce club." },
+        { status: 409 }
+      );
     }
 
     const { poste, motivation, niveau } = await ZodValidationRequest(
@@ -83,8 +96,8 @@ export async function POST(
         poste,
         niveau,
         motivation,
-        userId: userId,  
-        equipeId: teamId, 
+        userId: userId,
+        equipeId: teamId,
       },
     });
 
@@ -95,22 +108,39 @@ export async function POST(
     await Promise.all(
       coaches.map((coach) => {
         if (coach.userId === userId) return;
-        
+
         return notifyUser({
-            userId: coach.userId,
-            type: "DEMANDE_ADHESION",
-            title: "Nouvelle demande d'adhésion",
-            message: `${player.name} souhaite rejoindre l'équipe au poste de ${poste}.`,
-            fromUserName: player.name,
-            fromUserImage: player.image || undefined,
+          userId: coach.userId,
+          type: "DEMANDE_ADHESION",
+          title: "Nouvelle demande d'adhésion",
+          message: `${player.name} souhaite rejoindre l'équipe au poste de ${poste}.`,
+          fromUserName: player.name,
+          fromUserImage: player.image || undefined,
         });
       })
     );
 
-    return NextResponse.json({
-        message: "Demande envoyée avec succès !"
-    }, { status: 201 });
+    // Notify the player that their request was sent
+    const teamInfo = await prisma.equipe.findUnique({
+      where: { id: teamId },
+      select: { nom: true, logoUrl: true },
+    });
 
+    await notifyUser({
+      userId: userId,
+      type: "DEMANDE_ADHESION",
+      title: "Demande envoyée !",
+      message: `Votre demande pour rejoindre ${teamInfo?.nom} a bien été envoyée. Vous serez notifié de la réponse du coach.`,
+      fromUserName: teamInfo?.nom,
+      fromUserImage: teamInfo?.logoUrl || undefined,
+    });
+
+    return NextResponse.json(
+      {
+        message: "Demande envoyée avec succès !",
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ message: error.message }, { status: 400 });
@@ -118,7 +148,6 @@ export async function POST(
     return NextResponse.json({ message: "Erreur interne" }, { status: 500 });
   }
 }
-
 
 export async function GET(
   request: NextRequest,
@@ -155,14 +184,10 @@ export async function GET(
           },
         },
       },
-      orderBy: [
-        { statut: "asc" },   
-        { createdAt: "desc" }, 
-      ],
+      orderBy: [{ statut: "asc" }, { createdAt: "desc" }],
     });
 
     return NextResponse.json(teamRequests);
-
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ message: error.message }, { status: 400 });

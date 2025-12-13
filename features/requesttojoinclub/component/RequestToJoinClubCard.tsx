@@ -98,10 +98,16 @@ function RequestToJoinClubCard() {
                 className={`hidden sm:flex px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide border ${
                   req.statut === "ATTENTE"
                     ? "bg-amber-50 text-amber-700 border-amber-200/60"
-                    : "bg-zinc-100 text-zinc-600 border-zinc-200"
+                    : req.statut === "ACCEPTEE"
+                      ? "bg-green-50 text-green-700 border-green-200/60"
+                      : "bg-red-50 text-red-700 border-red-200/60"
                 }`}
               >
-                {req.statut === "ATTENTE" ? "En attente" : req.statut}
+                {req.statut === "ATTENTE"
+                  ? "En attente"
+                  : req.statut === "ACCEPTEE"
+                    ? "Acceptée"
+                    : "Refusée"}
               </div>
 
               <Dialog>
@@ -124,22 +130,27 @@ function RequestToJoinClubCard() {
                       </DropdownMenuItem>
                     </DialogTrigger>
 
-                    <ModifyRequestButton
-                      requestId={req.id}
-                      teamId={req.equipeId}
-                      currentPoste={req.poste}
-                      currentNiveau={req.niveau}
-                      currentMotivation={req.motivation}
-                    />
+                    {/* Only show modify/delete for pending requests */}
+                    {req.statut === "ATTENTE" && (
+                      <>
+                        <ModifyRequestButton
+                          requestId={req.id}
+                          teamId={req.equipeId}
+                          currentPoste={req.poste}
+                          currentNiveau={req.niveau}
+                          currentMotivation={req.motivation}
+                        />
 
-                    <DropdownMenuSeparator />
+                        <DropdownMenuSeparator />
 
-                    <DeleteRequestButton
-                      requestId={req.id}
-                      equipeId={req.equipeId}
-                      PendingDeleteRequest={PendingDeleteRequest}
-                      DeleteRequest={DeleteRequest}
-                    ></DeleteRequestButton>
+                        <DeleteRequestButton
+                          requestId={req.id}
+                          equipeId={req.equipeId}
+                          PendingDeleteRequest={PendingDeleteRequest}
+                          DeleteRequest={DeleteRequest}
+                        ></DeleteRequestButton>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
 

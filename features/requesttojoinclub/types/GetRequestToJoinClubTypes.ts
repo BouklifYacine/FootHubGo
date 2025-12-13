@@ -31,3 +31,18 @@ export type JoinClubPayload = {
 export type JoinClubResponse = {
   message: string;
 };
+
+// Coach-side types
+export type UserSummary = {
+  id: string;
+  name: string;
+  image: string | null;
+};
+
+export type CoachApplicationView = RequestBase & {
+  user: UserSummary;
+};
+
+export type CoachApplicationsApi = CoachApplicationView[];
+
+export type ReviewDecision = "ACCEPTEE" | "REFUSEE";

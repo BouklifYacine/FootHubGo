@@ -1,7 +1,9 @@
 import {
+  CoachApplicationsApi,
   JoinClubPayload,
   JoinClubResponse,
   RequestToJoinClubApi,
+  ReviewDecision,
 } from "../types/GetRequestToJoinClubTypes";
 import ky from "ky";
 
@@ -47,6 +49,30 @@ export const UpdateRequestToJoinClubService = {
       .patch(`/api/requesttojoinclub/team/${teamId}/request/${requestId}`, {
         json: data,
       })
+      .json();
+  },
+};
+
+// Coach services
+export const GetTeamApplicationsService = {
+  getApplications: async (teamId: string): Promise<CoachApplicationsApi> => {
+    return await ky.get(`/api/requesttojoinclub/team/${teamId}`).json();
+  },
+};
+
+export const ReviewApplicationService = {
+  review: async (
+    teamId: string,
+    requestId: string,
+    decision: ReviewDecision
+  ): Promise<JoinClubResponse> => {
+    return await ky
+      .patch(
+        `/api/requesttojoinclub/team/${teamId}/request/${requestId}/review`,
+        {
+          json: { decision },
+        }
+      )
       .json();
   },
 };
