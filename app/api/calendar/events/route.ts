@@ -36,13 +36,47 @@ export async function GET() {
         adversaire: true,
         weatherData: true,
         equipeId: true,
+        statEquipe: {
+          select: { id: true },
+        },
+        presences: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
         dateDebut: "asc",
       },
     });
 
-    return NextResponse.json(events, { status: 200 });
+    // Transform the response to include hasStats and formatted presences
+    const transformedEvents = events.map((e) => ({
+      id: e.id,
+      titre: e.titre,
+      description: e.description,
+      lieu: e.lieu,
+      typeEvenement: e.typeEvenement,
+      dateDebut: e.dateDebut,
+      adversaire: e.adversaire,
+      weatherData: e.weatherData,
+      equipeId: e.equipeId,
+      hasStats: !!e.statEquipe,
+      presences: e.presences.map((p) => ({
+        userId: p.user.id,
+        name: p.user.name,
+        image: p.user.image,
+        statut: p.statut,
+      })),
+    }));
+
+    return NextResponse.json(transformedEvents, { status: 200 });
   } catch (error) {
     console.error("Erreur lors de la récupération des événements:", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });

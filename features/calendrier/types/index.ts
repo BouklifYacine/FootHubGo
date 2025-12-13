@@ -1,5 +1,12 @@
 export type CalendarView = "Mois" | "week" | "day" | "agenda";
 
+export interface PresenceInfo {
+  userId: string;
+  name: string;
+  image?: string;
+  statut: "ATTENTE" | "PRESENT" | "ABSENT";
+}
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -11,6 +18,8 @@ export interface CalendarEvent {
   location?: string;
   typeEvenement?: "ENTRAINEMENT" | "CHAMPIONNAT" | "COUPE";
   adversaire?: string | null;
+  hasStats?: boolean;
+  presences?: PresenceInfo[];
 }
 
 export type EventColor =

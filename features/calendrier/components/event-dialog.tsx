@@ -6,7 +6,15 @@ import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Swords, MapPin } from "lucide-react";
+import {
+  Swords,
+  MapPin,
+  Users,
+  Lock,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +26,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DateTimePicker } from "@/components/ui/date-picker";
@@ -28,6 +43,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { CalendarEvent } from "../types";
 import { EventSchema, EventInput } from "../schemas/event.schema";
 import { useCreateEvent } from "../hooks/use-create-event";
@@ -40,6 +63,20 @@ interface EventDialogProps {
   onClose: () => void;
   canEdit?: boolean;
 }
+
+const presenceStatusConfig = {
+  PRESENT: {
+    label: "Présent",
+    variant: "default" as const,
+    className: "bg-green-500 hover:bg-green-600",
+  },
+  ABSENT: { label: "Absent", variant: "destructive" as const, className: "" },
+  ATTENTE: {
+    label: "En attente",
+    variant: "secondary" as const,
+    className: "",
+  },
+};
 
 export function EventDialog({
   event,
@@ -56,6 +93,12 @@ export function EventDialog({
 
   const isCreating = !event || !event.id;
   const isViewing = !isCreating && !isEditMode;
+
+  // Check if modification/deletion is blocked due to stats
+  const isProtected =
+    event?.hasStats &&
+    (event?.typeEvenement === "CHAMPIONNAT" ||
+      event?.typeEvenement === "COUPE");
 
   const {
     control,
@@ -105,6 +148,8 @@ export function EventDialog({
   const onSubmit = (data: EventInput) => {
     // Guard: Only coaches can create/update events
     if (!canEdit) return;
+    // Guard: Cannot modify protected events
+    if (isProtected) return;
 
     if (isCreating) {
       createEvent.mutate(data, {
@@ -128,6 +173,8 @@ export function EventDialog({
   const handleDelete = () => {
     // Guard: Only coaches can delete events
     if (!canEdit) return;
+    // Guard: Cannot delete protected events
+    if (isProtected) return;
 
     if (event?.id) {
       deleteEvent.mutate(event.id, {
@@ -143,7 +190,7 @@ export function EventDialog({
 
   return (
     <Dialog onOpenChange={(open) => !open && onClose()} open={isOpen}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isCreating
@@ -197,6 +244,22 @@ export function EventDialog({
                 </div>
               </div>
             </div>
+
+            {/* Stats protection warning */}
+            {canEdit && isProtected && (
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800">
+                  <Lock
+                    size={16}
+                    className="text-amber-600 dark:text-amber-400"
+                  />
+                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                    Cet événement a des statistiques enregistrées et ne peut
+                    plus être modifié ou supprimé.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <form
@@ -327,34 +390,54 @@ export function EventDialog({
             <>
               {canEdit && (
                 <div className="flex w-full justify-end items-center gap-2">
-                  {(event?.typeEvenement === "CHAMPIONNAT" ||
-                    event?.typeEvenement === "COUPE") && (
-                    <Button
-                      variant="secondary"
-                      onClick={() =>
-                        router.push(`/dashboardfoothub/evenements/${event.id}`)
-                      }
-                    >
-                      Gérer convocations
-                    </Button>
-                  )}
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDelete}
-                    disabled={isLoading}
-                  >
-                    Supprimer
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsEditMode(true);
-                    }}
-                  >
-                    Modifier
-                  </Button>
+                  {/* Actions dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline">Actions</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(
+                            `/dashboardfoothub/evenements/${event?.id}`
+                          )
+                        }
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        {event?.typeEvenement === "ENTRAINEMENT"
+                          ? "Voir les présences"
+                          : "Voir les convocations"}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          if (!isProtected) {
+                            setIsEditMode(true);
+                          }
+                        }}
+                        disabled={isProtected}
+                        className={isProtected ? "opacity-50" : ""}
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Modifier
+                        {isProtected && (
+                          <Lock className="ml-auto h-3 w-3 text-muted-foreground" />
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={handleDelete}
+                        disabled={isLoading || isProtected}
+                        className={`text-destructive focus:text-destructive ${isProtected ? "opacity-50" : ""}`}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Supprimer
+                        {isProtected && (
+                          <Lock className="ml-auto h-3 w-3 text-muted-foreground" />
+                        )}
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               )}
               {!canEdit && (

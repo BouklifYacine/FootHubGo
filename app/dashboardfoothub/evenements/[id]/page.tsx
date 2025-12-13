@@ -2,6 +2,7 @@
 
 import CardEvenementID from "@/features/evenements/components/EvenementId/CardEvenementID";
 import TableauStatsJoueurEvenement from "@/features/evenements/components/EvenementId/TableauStatsJoueurEvenement";
+import TableauPresencesEntrainement from "@/features/evenements/components/EvenementId/TableauPresencesEntrainement";
 import { useGetEvenementStatistiqueUnique } from "@/features/evenements/hooks/useGetEvenementUnique";
 import { Loader2 } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -25,11 +26,12 @@ export default function EvenementIdPage() {
   };
 
   const statsJoueur = evenement?.statsJoueurs;
+  const presences = evenement?.presences;
 
-    const IdStatsandEvent = {
+  const IdStatsandEvent = {
     idstatsequipe: evenement?.statsEquipe?.id,
-    eventid: id, 
-    dateEvent : infosmatch.date
+    eventid: id,
+    dateEvent: infosmatch.date,
   };
 
   if (isLoading) {
@@ -56,10 +58,10 @@ export default function EvenementIdPage() {
         IdStatsandEvent={IdStatsandEvent}
       />
       {evenement.typeEvenement === "ENTRAINEMENT" ? (
-        <p>tg</p>
+        <TableauPresencesEntrainement presences={presences} />
       ) : (
         <TableauStatsJoueurEvenement
-        IdStatsandEvent={IdStatsandEvent}
+          IdStatsandEvent={IdStatsandEvent}
           statsJoueur={statsJoueur}
         ></TableauStatsJoueurEvenement>
       )}

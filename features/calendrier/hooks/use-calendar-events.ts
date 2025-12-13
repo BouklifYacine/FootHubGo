@@ -29,6 +29,8 @@ export const useCalendarEvents = () => {
           | "CHAMPIONNAT"
           | "COUPE",
         adversaire: e.adversaire,
+        hasStats: e.hasStats,
+        presences: e.presences,
       })),
   });
 };

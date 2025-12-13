@@ -1,5 +1,12 @@
 import { Evenement, TypeEvenement } from "@prisma/client";
 
+export type PresenceInfo = {
+  userId: string;
+  name: string;
+  image?: string;
+  statut: "ATTENTE" | "PRESENT" | "ABSENT";
+};
+
 export type CalendarEventResponse = {
   id: string;
   titre: string;
@@ -10,4 +17,6 @@ export type CalendarEventResponse = {
   adversaire?: string;
   weatherData?: string;
   equipeId: string;
+  hasStats?: boolean;
+  presences?: PresenceInfo[];
 };
