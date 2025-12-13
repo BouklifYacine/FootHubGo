@@ -23,16 +23,22 @@ export const RateLimitWarning = memo(function RateLimitWarning({
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          clearInterval(timer);
-          onExpire?.();
-          return 60;
+          return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isRateLimited, onExpire]);
+  }, [isRateLimited]);
+
+  // Handle expiration when countdown reaches 0
+  useEffect(() => {
+    if (countdown === 0 && isRateLimited) {
+      onExpire?.();
+      setCountdown(60);
+    }
+  }, [countdown, isRateLimited, onExpire]);
 
   if (!isRateLimited) return null;
 

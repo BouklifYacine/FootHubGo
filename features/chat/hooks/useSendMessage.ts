@@ -14,31 +14,39 @@ export function useSendMessage() {
   }, []);
 
   const mutation = useMutation({
-    mutationFn: (data: SendMessageInput) => MessageService.send(data),
-    retry: (failureCount, error) => {
-      // Don't retry on rate limit errors
-      if (error instanceof HTTPError && error.response.status === 429) {
-        return false;
+    mutationFn: async (data: SendMessageInput) => {
+      try {
+        return await MessageService.send(data);
+      } catch (error) {
+        if (error instanceof HTTPError && error.response.status === 429) {
+          // Return a specific object for rate limit instead of throwing
+          return { error: "rate_limit" as const };
+        }
+        throw error;
       }
-      return failureCount < 2;
     },
-    onSuccess: (response: { message: Message }, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ["messages", variables.conversationId],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["conversations"],
-      });
-    },
-    onError: (error: unknown) => {
-      // Check for rate limit error (HTTP 429)
-      if (error instanceof HTTPError && error.response.status === 429) {
+    onSuccess: (
+      response: { message: Message } | { error: "rate_limit" },
+      variables
+    ) => {
+      // Check if it was a rate limit "success"
+      if ("error" in response && response.error === "rate_limit") {
         setIsRateLimited(true);
-        // We suppress the toast here because we show the banner
         return;
       }
 
-      // Handle other errors
+      // Existing success logic
+      if ("message" in response) {
+        queryClient.invalidateQueries({
+          queryKey: ["messages", variables.conversationId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["conversations"],
+        });
+      }
+    },
+    onError: (error: unknown) => {
+      // Handle actual errors (network, 500s, etc.)
       console.error("Send message error:", error);
       toast.error("Erreur d'envoi", {
         description: "Impossible d'envoyer le message.",
