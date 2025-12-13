@@ -13,7 +13,7 @@ const AvatarSimple = ({ Fallback, alt, src, classname }: Props) => {
     <>
       <div>
         <Avatar
-          className={`${classname} border border-purple-600 cursor-pointer hover:scale-125 transition-transform`}
+          className={`${classname} cursor-pointer hover:scale-125 transition-transform`}
         >
           <AvatarImage src={src} alt={alt} />
           <AvatarFallback>{Fallback}</AvatarFallback>

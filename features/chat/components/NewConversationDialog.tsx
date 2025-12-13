@@ -1,7 +1,15 @@
 "use client";
 
 import React, { useState, useMemo, useCallback, memo } from "react";
-import { Search, Plus, Users, User, Loader2, X, Check } from "lucide-react";
+import {
+  Search,
+  Plus,
+  Users,
+  User,
+  Loader2,
+  ArrowLeft,
+  Check,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -114,7 +122,7 @@ export const NewConversationDialog = memo(function NewConversationDialog({
                 className="h-6 w-6"
                 onClick={handleBack}
               >
-                <X className="h-4 w-4" />
+                <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
             {mode === "select"

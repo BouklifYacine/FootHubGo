@@ -114,9 +114,9 @@ export const MessageBubble = memo(function MessageBubble({
               {isOwn && (
                 <span className="flex items-center gap-0.5">
                   {msg.read ? (
-                    <CheckCheck className="h-3 w-3 text-blue-300" />
+                    <CheckCheck className="h-3 w-3 text-green-400" />
                   ) : (
-                    <Check className="h-3 w-3" />
+                    <CheckCheck className="h-3 w-3" />
                   )}
                   {msg.readAt && (
                     <span className="text-[9px]">

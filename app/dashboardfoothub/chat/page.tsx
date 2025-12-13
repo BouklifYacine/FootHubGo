@@ -359,12 +359,27 @@ export default function ChatPage() {
               }}
               isBlocked={blockStatus?.isBlockedByMe}
               onRenameGroup={(name) => {
+                // Optimistically update selectedConversation name
+                setSelectedConversation((prev) =>
+                  prev ? { ...prev, name } : null
+                );
                 updateGroup.mutate({
                   conversationId: selectedConversation.id,
                   name,
                 });
               }}
               onKickMember={(targetUserId) => {
+                // Optimistically update selectedConversation
+                setSelectedConversation((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        participants: prev.participants.filter(
+                          (p) => p.id !== targetUserId
+                        ),
+                      }
+                    : null
+                );
                 manageMembers.mutate({
                   conversationId: selectedConversation.id,
                   targetUserId,
@@ -390,6 +405,26 @@ export default function ChatPage() {
                 setShowChat(false);
               }}
               onAddMembers={(memberIds) => {
+                // Optimistically add members to selectedConversation
+                const newMembers = clubMembers.filter((m) =>
+                  memberIds.includes(m.id)
+                );
+                setSelectedConversation((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        participants: [
+                          ...prev.participants,
+                          ...newMembers.map((m) => ({
+                            id: m.id,
+                            name: m.name,
+                            image: m.image,
+                            isOnline: false,
+                          })),
+                        ],
+                      }
+                    : null
+                );
                 manageMembers.mutate({
                   conversationId: selectedConversation.id,
                   memberIds,
