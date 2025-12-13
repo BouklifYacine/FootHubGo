@@ -24,6 +24,11 @@ export const useCalendarEvents = () => {
         end: dayjs(e.dateDebut).add(2, "hour").toDate(),
         color: eventColorMap[e.typeEvenement as keyof typeof eventColorMap],
         allDay: false,
+        typeEvenement: e.typeEvenement as
+          | "ENTRAINEMENT"
+          | "CHAMPIONNAT"
+          | "COUPE",
+        adversaire: e.adversaire,
       })),
   });
 };

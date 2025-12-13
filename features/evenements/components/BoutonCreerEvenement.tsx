@@ -12,15 +12,18 @@ export function BoutonCreerEvenement() {
   const estEntraineur = data?.role === "ENTRAINEUR";
 
   const handleClick = () => {
-    router.push("/dashboardfoothub/evenements/creer");
+    router.push("/dashboardfoothub/calendrier");
   };
 
   if (!estEntraineur) return;
 
   return (
-    <Button onClick={handleClick} className="flex items-center gap-2 cursor-pointer">
+    <Button
+      onClick={handleClick}
+      className="flex items-center gap-2 cursor-pointer"
+    >
       <Calendar size={16} />
-      Créer un événement
+      Planning
     </Button>
   );
 }

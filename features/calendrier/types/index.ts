@@ -9,6 +9,8 @@ export interface CalendarEvent {
   allDay?: boolean;
   color?: EventColor;
   location?: string;
+  typeEvenement?: "ENTRAINEMENT" | "CHAMPIONNAT" | "COUPE";
+  adversaire?: string | null;
 }
 
 export type EventColor =

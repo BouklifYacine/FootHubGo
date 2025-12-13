@@ -5,13 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Calendar,
-  Ellipsis,
-  House,
-  TrafficCone,
-  Trophy,
-} from "lucide-react";
+import { Calendar, Ellipsis, House, TrafficCone, Trophy } from "lucide-react";
 import SelectPresence from "./SelectPresence";
 import { Badge } from "@/components/ui/badge";
 import dayjs from "dayjs";
@@ -25,17 +19,27 @@ interface Props {
   filteredEvents: EvenementsAPI | undefined;
   infosdata: InfosClubApiResponse | undefined;
   isPending: boolean;
-  mutate: UseMutateFunction<{ success: boolean; message: string }, Error, string>;
+  mutate: UseMutateFunction<
+    { success: boolean; message: string },
+    Error,
+    string
+  >;
 }
 
-function CardEvenement({ filteredEvents, infosdata, isPending, mutate }: Props) {
+function CardEvenement({
+  filteredEvents,
+  infosdata,
+  isPending,
+  mutate,
+}: Props) {
   const router = useRouter();
 
   const entraineur = infosdata?.role === "ENTRAINEUR";
   const player = infosdata?.role === "JOUEUR";
 
   const handleModifier = (id: string) => {
-    router.push(`/dashboardfoothub/evenements/${id}/modifier`);
+    // Redirection vers le calendrier car la page de modification individuelle n'existe plus
+    router.push(`/dashboardfoothub/calendrier`);
   };
 
   const RoutingEvenementId = (id: string) => {
@@ -45,9 +49,8 @@ function CardEvenement({ filteredEvents, infosdata, isPending, mutate }: Props) 
   return (
     <>
       {filteredEvents?.evenements.map((e) => {
-        
-       
-       const showMenu = entraineur || (player && e.typeEvenement !== "ENTRAINEMENT");
+        const showMenu =
+          entraineur || (player && e.typeEvenement !== "ENTRAINEMENT");
 
         return (
           <div className="rounded-xl border border-gray-400 w-2xl" key={e.id}>
@@ -67,12 +70,13 @@ function CardEvenement({ filteredEvents, infosdata, isPending, mutate }: Props) 
                         />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-40" align="center">
-                        
                         {/* ACTIONS RÉSERVÉES À L'ENTRAINEUR */}
                         {entraineur && !e.hasStats && (
                           <>
-                            <DropdownMenuItem onClick={() => handleModifier(e.id)}>
-                              Modifier
+                            <DropdownMenuItem
+                              onClick={() => handleModifier(e.id)}
+                            >
+                              Aller au calendrier
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => mutate(e.id)}
@@ -86,7 +90,9 @@ function CardEvenement({ filteredEvents, infosdata, isPending, mutate }: Props) 
 
                         {/* ACTION COMMUNE (Si ce n'est pas un entrainement) */}
                         {e.typeEvenement !== "ENTRAINEMENT" && (
-                          <DropdownMenuItem onClick={() => RoutingEvenementId(e.id)}>
+                          <DropdownMenuItem
+                            onClick={() => RoutingEvenementId(e.id)}
+                          >
                             Voir match details
                           </DropdownMenuItem>
                         )}

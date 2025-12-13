@@ -1,14 +1,12 @@
 "use server";
+
 import { auth } from "@/auth";
 import { headers } from "next/headers";
-import { CreationEvenementSchema } from "../schemas/CreationEvenementsSchema";
-import dayjs from "dayjs";
 import { prisma } from "@/prisma";
-import { z } from "zod";
+import { EventSchema, EventInput } from "../schemas/event.schema";
+import dayjs from "dayjs";
 
-type schema = z.infer<typeof CreationEvenementSchema>;
-
-export async function CreerEvenementAction(data: schema) {
+export async function createEventAction(data: EventInput) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -22,22 +20,12 @@ export async function CreerEvenementAction(data: schema) {
     };
   }
 
-  const validation = CreationEvenementSchema.safeParse(data);
-
-  if (!validation.success) {
-    return {
-      success: false,
-      message: validation.error.errors[0].message,
-    };
-  }
-
-  const { titre, typeEvenement, adversaire, lieu, dateDebut } = validation.data;
-
   const membreEquipe = await prisma.membreEquipe.findFirst({
     where: { userId: userId },
     select: { role: true, equipeId: true },
   });
 
+  // RBAC: Only Coach can create
   if (!membreEquipe || membreEquipe.role !== "ENTRAINEUR") {
     return {
       success: false,
@@ -48,18 +36,19 @@ export async function CreerEvenementAction(data: schema) {
 
   const { equipeId } = membreEquipe;
 
+  const validation = EventSchema.safeParse(data);
+
+  if (!validation.success) {
+    return {
+      success: false,
+      message: validation.error.errors[0].message,
+    };
+  }
+
+  const { titre, typeEvenement, adversaire, lieu, dateDebut } = validation.data;
+
   try {
-    const nowUtc = dayjs();
-    const eventDateUtc = dayjs(dateDebut);
-
-    if (eventDateUtc.isBefore(nowUtc)) {
-      return {
-        success: false,
-        message:
-          "La date de début de l'événement ne peut pas être antérieure à la date et heure actuelles.",
-      };
-    }
-
+    // Basic validation logic
     const existingEvent = await prisma.evenement.findFirst({
       where: {
         equipeId: equipeId,
@@ -80,8 +69,8 @@ export async function CreerEvenementAction(data: schema) {
         titre: titre,
         dateDebut: dateDebut,
         typeEvenement: typeEvenement,
-        adversaire: adversaire,
-        lieu: lieu,
+        adversaire: typeEvenement === "ENTRAINEMENT" ? null : adversaire,
+        lieu: lieu || null,
         equipeId: equipeId,
       },
     });
@@ -93,5 +82,9 @@ export async function CreerEvenementAction(data: schema) {
     };
   } catch (error) {
     console.error("Erreur lors de la création de l'événement :", error);
+    return {
+      success: false,
+      message: "Une erreur est survenue lors de la création de l'événement.",
+    };
   }
 }

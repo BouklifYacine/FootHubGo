@@ -13,6 +13,11 @@ import React from "react";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { NotificationBell } from "@/features/notifications/components/NotificationBell";
 import { authClient } from "@/lib/auth-client";
+import dayjs from "dayjs";
+import "dayjs/locale/fr";
+
+// Configurer Dayjs globalement pour le dashboard
+dayjs.locale("fr");
 
 export default function DashboardfoothubLayout({
   children,
