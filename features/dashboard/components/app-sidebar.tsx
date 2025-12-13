@@ -8,6 +8,7 @@ import {
   ChartNoAxesCombined,
   CalendarPlus2,
   Hospital,
+  MessageCircle,
 } from "lucide-react";
 import {
   Sidebar,
@@ -53,6 +54,7 @@ const navigationData = {
       url: "/dashboardfoothub/calendrier",
       icon: CalendarPlus2,
     },
+    { title: "Messages", url: "/dashboardfoothub/chat", icon: MessageCircle },
   ],
 };
 
