@@ -1,5 +1,8 @@
 // Chat components - organized by concern
 
+// Layout
+export * from "./layout";
+
 // Sidebar
 export * from "./sidebar";
 

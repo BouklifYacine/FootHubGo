@@ -40,3 +40,4 @@ export {
   TypingIndicator,
   EmptyMessages,
 } from "./components/messages";
+export { ChatSidebar, EmptyChat, BlockedWarning } from "./components/layout";
