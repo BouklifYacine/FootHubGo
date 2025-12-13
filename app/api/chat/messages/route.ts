@@ -114,6 +114,22 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // Rate Limit Check: Max 15 messages per minute
+  const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
+  const recentMessagesCount = await prisma.message.count({
+    where: {
+      senderId: userId,
+      createdAt: { gt: oneMinuteAgo },
+    },
+  });
+
+  if (recentMessagesCount >= 15) {
+    return NextResponse.json(
+      { message: "Vous envoyez trop de messages. Veuillez ralentir." },
+      { status: 429 }
+    );
+  }
+
   try {
     const body = await request.json();
     const { conversationId, content } = body;
