@@ -30,34 +30,27 @@ export async function DELETE(
   }
 
   try {
-    // Find the message
-    const message = await prisma.message.findUnique({
-      where: { id: messageId },
-      include: {
+    // Find the message AND verify participation in one query
+    const message = await prisma.message.findFirst({
+      where: {
+        id: messageId,
         conversation: {
-          include: {
-            participants: true,
+          participants: {
+            some: { userId },
           },
         },
+      },
+      select: {
+        senderId: true,
       },
     });
 
     if (!message) {
+      // Either message doesn't exist OR user is not a participant
+      // We return 404 to be safe and not leak existence
       return NextResponse.json(
-        { message: "Message introuvable" },
+        { message: "Message introuvable ou accès refusé" },
         { status: 404 }
-      );
-    }
-
-    // Verify user is a participant in this conversation
-    const isParticipant = message.conversation.participants.some(
-      (p) => p.userId === userId
-    );
-
-    if (!isParticipant) {
-      return NextResponse.json(
-        { message: "Accès non autorisé" },
-        { status: 403 }
       );
     }
 

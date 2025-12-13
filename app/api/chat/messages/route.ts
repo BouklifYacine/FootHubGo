@@ -125,37 +125,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify user is a participant
-    const participation = await prisma.conversationParticipant.findUnique({
+    // Verify user is a participant using count (faster)
+    const participationCount = await prisma.conversationParticipant.count({
       where: {
-        userId_conversationId: {
-          userId,
-          conversationId,
-        },
+        userId,
+        conversationId,
       },
     });
 
-    if (!participation) {
+    if (participationCount === 0) {
       return NextResponse.json(
         { message: "Accès non autorisé" },
         { status: 403 }
       );
     }
 
-    // Create the message
-    const message = await prisma.message.create({
-      data: {
-        content: content.trim(),
-        senderId: userId,
-        conversationId,
-      },
-    });
-
-    // Update conversation's updatedAt
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() },
-    });
+    // Create the message and update conversation timestamp atomically
+    const [message] = await prisma.$transaction([
+      prisma.message.create({
+        data: {
+          content: content.trim(),
+          senderId: userId,
+          conversationId,
+        },
+      }),
+      prisma.conversation.update({
+        where: { id: conversationId },
+        data: { updatedAt: new Date() },
+      }),
+    ]);
 
     // Get all participants to notify via WebSocket (except sender)
     const participants = await prisma.conversationParticipant.findMany({

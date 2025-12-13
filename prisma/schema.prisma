@@ -41,6 +41,8 @@ model User {
   isOnline                 Boolean                   @default(false)
   lastSeen                 DateTime?
   messageDeletions         MessageDeletion[]
+  blockedUsers             User[]                    @relation("UserBlocks")
+  blockedBy                User[]                    @relation("UserBlocks")
 
   @@map("user")
 }

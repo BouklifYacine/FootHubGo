@@ -57,12 +57,41 @@ app.prepare().then(() => {
     }
   });
 
-  // 👇 MODIFIER: Event "connection" simplifié
+  // Event "connection"
   io.on("connection", (socket) => {
     const userId = socket.data.userId;
     const userName = socket.data.userName;
 
     console.log(`🔌 ${userName} (${userId}) connecté`);
+
+    // Rejoindre une conversation
+    socket.on("chat:join_conversation", (conversationId: string) => {
+      socket.join(`conversation:${conversationId}`);
+      console.log(`👤 ${userName} a rejoint la conversation ${conversationId}`);
+    });
+
+    // Quitter une conversation
+    socket.on("chat:leave_conversation", (conversationId: string) => {
+      socket.leave(`conversation:${conversationId}`);
+    });
+
+    // Indicateur de frappe
+    socket.on("chat:typing", (data: { conversationId: string }) => {
+      socket.to(`conversation:${data.conversationId}`).emit("chat:typing", {
+        userId,
+        userName,
+        conversationId: data.conversationId,
+      });
+    });
+
+    socket.on("chat:stop_typing", (data: { conversationId: string }) => {
+      socket
+        .to(`conversation:${data.conversationId}`)
+        .emit("chat:stop_typing", {
+          userId,
+          conversationId: data.conversationId,
+        });
+    });
 
     socket.on("disconnect", () => {
       console.log(`🔌 ${userName} déconnecté`);

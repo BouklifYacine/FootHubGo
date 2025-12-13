@@ -14,6 +14,7 @@ export { useChatWebSocket } from "./hooks/useChatWebSocket";
 export { useDeleteMessage } from "./hooks/useDeleteMessage";
 export { usePinMessage } from "./hooks/usePinMessage";
 export { usePinConversation } from "./hooks/usePinConversation";
+export { useBlockUser, useBlockStatus } from "./hooks/useBlockUser";
 
 // Components
 export { ConversationItem } from "./components/ConversationItem";

@@ -1,7 +1,15 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
-import { Send, Search, Plus, Pin, MessageSquare, Loader2 } from "lucide-react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import {
+  Send,
+  Search,
+  Plus,
+  Pin,
+  MessageSquare,
+  Loader2,
+  Smile,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -25,9 +33,32 @@ import {
   MessageBubble,
   ChatHeader,
   NewConversationDialog,
+  useBlockUser,
+  useBlockStatus,
 } from "@/features/chat";
 import { authClient } from "@/lib/auth-client";
 import { useProfil } from "@/features/parametres/hooks/useProfil";
+import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+
+// Debounce helper
+function useDebounce(callback: Function, delay: number) {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  return useCallback(
+    (...args: any[]) => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay]
+  );
+}
 
 // Configure dayjs
 dayjs.extend(relativeTime);
@@ -61,9 +92,36 @@ export default function ChatPage() {
   const createConversation = useCreateConversation();
   const deleteMessage = useDeleteMessage();
   const pinConversation = usePinConversation();
+  const blockUser = useBlockUser();
 
-  // WebSocket for real-time updates
-  useChatWebSocket(userId, selectedConversation?.id || null);
+  // Target user ID for checking block status (only relevant for private chats)
+  const otherUserId = useMemo(() => {
+    if (!selectedConversation || selectedConversation.type === "GROUP")
+      return undefined;
+    return selectedConversation.participants?.find((p) => p.id !== userId)?.id;
+  }, [selectedConversation, userId]);
+
+  const { data: blockStatus } = useBlockStatus(otherUserId);
+
+  // WebSocket for real-time updates & typing
+  const { typingUsers, emitTyping, emitStopTyping } = useChatWebSocket(
+    userId,
+    selectedConversation?.id || null
+  );
+
+  // Debounced typing emitter
+  const debouncedStopTyping = useDebounce(() => {
+    emitStopTyping();
+  }, 2000);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessageInput(e.target.value);
+
+    if (e.target.value.trim().length > 0) {
+      emitTyping();
+      debouncedStopTyping();
+    }
+  };
 
   // Memoized data
   const conversations = useMemo(
@@ -260,6 +318,12 @@ export default function ChatPage() {
                   action,
                 });
               }}
+              onBlockUser={(action) => {
+                if (otherUserId) {
+                  blockUser.mutate({ userId: otherUserId, action });
+                }
+              }}
+              isBlocked={blockStatus?.isBlockedByMe}
             />
 
             {/* Messages Area */}
@@ -295,24 +359,86 @@ export default function ChatPage() {
                   ))}
                 </div>
               )}
+              {/* Typing Indicator */}
+              {typingUsers.length > 0 &&
+                selectedConversation.type !== "GROUP" && (
+                  <div className="text-xs text-zinc-500 italic ml-4 mt-2">
+                    {typingUsers[0]} est en train d'écrire...
+                  </div>
+                )}
+              {/* Group typing indicator */}
+              {typingUsers.length > 0 &&
+                selectedConversation.type === "GROUP" && (
+                  <div className="text-xs text-zinc-500 italic ml-4 mt-2">
+                    {typingUsers.join(", ")}{" "}
+                    {typingUsers.length > 1 ? "écrivent" : "écrit"}...
+                  </div>
+                )}
             </div>
+
+            {/* Blocked Warning */}
+            {blockStatus?.isBlockedByMe && (
+              <div className="px-4 py-2 bg-red-50 dark:bg-red-900/10 text-red-600 text-xs text-center border-t border-red-100 dark:border-red-900/20">
+                Vous avez bloqué cet utilisateur. Vous ne pouvez pas lui envoyer
+                de messages.
+              </div>
+            )}
+            {blockStatus?.isBlockedByThem && (
+              <div className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 text-zinc-500 text-xs text-center border-t border-zinc-100 dark:border-zinc-700">
+                Vous ne pouvez plus envoyer de messages à cet utilisateur.
+              </div>
+            )}
 
             {/* Message Input */}
             <div className="p-4 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
               <div className="flex items-center gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={blockStatus?.canChat === false}
+                    >
+                      <Smile className="h-5 w-5 text-zinc-500" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="top"
+                    align="start"
+                    className="p-0 border-none w-auto shadow-none bg-transparent"
+                  >
+                    <EmojiPicker
+                      onEmojiClick={(emojiData: EmojiClickData) => {
+                        setMessageInput((prev) => prev + emojiData.emoji);
+                      }}
+                      theme={Theme.LIGHT} // Adapt based on system theme if possible, defaulting to light/auto
+                    />
+                  </PopoverContent>
+                </Popover>
+
                 <Input
-                  placeholder="Écrivez votre message..."
+                  placeholder={
+                    blockStatus?.canChat === false
+                      ? "Conversation verrouillée"
+                      : "Écrivez votre message..."
+                  }
                   value={messageInput}
-                  onChange={(e) => setMessageInput(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   className="flex-1 h-11 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 rounded-xl"
-                  disabled={sendMessage.isPending}
+                  disabled={
+                    sendMessage.isPending || blockStatus?.canChat === false
+                  }
                 />
                 <Button
                   onClick={handleSendMessage}
                   size="icon"
                   className="h-9 w-9 rounded-xl bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all"
-                  disabled={sendMessage.isPending || !messageInput.trim()}
+                  disabled={
+                    sendMessage.isPending ||
+                    !messageInput.trim() ||
+                    blockStatus?.canChat === false
+                  }
                 >
                   {sendMessage.isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

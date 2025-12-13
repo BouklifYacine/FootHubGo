@@ -27,6 +27,8 @@ interface ChatHeaderProps {
   userId: string | undefined;
   onBack: () => void;
   onPinConversation?: (action: "pin" | "unpin") => void;
+  onBlockUser?: (action: "block" | "unblock") => void;
+  isBlocked?: boolean;
 }
 
 export const ChatHeader = memo(function ChatHeader({
@@ -34,6 +36,8 @@ export const ChatHeader = memo(function ChatHeader({
   userId,
   onBack,
   onPinConversation,
+  onBlockUser,
+  isBlocked,
 }: ChatHeaderProps) {
   return (
     <div className="h-16 px-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
@@ -130,9 +134,17 @@ export const ChatHeader = memo(function ChatHeader({
               <BellOff className="h-4 w-4" />
               <span>Mettre en sourdine</span>
             </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer gap-2 text-red-600">
+            <DropdownMenuItem
+              onClick={() => onBlockUser?.(isBlocked ? "unblock" : "block")}
+              className={cn(
+                "cursor-pointer gap-2",
+                isBlocked
+                  ? "text-zinc-900 dark:text-zinc-100"
+                  : "text-red-600 dark:text-red-500"
+              )}
+            >
               <Ban className="h-4 w-4" />
-              <span>Bloquer</span>
+              <span>{isBlocked ? "Débloquer" : "Bloquer"}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

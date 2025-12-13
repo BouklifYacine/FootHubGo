@@ -26,35 +26,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find the participant record
-    const participant = await prisma.conversationParticipant.findUnique({
-      where: {
-        userId_conversationId: {
-          userId,
-          conversationId,
+    // Update isPinned status directly using composite unique key
+    // This atomic operation avoids the need for a separate findUnique call
+    try {
+      const updatedParticipant = await prisma.conversationParticipant.update({
+        where: {
+          userId_conversationId: {
+            userId,
+            conversationId,
+          },
         },
-      },
-    });
+        data: { isPinned: action === "pin" },
+        select: { conversationId: true, isPinned: true }, // Select only what we need
+      });
 
-    if (!participant) {
+      return NextResponse.json({
+        success: true,
+        action,
+        conversationId: updatedParticipant.conversationId,
+        isPinned: updatedParticipant.isPinned,
+      });
+    } catch (error) {
+      // Prisma P2025 error code means Record to update not found
+      // We can assume this means the user is not a participant or conversation doesn't exist
       return NextResponse.json(
-        { message: "Conversation non trouvée" },
+        { message: "Conversation introuvable ou vous n'êtes pas participant" },
         { status: 404 }
       );
     }
-
-    // Update isPinned status
-    await prisma.conversationParticipant.update({
-      where: { id: participant.id },
-      data: { isPinned: action === "pin" },
-    });
-
-    return NextResponse.json({
-      success: true,
-      action,
-      conversationId,
-      isPinned: action === "pin",
-    });
   } catch (error) {
     console.error("Error pinning conversation:", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
