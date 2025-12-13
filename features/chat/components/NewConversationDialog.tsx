@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useCallback, memo } from "react";
-import { Search, Plus, Users, User, Loader2 } from "lucide-react";
+import { Search, Plus, Users, User, Loader2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,12 +13,14 @@ import {
 } from "@/components/ui/dialog";
 import AvatarSimple from "@/components/Avatar/AvatarSimple";
 import { ClubMember } from "../types/chat.types";
+import { cn } from "@/lib/utils";
 
 interface NewConversationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   members: ClubMember[];
   onSelectMember: (member: ClubMember) => void;
+  onCreateGroup: (name: string, memberIds: string[]) => void;
   isLoading: boolean;
   isCreating: boolean;
 }
@@ -28,10 +30,14 @@ export const NewConversationDialog = memo(function NewConversationDialog({
   onOpenChange,
   members,
   onSelectMember,
+  onCreateGroup,
   isLoading,
   isCreating,
 }: NewConversationDialogProps) {
+  const [mode, setMode] = useState<"select" | "private" | "group">("select");
   const [searchQuery, setSearchQuery] = useState("");
+  const [groupName, setGroupName] = useState("");
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   const filteredMembers = useMemo(
     () =>
@@ -48,8 +54,47 @@ export const NewConversationDialog = memo(function NewConversationDialog({
     []
   );
 
+  const handleToggleMember = useCallback((memberId: string) => {
+    setSelectedMembers((prev) =>
+      prev.includes(memberId)
+        ? prev.filter((id) => id !== memberId)
+        : prev.length < 29
+          ? [...prev, memberId]
+          : prev
+    );
+  }, []);
+
+  const handleCreateGroup = useCallback(() => {
+    if (groupName.trim() && selectedMembers.length > 0) {
+      onCreateGroup(groupName.trim(), selectedMembers);
+      setMode("select");
+      setGroupName("");
+      setSelectedMembers([]);
+    }
+  }, [groupName, selectedMembers, onCreateGroup]);
+
+  const handleBack = useCallback(() => {
+    setMode("select");
+    setSearchQuery("");
+    setGroupName("");
+    setSelectedMembers([]);
+  }, []);
+
+  const handleOpenChange = useCallback(
+    (isOpen: boolean) => {
+      if (!isOpen) {
+        setMode("select");
+        setSearchQuery("");
+        setGroupName("");
+        setSelectedMembers([]);
+      }
+      onOpenChange(isOpen);
+    },
+    [onOpenChange]
+  );
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button
           variant="ghost"
@@ -61,79 +106,149 @@ export const NewConversationDialog = memo(function NewConversationDialog({
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
-            Nouvelle conversation
+          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+            {mode !== "select" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={handleBack}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            {mode === "select"
+              ? "Nouvelle conversation"
+              : mode === "private"
+                ? "Message privé"
+                : "Nouveau groupe"}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 mt-4">
-          {/* Options */}
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="outline"
-              className="h-24 flex-col gap-2 hover:bg-primary/5 hover:border-primary/30"
-            >
-              <User className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">Message privé</span>
-            </Button>
-            <Button
-              variant="outline"
-              className="h-24 flex-col gap-2 hover:bg-primary/5 hover:border-primary/30"
-            >
-              <Users className="h-6 w-6 text-primary" />
-              <span className="text-sm font-medium">Groupe</span>
-            </Button>
-          </div>
+          {mode === "select" && (
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2 hover:bg-primary/5 hover:border-primary/30"
+                onClick={() => setMode("private")}
+              >
+                <User className="h-6 w-6 text-primary" />
+                <span className="text-sm font-medium">Message privé</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-24 flex-col gap-2 hover:bg-primary/5 hover:border-primary/30"
+                onClick={() => setMode("group")}
+              >
+                <Users className="h-6 w-6 text-primary" />
+                <span className="text-sm font-medium">Groupe</span>
+              </Button>
+            </div>
+          )}
 
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+          {mode === "group" && (
             <Input
-              placeholder="Rechercher un membre..."
-              className="pl-10"
-              value={searchQuery}
-              onChange={handleSearchChange}
+              placeholder="Nom du groupe..."
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              className="font-medium"
             />
-          </div>
+          )}
 
-          {/* Team members list */}
-          <div className="space-y-1 max-h-60 overflow-y-auto">
-            {isLoading ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          {mode !== "select" && (
+            <>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <Input
+                  placeholder="Rechercher un membre..."
+                  className="pl-10"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
               </div>
-            ) : filteredMembers.length === 0 ? (
-              <p className="text-center text-sm text-zinc-500 py-4">
-                Aucun membre trouvé
-              </p>
-            ) : (
-              filteredMembers.map((member) => (
-                <div
-                  key={member.id}
-                  onClick={() => !isCreating && onSelectMember(member)}
-                  className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors ${
-                    isCreating ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                >
-                  <AvatarSimple
-                    alt={member.name}
-                    src={member.image || ""}
-                    Fallback={member.name.substring(0, 2).toUpperCase()}
-                  />
-                  <div>
-                    <span className="font-medium text-sm text-zinc-900 dark:text-white">
-                      {member.name}
-                    </span>
-                    <p className="text-xs text-zinc-500">
-                      {member.role === "ENTRAINEUR"
-                        ? "Entraîneur"
-                        : member.poste || "Joueur"}
-                    </p>
-                  </div>
+
+              {mode === "group" && selectedMembers.length > 0 && (
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-zinc-500">
+                    {selectedMembers.length} membre
+                    {selectedMembers.length > 1 ? "s" : ""} sélectionné
+                    {selectedMembers.length > 1 ? "s" : ""}
+                  </span>
+                  <span className="text-zinc-400">Max 30</span>
                 </div>
-              ))
-            )}
-          </div>
+              )}
+
+              <div className="space-y-1 max-h-60 overflow-y-auto">
+                {isLoading ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  </div>
+                ) : filteredMembers.length === 0 ? (
+                  <p className="text-center text-sm text-zinc-500 py-4">
+                    Aucun membre trouvé
+                  </p>
+                ) : (
+                  filteredMembers.map((member) => {
+                    const isSelected = selectedMembers.includes(member.id);
+                    return (
+                      <div
+                        key={member.id}
+                        onClick={() =>
+                          mode === "private"
+                            ? !isCreating && onSelectMember(member)
+                            : handleToggleMember(member.id)
+                        }
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors",
+                          mode === "group" && isSelected
+                            ? "bg-primary/10 border border-primary/30"
+                            : "hover:bg-zinc-100 dark:hover:bg-zinc-800",
+                          isCreating && "opacity-50 cursor-not-allowed"
+                        )}
+                      >
+                        <AvatarSimple
+                          alt={member.name}
+                          src={member.image || ""}
+                          Fallback={member.name.substring(0, 2).toUpperCase()}
+                        />
+                        <div className="flex-1">
+                          <span className="font-medium text-sm text-zinc-900 dark:text-white">
+                            {member.name}
+                          </span>
+                          <p className="text-xs text-zinc-500">
+                            {member.role === "ENTRAINEUR"
+                              ? "Entraîneur"
+                              : member.poste || "Joueur"}
+                          </p>
+                        </div>
+                        {mode === "group" && isSelected && (
+                          <Check className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {mode === "group" && (
+                <Button
+                  className="w-full"
+                  onClick={handleCreateGroup}
+                  disabled={
+                    isCreating ||
+                    !groupName.trim() ||
+                    selectedMembers.length === 0
+                  }
+                >
+                  {isCreating ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : null}
+                  Créer le groupe
+                </Button>
+              )}
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

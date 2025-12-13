@@ -15,9 +15,15 @@ export { useDeleteMessage } from "./hooks/useDeleteMessage";
 export { usePinMessage } from "./hooks/usePinMessage";
 export { usePinConversation } from "./hooks/usePinConversation";
 export { useBlockUser, useBlockStatus } from "./hooks/useBlockUser";
+export {
+  useUpdateGroup,
+  useDeleteGroup,
+  useManageMembers,
+} from "./hooks/useGroupManagement";
 
 // Components
 export { ConversationItem } from "./components/ConversationItem";
 export { MessageBubble } from "./components/MessageBubble";
 export { ChatHeader } from "./components/ChatHeader";
 export { NewConversationDialog } from "./components/NewConversationDialog";
+export { GroupSettingsDialog } from "./components/GroupSettingsDialog";

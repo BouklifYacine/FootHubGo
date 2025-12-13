@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MessagesResponse } from "../types/chat.types";
+import { ChatService } from "../services/ChatService";
 
 interface DeleteMessageInput {
   messageId: string;
@@ -7,35 +8,12 @@ interface DeleteMessageInput {
   type: "forMe" | "forAll";
 }
 
-interface DeleteMessageResponse {
-  success: boolean;
-  type: string;
-  messageId: string;
-}
-
-async function deleteMessage(
-  input: DeleteMessageInput
-): Promise<DeleteMessageResponse> {
-  const response = await fetch(
-    `/api/chat/messages/${input.messageId}?type=${input.type}`,
-    {
-      method: "DELETE",
-    }
-  );
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Erreur lors de la suppression");
-  }
-
-  return response.json();
-}
-
 export function useDeleteMessage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteMessage,
+    mutationFn: (input: DeleteMessageInput) =>
+      ChatService.deleteMessage(input.messageId),
     onSuccess: (data, variables) => {
       // Update messages cache
       queryClient.setQueryData<MessagesResponse>(
@@ -43,7 +21,7 @@ export function useDeleteMessage() {
         (old) => {
           if (!old) return old;
 
-          if (data.type === "forMe") {
+          if (variables.type === "forMe") {
             // Remove message from list
             return {
               ...old,

@@ -72,6 +72,7 @@ export async function GET() {
             ? conv.name
             : conv.participants.find((p) => p.userId !== userId)?.user.name ||
               "Conversation",
+        creatorId: conv.creatorId,
         participants: conv.participants.map((p) => ({
           id: p.user.id,
           name: p.user.name,
@@ -168,14 +169,33 @@ export async function POST(request: NextRequest) {
 
     // Create new conversation
     const allParticipantIds = [...new Set([userId, ...participantIds])];
+    const isGroup = type === "GROUP";
+
+    // Enforce max 30 members for groups
+    if (isGroup && allParticipantIds.length > 30) {
+      return NextResponse.json(
+        { message: "Un groupe ne peut pas avoir plus de 30 membres" },
+        { status: 400 }
+      );
+    }
+
+    // Require name for groups
+    if (isGroup && !name?.trim()) {
+      return NextResponse.json(
+        { message: "Le nom du groupe est requis" },
+        { status: 400 }
+      );
+    }
 
     const conversation = await prisma.conversation.create({
       data: {
         type: type || "PRIVATE",
-        name: type === "GROUP" ? name : null,
+        name: isGroup ? name.trim() : null,
+        creatorId: isGroup ? userId : null,
         participants: {
           create: allParticipantIds.map((id) => ({
             userId: id,
+            role: isGroup && id === userId ? "ADMIN" : "MEMBER",
           })),
         },
       },
@@ -199,6 +219,7 @@ export async function POST(request: NextRequest) {
             ? conversation.name
             : conversation.participants.find((p) => p.userId !== userId)?.user
                 .name,
+        creatorId: conversation.creatorId,
         participants: conversation.participants.map((p) => ({
           id: p.user.id,
           name: p.user.name,

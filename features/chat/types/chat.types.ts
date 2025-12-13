@@ -28,6 +28,7 @@ export interface Conversation {
   id: string;
   type: ConversationType;
   name: string | null;
+  creatorId?: string | null;
   participants: Participant[];
   lastMessage: Message | null;
   unreadCount: number;

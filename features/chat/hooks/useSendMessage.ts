@@ -7,7 +7,7 @@ export function useSendMessage() {
 
   return useMutation({
     mutationFn: (data: SendMessageInput) => ChatService.sendMessage(data),
-    onSuccess: (newMessage: Message, variables) => {
+    onSuccess: (response: { message: Message }, variables) => {
       // Optimistically update messages cache
       queryClient.invalidateQueries({
         queryKey: ["messages", variables.conversationId],

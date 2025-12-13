@@ -35,6 +35,9 @@ import {
   NewConversationDialog,
   useBlockUser,
   useBlockStatus,
+  useUpdateGroup,
+  useDeleteGroup,
+  useManageMembers,
 } from "@/features/chat";
 import { authClient } from "@/lib/auth-client";
 import { useProfil } from "@/features/parametres/hooks/useProfil";
@@ -93,6 +96,9 @@ export default function ChatPage() {
   const deleteMessage = useDeleteMessage();
   const pinConversation = usePinConversation();
   const blockUser = useBlockUser();
+  const updateGroup = useUpdateGroup();
+  const deleteGroup = useDeleteGroup();
+  const manageMembers = useManageMembers();
 
   // Target user ID for checking block status (only relevant for private chats)
   const otherUserId = useMemo(() => {
@@ -189,6 +195,33 @@ export default function ChatPage() {
     [createConversation]
   );
 
+  const handleCreateGroup = useCallback(
+    async (name: string, memberIds: string[]) => {
+      try {
+        const result = await createConversation.mutateAsync({
+          type: "GROUP",
+          participantIds: memberIds,
+          name,
+        });
+
+        setSelectedConversation({
+          ...result.conversation,
+          name: result.conversation.name || name,
+          lastMessage: null,
+          unreadCount: 0,
+          isPinned: false,
+          updatedAt: new Date().toISOString(),
+        });
+
+        setNewConvoOpen(false);
+        setShowChat(true);
+      } catch (error) {
+        console.error("Failed to create group:", error);
+      }
+    },
+    [createConversation]
+  );
+
   const handleSelectConversation = useCallback((conv: Conversation) => {
     setSelectedConversation(conv);
     setShowChat(true);
@@ -228,6 +261,7 @@ export default function ChatPage() {
               onOpenChange={setNewConvoOpen}
               members={clubMembers}
               onSelectMember={handleStartConversation}
+              onCreateGroup={handleCreateGroup}
               isLoading={membersLoading}
               isCreating={createConversation.isPending}
             />
@@ -324,6 +358,50 @@ export default function ChatPage() {
                 }
               }}
               isBlocked={blockStatus?.isBlockedByMe}
+              onRenameGroup={(name) => {
+                updateGroup.mutate({
+                  conversationId: selectedConversation.id,
+                  name,
+                });
+              }}
+              onKickMember={(targetUserId) => {
+                manageMembers.mutate({
+                  conversationId: selectedConversation.id,
+                  targetUserId,
+                  action: "kick",
+                });
+              }}
+              onLeaveGroup={() => {
+                if (userId) {
+                  manageMembers.mutate({
+                    conversationId: selectedConversation.id,
+                    targetUserId: userId,
+                    action: "leave",
+                  });
+                  setSelectedConversation(null);
+                  setShowChat(false);
+                }
+              }}
+              onDeleteGroup={() => {
+                deleteGroup.mutate({
+                  conversationId: selectedConversation.id,
+                });
+                setSelectedConversation(null);
+                setShowChat(false);
+              }}
+              onAddMembers={(memberIds) => {
+                manageMembers.mutate({
+                  conversationId: selectedConversation.id,
+                  memberIds,
+                  action: "add",
+                });
+              }}
+              availableMembers={clubMembers}
+              isGroupUpdating={
+                updateGroup.isPending ||
+                deleteGroup.isPending ||
+                manageMembers.isPending
+              }
             />
 
             {/* Messages Area */}

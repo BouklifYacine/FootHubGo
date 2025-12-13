@@ -1,75 +1,123 @@
-const BASE_URL = "/api/chat";
+import ky from "ky";
+import {
+  ConversationsResponse,
+  MessagesResponse,
+  ClubMembersResponse,
+  Conversation,
+  Message,
+} from "../types/chat.types";
+
+const api = ky.create({
+  prefixUrl: "/api",
+});
+
+// Input Types
+export interface ConversationInput {
+  type: "PRIVATE" | "GROUP";
+  participantIds: string[];
+  name?: string;
+}
+
+export interface MessageInput {
+  conversationId: string;
+  content: string;
+}
+
+export interface PinConversationInput {
+  conversationId: string;
+  action: "pin" | "unpin";
+}
+
+export interface BlockUserInput {
+  userId: string;
+  action: "block" | "unblock";
+}
+
+// Response Types
+export interface PinConversationResponse {
+  success: boolean;
+  action: string;
+  conversationId: string;
+  isPinned: boolean;
+}
+
+export interface CreateConversationResponse {
+  conversation: Conversation;
+  existed: boolean;
+}
+
+export interface BlockStatusResponse {
+  isBlockedByMe: boolean;
+  isBlockedByThem: boolean;
+  canChat: boolean;
+}
 
 export const ChatService = {
-  // Get all conversations for the current user
-  async getConversations() {
-    const response = await fetch(`${BASE_URL}/conversations`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch conversations");
-    }
-    return response.json();
-  },
+  // Conversations
+  getConversations: (): Promise<ConversationsResponse> =>
+    api.get("chat/conversations").json<ConversationsResponse>(),
 
-  // Get messages for a specific conversation
-  async getMessages(conversationId: string) {
-    const response = await fetch(
-      `${BASE_URL}/messages?conversationId=${conversationId}`
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch messages");
-    }
-    return response.json();
-  },
+  createConversation: (
+    data: ConversationInput
+  ): Promise<CreateConversationResponse> =>
+    api
+      .post("chat/conversations", { json: data })
+      .json<CreateConversationResponse>(),
 
-  // Create a new conversation
-  async createConversation(data: {
-    type: "PRIVATE" | "GROUP";
-    participantIds: string[];
-    name?: string;
-  }) {
-    const response = await fetch(`${BASE_URL}/conversations`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to create conversation");
-    }
-    return response.json();
-  },
+  updateConversation: (conversationId: string, name: string) =>
+    api
+      .patch(`chat/conversations/${conversationId}`, { json: { name } })
+      .json(),
 
-  // Send a message
-  async sendMessage(data: { conversationId: string; content: string }) {
-    const response = await fetch(`${BASE_URL}/messages`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to send message");
-    }
-    return response.json();
-  },
+  deleteConversation: (conversationId: string) =>
+    api.delete(`chat/conversations/${conversationId}`).json(),
 
-  // Get club members for new conversation modal
-  async getClubMembers() {
-    const response = await fetch(`${BASE_URL}/members`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch club members");
-    }
-    return response.json();
-  },
+  // Messages
+  getMessages: (conversationId: string): Promise<MessagesResponse> =>
+    api
+      .get(`chat/messages?conversationId=${conversationId}`)
+      .json<MessagesResponse>(),
 
-  // Mark messages as read
-  async markAsRead(conversationId: string) {
-    const response = await fetch(`${BASE_URL}/messages/read`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ conversationId }),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to mark messages as read");
-    }
-    return response.json();
-  },
+  sendMessage: (data: MessageInput): Promise<{ message: Message }> =>
+    api.post("chat/messages", { json: data }).json<{ message: Message }>(),
+
+  deleteMessage: (messageId: string) =>
+    api.delete(`chat/messages/${messageId}`).json(),
+
+  markAsRead: (conversationId: string) =>
+    api.post("chat/messages/read", { json: { conversationId } }).json(),
+
+  // Pinning
+  pinConversation: (
+    data: PinConversationInput
+  ): Promise<PinConversationResponse> =>
+    api
+      .post("chat/conversations/pin", { json: data })
+      .json<PinConversationResponse>(),
+
+  pinMessage: (data: { conversationId: string; messageId: string }) =>
+    api.post("chat/messages/pin", { json: data }).json(),
+
+  // Members
+  getClubMembers: (): Promise<ClubMembersResponse> =>
+    api.get("chat/members").json<ClubMembersResponse>(),
+
+  addMembers: (conversationId: string, memberIds: string[]) =>
+    api
+      .post(`chat/conversations/${conversationId}/members`, {
+        json: { memberIds },
+      })
+      .json(),
+
+  removeMember: (conversationId: string, userId: string) =>
+    api
+      .delete(`chat/conversations/${conversationId}/members?userId=${userId}`)
+      .json(),
+
+  // Blocking
+  blockUser: (data: BlockUserInput) =>
+    api.post("users/block", { json: data }).json(),
+
+  getBlockStatus: (targetId: string): Promise<BlockStatusResponse> =>
+    api.get(`users/block?targetId=${targetId}`).json<BlockStatusResponse>(),
 };

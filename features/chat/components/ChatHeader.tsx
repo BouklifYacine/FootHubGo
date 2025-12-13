@@ -20,7 +20,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import AvatarSimple from "@/components/Avatar/AvatarSimple";
-import { Conversation } from "../types/chat.types";
+import { Conversation, ClubMember } from "../types/chat.types";
+import { GroupSettingsDialog } from "./GroupSettingsDialog";
 
 interface ChatHeaderProps {
   conversation: Conversation;
@@ -29,6 +30,14 @@ interface ChatHeaderProps {
   onPinConversation?: (action: "pin" | "unpin") => void;
   onBlockUser?: (action: "block" | "unblock") => void;
   isBlocked?: boolean;
+  // Group management
+  onRenameGroup?: (name: string) => void;
+  onKickMember?: (userId: string) => void;
+  onLeaveGroup?: () => void;
+  onDeleteGroup?: () => void;
+  onAddMembers?: (memberIds: string[]) => void;
+  availableMembers?: ClubMember[];
+  isGroupUpdating?: boolean;
 }
 
 export const ChatHeader = memo(function ChatHeader({
@@ -38,7 +47,15 @@ export const ChatHeader = memo(function ChatHeader({
   onPinConversation,
   onBlockUser,
   isBlocked,
+  onRenameGroup,
+  onKickMember,
+  onLeaveGroup,
+  onDeleteGroup,
+  onAddMembers,
+  availableMembers,
+  isGroupUpdating,
 }: ChatHeaderProps) {
+  const isCreator = conversation.creatorId === userId;
   return (
     <div className="h-16 px-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
       <div className="flex items-center gap-3">
@@ -113,6 +130,20 @@ export const ChatHeader = memo(function ChatHeader({
         <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
           <Video className="h-4 w-4 text-zinc-500" />
         </Button>
+        {conversation.type === "GROUP" && onRenameGroup && onDeleteGroup && (
+          <GroupSettingsDialog
+            conversation={conversation}
+            currentUserId={userId || ""}
+            isCreator={isCreator}
+            onRename={onRenameGroup}
+            onKick={onKickMember || (() => {})}
+            onLeave={onLeaveGroup || (() => {})}
+            onDelete={onDeleteGroup}
+            onAddMembers={onAddMembers}
+            availableMembers={availableMembers}
+            isUpdating={isGroupUpdating || false}
+          />
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
