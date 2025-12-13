@@ -15,7 +15,7 @@ interface MessageListProps {
   userImage: string | undefined;
   isGroup: boolean;
   conversationId: string;
-  typingUsers: { id: string; name: string }[];
+  typingUsers: string[];
   onDeleteMessage: (messageId: string, type: "forMe" | "forAll") => void;
 }
 
@@ -66,9 +66,15 @@ export const MessageList = memo(function MessageList({
       </div>
 
       {/* Typing indicators */}
-      {typingUsers.map((user) => (
-        <TypingIndicator key={user.id} userName={user.name} />
-      ))}
+      {typingUsers.length > 0 && (
+        <TypingIndicator
+          userName={
+            typingUsers.length > 1
+              ? `${typingUsers.join(", ")} écrivent`
+              : typingUsers[0]
+          }
+        />
+      )}
 
       <div ref={messagesEndRef} />
     </>

@@ -20,6 +20,7 @@ export {
   useDeleteGroup,
   useManageMembers,
 } from "./hooks/useGroupManagement";
+export { useChatPage } from "./hooks/useChatPage";
 
 // Components - Legacy exports (backward compatibility)
 export { ConversationItem } from "./components/ConversationItem";
@@ -40,4 +41,9 @@ export {
   TypingIndicator,
   EmptyMessages,
 } from "./components/messages";
-export { ChatSidebar, EmptyChat, BlockedWarning } from "./components/layout";
+export {
+  ChatSidebar,
+  ChatMainPanel,
+  EmptyChat,
+  BlockedWarning,
+} from "./components/layout";
