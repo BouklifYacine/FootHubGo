@@ -1,14 +1,12 @@
 "use client";
 
-import React, { memo } from "react";
+import React from "react";
 
 interface TypingIndicatorProps {
   userName: string;
 }
 
-export const TypingIndicator = memo(function TypingIndicator({
-  userName,
-}: TypingIndicatorProps) {
+export function TypingIndicator({ userName }: TypingIndicatorProps) {
   return (
     <div className="flex items-center gap-2 px-4 py-2">
       <div className="flex items-center gap-1">
@@ -30,4 +28,4 @@ export const TypingIndicator = memo(function TypingIndicator({
       </div>
     </div>
   );
-});
+}

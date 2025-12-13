@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 
 interface RateLimitWarningProps {
@@ -8,7 +8,7 @@ interface RateLimitWarningProps {
   onExpire?: () => void;
 }
 
-export const RateLimitWarning = memo(function RateLimitWarning({
+export function RateLimitWarning({
   isRateLimited,
   onExpire,
 }: RateLimitWarningProps) {
@@ -52,4 +52,4 @@ export const RateLimitWarning = memo(function RateLimitWarning({
       </span>
     </div>
   );
-});
+}

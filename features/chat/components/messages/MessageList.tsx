@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { Message } from "../../types";
 import { MessageBubble } from "../MessageBubble";
@@ -19,7 +19,7 @@ interface MessageListProps {
   onDeleteMessage: (messageId: string, type: "forMe" | "forAll") => void;
 }
 
-export const MessageList = memo(function MessageList({
+export function MessageList({
   messages,
   isLoading,
   userId,
@@ -79,4 +79,4 @@ export const MessageList = memo(function MessageList({
       <div ref={messagesEndRef} />
     </>
   );
-});
+}

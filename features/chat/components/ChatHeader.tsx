@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useState } from "react";
+import React, { useState } from "react";
 import {
   MoreVertical,
   Phone,
@@ -41,7 +41,7 @@ interface ChatHeaderProps {
   isGroupUpdating?: boolean;
 }
 
-export const ChatHeader = memo(function ChatHeader({
+export function ChatHeader({
   conversation,
   userId,
   onBack,
@@ -211,4 +211,4 @@ export const ChatHeader = memo(function ChatHeader({
       </div>
     </div>
   );
-});
+}

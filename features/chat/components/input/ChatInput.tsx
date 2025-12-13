@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { EmojiPickerButton } from "./EmojiPickerButton";
 import { SendButton } from "./SendButton";
@@ -14,7 +14,7 @@ interface ChatInputProps {
   placeholder?: string;
 }
 
-export const ChatInput = memo(function ChatInput({
+export function ChatInput({
   onSend,
   onTyping,
   onStopTyping,
@@ -80,4 +80,4 @@ export const ChatInput = memo(function ChatInput({
       </div>
     </form>
   );
-});
+}

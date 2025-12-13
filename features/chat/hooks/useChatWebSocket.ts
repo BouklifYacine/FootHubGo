@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { io, Socket } from "socket.io-client";
 import { Message, MessagesResponse } from "../types/chat.types";
@@ -125,30 +125,27 @@ export function useChatWebSocket(
     }
   }, [conversationId]);
 
-  const emitTyping = useCallback(() => {
+  const emitTyping = () => {
     if (socketRef.current && conversationId) {
       socketRef.current.emit("chat:typing", { conversationId });
     }
-  }, [conversationId]);
+  };
 
-  const emitStopTyping = useCallback(() => {
+  const emitStopTyping = () => {
     if (socketRef.current && conversationId) {
       socketRef.current.emit("chat:stop_typing", { conversationId });
     }
-  }, [conversationId]);
+  };
 
-  const emitRead = useCallback(
-    (targetConversationId: string, readAt: string) => {
-      if (socketRef.current && userId) {
-        socketRef.current.emit("chat:read", {
-          conversationId: targetConversationId,
-          userId,
-          readAt,
-        });
-      }
-    },
-    [userId]
-  );
+  const emitRead = (targetConversationId: string, readAt: string) => {
+    if (socketRef.current && userId) {
+      socketRef.current.emit("chat:read", {
+        conversationId: targetConversationId,
+        userId,
+        readAt,
+      });
+    }
+  };
 
   return {
     typingUsers,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React from "react";
 import { Pin, MessageSquare } from "lucide-react";
 import { Conversation } from "../../types";
 import { ConversationItem } from "../ConversationItem";
@@ -13,7 +13,7 @@ interface ConversationListProps {
   onSelect: (conversation: Conversation) => void;
 }
 
-export const ConversationList = memo(function ConversationList({
+export function ConversationList({
   pinnedConversations,
   unpinnedConversations,
   selectedConversationId,
@@ -63,4 +63,4 @@ export const ConversationList = memo(function ConversationList({
       </div>
     </div>
   );
-});
+}

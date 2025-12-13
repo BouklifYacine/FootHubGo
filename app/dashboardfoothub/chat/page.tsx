@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -62,183 +62,155 @@ export default function ChatPage() {
   const manageMembers = useManageMembers();
   const deleteConversation = useDeleteConversation();
 
-  const otherUserId = useMemo(() => {
-    if (!selectedConversation || selectedConversation.type === "GROUP")
-      return undefined;
-    return selectedConversation.participants?.find((p) => p.id !== userId)?.id;
-  }, [selectedConversation, userId]);
+  // Derived state (formerly useMemo)
+  const otherUserId =
+    selectedConversation?.type === "PRIVATE"
+      ? selectedConversation.participants?.find((p) => p.id !== userId)?.id
+      : undefined;
 
   const { data: blockStatus } = useBlockStatus(otherUserId);
   const { typingUsers, emitTyping, emitStopTyping, emitRead } =
     useChatWebSocket(userId, selectedConversation?.id || null);
 
-  // Emit read receipt when messages are marked as read
+  // Side Effect: Read Receipt
   useEffect(() => {
     if (messagesData?.markedAsRead && selectedConversation?.id) {
       emitRead(selectedConversation.id, messagesData.markedAsRead.readAt);
     }
   }, [messagesData?.markedAsRead, selectedConversation?.id, emitRead]);
 
-  const conversations = useMemo(
-    () => conversationsData?.conversations || [],
-    [conversationsData]
-  );
-  const messages = useMemo(() => messagesData?.messages || [], [messagesData]);
-  const clubMembers = useMemo(() => membersData?.members || [], [membersData]);
+  // Derived Lists
+  const conversations = conversationsData?.conversations || [];
+  const messages = messagesData?.messages || [];
+  const clubMembers = membersData?.members || [];
 
-  const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations;
-    return conversations.filter((c) =>
-      c.name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [conversations, searchQuery]);
+  const filteredConversations = !searchQuery.trim()
+    ? conversations
+    : conversations.filter((c: Conversation) =>
+        c.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
-  const pinnedConversations = useMemo(
-    () => filteredConversations.filter((c) => c.isPinned),
-    [filteredConversations]
+  const pinnedConversations = filteredConversations.filter(
+    (c: Conversation) => c.isPinned
   );
-  const unpinnedConversations = useMemo(
-    () => filteredConversations.filter((c) => !c.isPinned),
-    [filteredConversations]
+  const unpinnedConversations = filteredConversations.filter(
+    (c: Conversation) => !c.isPinned
   );
 
-  const handleSelectConversation = useCallback((conv: Conversation) => {
+  // Handlers (formerly useCallback)
+  const handleSelectConversation = (conv: Conversation) => {
     setSelectedConversation(conv);
     setShowChat(true);
-  }, []);
+  };
 
-  const handleStartConversation = useCallback(
-    async (member: ClubMember) => {
-      try {
-        const result = await createConversation.mutateAsync({
-          type: "PRIVATE",
-          participantIds: [member.id],
-        });
-        setSelectedConversation({
-          id: result.conversation.id,
-          type: result.conversation.type,
-          name: result.conversation.name,
-          participants: result.conversation.participants,
-          lastMessage: null,
-          unreadCount: 0,
-          isPinned: false,
-          updatedAt: new Date().toISOString(),
-        });
-        setNewConvoOpen(false);
-        setShowChat(true);
-      } catch (error) {
-        console.error("Failed to create conversation:", error);
-      }
-    },
-    [createConversation]
-  );
-
-  const handleCreateGroup = useCallback(
-    async (name: string, memberIds: string[]) => {
-      try {
-        const result = await createConversation.mutateAsync({
-          type: "GROUP",
-          participantIds: memberIds,
-          name,
-        });
-        setSelectedConversation({
-          id: result.conversation.id,
-          type: result.conversation.type,
-          name: result.conversation.name,
-          creatorId: userId,
-          participants: result.conversation.participants,
-          lastMessage: null,
-          unreadCount: 0,
-          isPinned: false,
-          updatedAt: new Date().toISOString(),
-        });
-        setNewConvoOpen(false);
-        setShowChat(true);
-      } catch (error) {
-        console.error("Failed to create group:", error);
-      }
-    },
-    [createConversation, userId]
-  );
-
-  const handleSendMessage = useCallback(
-    async (content: string) => {
-      if (!selectedConversation) return;
-      try {
-        await sendMessage.mutateAsync({
-          conversationId: selectedConversation.id,
-          content,
-        });
-      } catch (error) {
-        console.error("Failed to send message:", error);
-      }
-    },
-    [selectedConversation, sendMessage]
-  );
-
-  const handleDeleteMessage = useCallback(
-    (messageId: string, type: "forMe" | "forAll") => {
-      if (!selectedConversation) return;
-      deleteMessage.mutate({
-        messageId,
-        conversationId: selectedConversation.id,
-        type,
+  const handleStartConversation = async (member: ClubMember) => {
+    try {
+      const result = await createConversation.mutateAsync({
+        type: "PRIVATE",
+        participantIds: [member.id],
       });
-    },
-    [deleteMessage, selectedConversation]
-  );
-
-  const handlePinConversation = useCallback(
-    (action: "pin" | "unpin") => {
-      if (!selectedConversation) return;
-      pinConversation.mutate({
-        conversationId: selectedConversation.id,
-        action,
+      setSelectedConversation({
+        id: result.conversation.id,
+        type: result.conversation.type,
+        name: result.conversation.name,
+        participants: result.conversation.participants,
+        lastMessage: null,
+        unreadCount: 0,
+        isPinned: false,
+        updatedAt: new Date().toISOString(),
       });
-    },
-    [pinConversation, selectedConversation]
-  );
+      setNewConvoOpen(false);
+      setShowChat(true);
+    } catch (error) {
+      console.error("Failed to create conversation:", error);
+    }
+  };
 
-  const handleBlockUser = useCallback(
-    (action: "block" | "unblock") => {
-      if (!otherUserId) return;
-      blockUser.mutate({ userId: otherUserId, action });
-    },
-    [blockUser, otherUserId]
-  );
-
-  const handleRenameGroup = useCallback(
-    (name: string) => {
-      if (!selectedConversation) return;
-      setSelectedConversation((prev) => (prev ? { ...prev, name } : null));
-      updateGroup.mutate({ conversationId: selectedConversation.id, name });
-    },
-    [selectedConversation, updateGroup]
-  );
-
-  const handleKickMember = useCallback(
-    (targetUserId: string) => {
-      if (!selectedConversation) return;
-      setSelectedConversation((prev) =>
-        prev
-          ? {
-              ...prev,
-              participants: prev.participants.filter(
-                (p) => p.id !== targetUserId
-              ),
-            }
-          : null
-      );
-      manageMembers.mutate({
-        conversationId: selectedConversation.id,
-        targetUserId,
-        action: "kick",
+  const handleCreateGroup = async (name: string, memberIds: string[]) => {
+    try {
+      const result = await createConversation.mutateAsync({
+        type: "GROUP",
+        participantIds: memberIds,
+        name,
       });
-    },
-    [selectedConversation, manageMembers]
-  );
+      setSelectedConversation({
+        id: result.conversation.id,
+        type: result.conversation.type,
+        name: result.conversation.name,
+        creatorId: userId,
+        participants: result.conversation.participants,
+        lastMessage: null,
+        unreadCount: 0,
+        isPinned: false,
+        updatedAt: new Date().toISOString(),
+      });
+      setNewConvoOpen(false);
+      setShowChat(true);
+    } catch (error) {
+      console.error("Failed to create group:", error);
+    }
+  };
 
-  const handleLeaveGroup = useCallback(() => {
+  const handleSendMessage = async (content: string) => {
+    if (!selectedConversation) return;
+    try {
+      await sendMessage.mutateAsync({
+        conversationId: selectedConversation.id,
+        content,
+      });
+    } catch (error) {
+      console.error("Failed to send message:", error);
+    }
+  };
+
+  const handleDeleteMessage = (messageId: string, type: "forMe" | "forAll") => {
+    if (!selectedConversation) return;
+    deleteMessage.mutate({
+      messageId,
+      conversationId: selectedConversation.id,
+      type,
+    });
+  };
+
+  const handlePinConversation = (action: "pin" | "unpin") => {
+    if (!selectedConversation) return;
+    pinConversation.mutate({
+      conversationId: selectedConversation.id,
+      action,
+    });
+  };
+
+  const handleBlockUser = (action: "block" | "unblock") => {
+    if (!otherUserId) return;
+    blockUser.mutate({ userId: otherUserId, action });
+  };
+
+  const handleRenameGroup = (name: string) => {
+    if (!selectedConversation) return;
+    setSelectedConversation((prev) => (prev ? { ...prev, name } : null));
+    updateGroup.mutate({ conversationId: selectedConversation.id, name });
+  };
+
+  const handleKickMember = (targetUserId: string) => {
+    if (!selectedConversation) return;
+    setSelectedConversation((prev) =>
+      prev
+        ? {
+            ...prev,
+            participants: prev.participants.filter(
+              (p) => p.id !== targetUserId
+            ),
+          }
+        : null
+    );
+    manageMembers.mutate({
+      conversationId: selectedConversation.id,
+      targetUserId,
+      action: "kick",
+    });
+  };
+
+  const handleLeaveGroup = () => {
     if (!selectedConversation || !userId) return;
     manageMembers.mutate({
       conversationId: selectedConversation.id,
@@ -247,54 +219,53 @@ export default function ChatPage() {
     });
     setSelectedConversation(null);
     setShowChat(false);
-  }, [selectedConversation, userId, manageMembers]);
+  };
 
-  const handleDeleteGroup = useCallback(() => {
+  const handleDeleteGroup = () => {
     if (!selectedConversation) return;
     deleteGroup.mutate({ conversationId: selectedConversation.id });
     setSelectedConversation(null);
     setShowChat(false);
-  }, [selectedConversation, deleteGroup]);
+  };
 
-  const handleAddMembers = useCallback(
-    (memberIds: string[]) => {
-      if (!selectedConversation) return;
-      const newMembers = clubMembers.filter((m) => memberIds.includes(m.id));
-      setSelectedConversation((prev) =>
-        prev
-          ? {
-              ...prev,
-              participants: [
-                ...prev.participants,
-                ...newMembers.map((m) => ({
-                  id: m.id,
-                  name: m.name,
-                  image: m.image,
-                  isOnline: false,
-                })),
-              ],
-            }
-          : null
-      );
-      manageMembers.mutate({
-        conversationId: selectedConversation.id,
-        memberIds,
-        action: "add",
-      });
-    },
-    [selectedConversation, clubMembers, manageMembers]
-  );
+  const handleAddMembers = (memberIds: string[]) => {
+    if (!selectedConversation) return;
+    const newMembers = clubMembers.filter((m: ClubMember) =>
+      memberIds.includes(m.id)
+    );
+    setSelectedConversation((prev) =>
+      prev
+        ? {
+            ...prev,
+            participants: [
+              ...prev.participants,
+              ...newMembers.map((m: ClubMember) => ({
+                id: m.id,
+                name: m.name,
+                image: m.image,
+                isOnline: false,
+              })),
+            ],
+          }
+        : null
+    );
+    manageMembers.mutate({
+      conversationId: selectedConversation.id,
+      memberIds,
+      action: "add",
+    });
+  };
 
-  const handleBack = useCallback(() => {
+  const handleBack = () => {
     setShowChat(false);
-  }, []);
+  };
 
-  const handleDeleteConversation = useCallback(() => {
+  const handleDeleteConversation = () => {
     if (!selectedConversation) return;
     deleteConversation.mutate(selectedConversation.id);
     setSelectedConversation(null);
     setShowChat(false);
-  }, [selectedConversation, deleteConversation]);
+  };
 
   if (conversationsLoading && conversations.length === 0) {
     return (

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React from "react";
 import { MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +8,7 @@ interface EmptyChatProps {
   className?: string;
 }
 
-export const EmptyChat = memo(function EmptyChat({
-  className,
-}: EmptyChatProps) {
+export function EmptyChat({ className }: EmptyChatProps) {
   return (
     <div
       className={cn(
@@ -23,4 +21,4 @@ export const EmptyChat = memo(function EmptyChat({
       <p className="text-sm">ou créez-en une nouvelle</p>
     </div>
   );
-});
+}

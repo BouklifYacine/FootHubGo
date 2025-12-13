@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 import { Conversation, ClubMember, Message } from "../../types";
 import { ChatHeader } from "../ChatHeader";
@@ -44,7 +44,7 @@ interface ChatMainPanelProps {
   onAddMembers: (memberIds: string[]) => void;
 }
 
-export const ChatMainPanel = memo(function ChatMainPanel({
+export function ChatMainPanel({
   conversation,
   messages,
   messagesLoading,
@@ -141,4 +141,4 @@ export const ChatMainPanel = memo(function ChatMainPanel({
       />
     </div>
   );
-});
+}

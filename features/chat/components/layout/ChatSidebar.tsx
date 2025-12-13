@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React from "react";
 import { cn } from "@/lib/utils";
 import { ConversationSearch } from "../sidebar/ConversationSearch";
 import { ConversationList } from "../sidebar/ConversationList";
@@ -29,7 +29,7 @@ interface ChatSidebarProps {
   showChat: boolean;
 }
 
-export const ChatSidebar = memo(function ChatSidebar({
+export function ChatSidebar({
   conversations,
   selectedConversationId,
   userId,
@@ -82,4 +82,4 @@ export const ChatSidebar = memo(function ChatSidebar({
       />
     </div>
   );
-});
+}

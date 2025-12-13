@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React from "react";
 import { MoreVertical, Check, CheckCheck, Trash2, Ban } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,7 +24,7 @@ interface MessageBubbleProps {
   onDelete?: (messageId: string, type: "forMe" | "forAll") => void;
 }
 
-export const MessageBubble = memo(function MessageBubble({
+export function MessageBubble({
   message: msg,
   isOwn,
   userName,
@@ -176,4 +176,4 @@ export const MessageBubble = memo(function MessageBubble({
       </div>
     </div>
   );
-});
+}

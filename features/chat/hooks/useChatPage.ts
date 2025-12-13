@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState } from "react";
 import { useConversations } from "./useConversations";
 import { useMessages } from "./useMessages";
 import { useClubMembers } from "./useClubMembers";
@@ -41,11 +41,11 @@ export function useChatPage(userId: string | undefined) {
   const manageMembers = useManageMembers();
 
   // Block status
-  const otherUserId = useMemo(() => {
-    if (!selectedConversation || selectedConversation.type === "GROUP")
-      return undefined;
-    return selectedConversation.participants?.find((p) => p.id !== userId)?.id;
-  }, [selectedConversation, userId]);
+  const otherUserId =
+    selectedConversation?.type === "PRIVATE"
+      ? selectedConversation.participants?.find((p) => p.id !== userId)?.id
+      : undefined;
+
   const { data: blockStatus } = useBlockStatus(otherUserId);
 
   // WebSocket
@@ -59,27 +59,26 @@ export function useChatPage(userId: string | undefined) {
   const messages = messagesData?.messages || [];
   const clubMembers = membersData?.members || [];
 
-  const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations;
-    return conversations.filter((c) =>
-      c.name?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [conversations, searchQuery]);
+  const filteredConversations = !searchQuery.trim()
+    ? conversations
+    : conversations.filter((c: Conversation) =>
+        c.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
   // Helpers
-  const setConvAndShow = useCallback((conv: Conversation) => {
+  const setConvAndShow = (conv: Conversation) => {
     setSelectedConversation(conv);
     setShowChat(true);
-  }, []);
+  };
 
-  const clearConv = useCallback(() => {
+  const clearConv = () => {
     setSelectedConversation(null);
     setShowChat(false);
-  }, []);
+  };
 
   // Handlers
-  const handleStartConversation = useCallback(
-    async (member: ClubMember) => {
+  const handleStartConversation = async (member: ClubMember) => {
+    try {
       const r = await createConversation.mutateAsync({
         type: "PRIVATE",
         participantIds: [member.id],
@@ -95,12 +94,13 @@ export function useChatPage(userId: string | undefined) {
         updatedAt: new Date().toISOString(),
       });
       setNewConvoOpen(false);
-    },
-    [createConversation, setConvAndShow]
-  );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const handleCreateGroup = useCallback(
-    async (name: string, memberIds: string[]) => {
+  const handleCreateGroup = async (name: string, memberIds: string[]) => {
+    try {
       const r = await createConversation.mutateAsync({
         type: "GROUP",
         participantIds: memberIds,
@@ -118,9 +118,10 @@ export function useChatPage(userId: string | undefined) {
         updatedAt: new Date().toISOString(),
       });
       setNewConvoOpen(false);
-    },
-    [createConversation, userId, setConvAndShow]
-  );
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return {
     // State

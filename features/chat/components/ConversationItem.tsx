@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react";
+import React from "react";
 import { Users } from "lucide-react";
 import AvatarSimple from "@/components/Avatar/AvatarSimple";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,7 @@ function formatTimestamp(date: string) {
   }
 }
 
-export const ConversationItem = memo(function ConversationItem({
+export function ConversationItem({
   conversation: conv,
   isSelected,
   userId,
@@ -104,4 +104,4 @@ export const ConversationItem = memo(function ConversationItem({
       )}
     </div>
   );
-});
+}

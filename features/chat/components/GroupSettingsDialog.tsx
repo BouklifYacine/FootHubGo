@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, memo, useMemo } from "react";
+import React, { useState } from "react";
 import {
   Settings,
   Trash2,
@@ -38,7 +38,7 @@ interface GroupSettingsDialogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-export const GroupSettingsDialog = memo(function GroupSettingsDialog({
+export function GroupSettingsDialog({
   conversation,
   currentUserId,
   isCreator,
@@ -61,13 +61,14 @@ export const GroupSettingsDialog = memo(function GroupSettingsDialog({
   const [showAddMembers, setShowAddMembers] = useState(false);
   const [selectedToAdd, setSelectedToAdd] = useState<string[]>([]);
 
-  // Filter out members already in the group
-  const membersToAdd = useMemo(() => {
-    const existingIds = new Set(
-      conversation.participants?.map((p) => p.id) || []
-    );
-    return availableMembers.filter((m) => !existingIds.has(m.id));
-  }, [availableMembers, conversation.participants]);
+  // Filter out members already in the group (Derived calculation)
+  const existingParticipantIds = new Set(
+    conversation.participants?.map((p) => p.id) || []
+  );
+
+  const membersToAdd = availableMembers.filter(
+    (m) => !existingParticipantIds.has(m.id)
+  );
 
   const handleRename = () => {
     if (newName.trim() && newName.trim() !== conversation.name) {
@@ -137,7 +138,7 @@ export const GroupSettingsDialog = memo(function GroupSettingsDialog({
                     Tous les membres sont déjà dans le groupe
                   </p>
                 ) : (
-                  membersToAdd.map((member) => {
+                  membersToAdd.map((member: ClubMember) => {
                     const isSelected = selectedToAdd.includes(member.id);
                     return (
                       <div
@@ -316,4 +317,4 @@ export const GroupSettingsDialog = memo(function GroupSettingsDialog({
       </DialogContent>
     </Dialog>
   );
-});
+}
