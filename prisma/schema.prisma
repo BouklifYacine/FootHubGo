@@ -1,81 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id               String              @id @default(cuid())
-  name             String              @unique
-  email            String
-  emailVerified    Boolean
-  image            String?
-  role             Roles               @default(utilisateur)
-  abonnement       Abonnement?
-  plan             Plan                @default(free)
-  clientId         String?             @unique
-  resetToken       String?
-  resetTokenExpiry DateTime?
-  createdAt        DateTime
-  updatedAt        DateTime
-  sessions         Session[]
-  accounts         Account[]
-  presences        Presence[]
-  statsJoueur      StatistiqueJoueur[]
+  id                       String                    @id @default(cuid())
+  name                     String                    @unique
+  email                    String                    @unique
+  emailVerified            Boolean
+  image                    String?
+  role                     Roles                     @default(utilisateur)
+  plan                     Plan                      @default(free)
+  clientId                 String?                   @unique
+  resetToken               String?
+  resetTokenExpiry         DateTime?
+  createdAt                DateTime
+  updatedAt                DateTime
+  Convocation              Convocation[]
+  MembreEquipe             MembreEquipe[]
+  abonnement               Abonnement?
+  accounts                 Account[]
+  blessures                Blessure[]
+  conversationParticipants ConversationParticipant[]
+  demandesAdhesion         DemandeAdhesion[]
+  finances                 Finance[]
+  sentMessages             Message[]
+  notifications            Notification[]
+  presences                Presence[]
+  reponsesSondages         ReponseSondage[]
+  sessions                 Session[]
+  sondagesCrees            Sondage[]
+  statsJoueur              StatistiqueJoueur[]
+  clubsFavoris             Equipe[]                  @relation("ClubsFavoris")
+  user_A                   User[]                    @relation("JoueursFavoris")
+  user_B                   User[]                    @relation("JoueursFavoris")
+  isOnline                 Boolean                   @default(false)
+  lastSeen                 DateTime?
+  messageDeletions         MessageDeletion[]
 
-  // Relations améliorées
-  MembreEquipe     MembreEquipe[]
-  demandesAdhesion DemandeAdhesion[]
-  blessures        Blessure[]
-  finances         Finance[]
-
-  // Système de favoris simplifié
-  joueursFavoris User[]   @relation("JoueursFavoris")
-  favorisPar     User[]   @relation("JoueursFavoris")
-  clubsFavoris   Equipe[] @relation("ClubsFavoris")
-
-  // Relations sondages
-  sondagesCrees    Sondage[]
-  reponsesSondages ReponseSondage[]
-  Convocation      Convocation[]
-  notifications    Notification[]
-
-  @@unique([email])
   @@map("user")
 }
 
 model Equipe {
-  id             String   @id @default(cuid())
+  id             String              @id @default(cuid())
   nom            String
   description    String?
   logoUrl        String?
-  dateCreation   DateTime @default(now())
+  dateCreation   DateTime            @default(now())
   codeInvitation String?
-
-  statut StatutClub @default(PUBLIC)
-  niveau NiveauClub @default(LOISIR)
-
-  // Relations
-  MembreEquipe MembreEquipe[]
-  evenements   Evenement[]
-  statsEquipe  StatistiqueEquipe[]
-  demandes     DemandeAdhesion[]
-  finances     Finance[]
-  blessures    Blessure[]
-  sondages     Sondage[]
-
-  // Relation inverse pour les favoris
-  dansFavorisDe User[] @relation("ClubsFavoris")
+  statut         StatutClub          @default(PUBLIC)
+  niveau         NiveauClub          @default(LOISIR)
+  MembreEquipe   MembreEquipe[]
+  blessures      Blessure[]
+  demandes       DemandeAdhesion[]
+  evenements     Evenement[]
+  finances       Finance[]
+  sondages       Sondage[]
+  statsEquipe    StatistiqueEquipe[]
+  dansFavorisDe  User[]              @relation("ClubsFavoris")
 
   @@map("equipe")
 }
-
-// ==============================================
-// MODÈLES DE RELATIONS ET FONCTIONNALITÉS
-// ==============================================
 
 model MembreEquipe {
   id         String       @id @default(cuid())
@@ -83,11 +72,10 @@ model MembreEquipe {
   poste      PosteJoueur?
   isLicensed Boolean      @default(false)
   joinedAt   DateTime     @default(now())
-
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  equipeId String
+  userId     String
+  equipeId   String
+  equipe     Equipe       @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, equipeId])
   @@map("MembreEquipe")
@@ -97,14 +85,13 @@ model DemandeAdhesion {
   id         String        @id @default(cuid())
   poste      PosteJoueur
   motivation String
-  niveau      NiveauClub
   statut     StatutDemande @default(ATTENTE)
   createdAt  DateTime      @default(now())
-
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  equipeId String
+  userId     String
+  equipeId   String
+  niveau     NiveauClub
+  equipe     Equipe        @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("demande_adhesion")
 }
@@ -116,11 +103,10 @@ model Blessure {
   startDate   DateTime
   endDate     DateTime
   isRecurring Boolean  @default(false)
-
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade)
-  equipeId String
+  userId      String
+  equipeId    String
+  equipe      Equipe   @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, startDate])
   @@map("blessure")
@@ -133,34 +119,26 @@ model Finance {
   description  String
   isPaid       Boolean     @default(false)
   dateEcheance DateTime?
-
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  userId   String
-  equipe   Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  equipeId String
+  userId       String
+  equipeId     String
+  equipe       Equipe      @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("finance")
 }
 
 model Convocation {
   id          String            @id @default(cuid())
-  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId      String
-  evenement   Evenement         @relation(fields: [evenementId], references: [id], onDelete: Cascade)
   evenementId String
   statut      StatutConvocation @default(EN_ATTENTE)
   dateEnvoi   DateTime          @default(now())
   dateReponse DateTime?
+  evenement   Evenement         @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, evenementId])
   @@index([evenementId, statut])
-}
-
-enum StatutConvocation {
-  EN_ATTENTE
-  CONFIRME
-  REFUSE
-  EXPIRE
 }
 
 model Evenement {
@@ -168,61 +146,50 @@ model Evenement {
   titre         String
   description   String?
   lieu          String?
-  typeEvenement TypeEvenement       @default(ENTRAINEMENT) // Maintenant avec 3 valeurs
+  typeEvenement TypeEvenement       @default(ENTRAINEMENT)
   dateDebut     DateTime
   dateCreation  DateTime            @default(now())
-  adversaire    String? // Reste optionnel
+  adversaire    String?
   locationData  Json?
   weatherData   Json?
-  equipe        Equipe              @relation(fields: [equipeId], references: [id], onDelete: Cascade)
   equipeId      String
-  presences     Presence[]
-  statsJoueur   StatistiqueJoueur[]
-  statEquipe    StatistiqueEquipe?
   Convocation   Convocation[]
+  equipe        Equipe              @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  presences     Presence[]
+  statEquipe    StatistiqueEquipe?
+  statsJoueur   StatistiqueJoueur[]
 
   @@index([equipeId])
   @@map("evenement")
 }
 
-// ==============================================
-// MODÈLES SONDAGES
-// ==============================================
-
 model Sondage {
-  id        String    @id @default(cuid())
-  question  String
-  options   String[]
-  isMulti   Boolean   @default(false)
-  expiresAt DateTime?
-  createdAt DateTime  @default(now())
-
-  createur   User   @relation(fields: [createurId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
+  id         String           @id @default(cuid())
+  question   String
+  options    String[]
+  isMulti    Boolean          @default(false)
+  expiresAt  DateTime?
+  createdAt  DateTime         @default(now())
   createurId String
-  equipe     Equipe @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   equipeId   String
-
-  reponses ReponseSondage[]
+  reponses   ReponseSondage[]
+  createur   User             @relation(fields: [createurId], references: [id], onDelete: Cascade)
+  equipe     Equipe           @relation(fields: [equipeId], references: [id], onDelete: Cascade)
 
   @@map("sondage")
 }
 
 model ReponseSondage {
-  id        String   @id @default(cuid())
-  choix     String
-  createdAt DateTime @default(now())
-
-  utilisateur   User    @relation(fields: [utilisateurId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
+  id            String   @id @default(cuid())
+  choix         String
+  createdAt     DateTime @default(now())
   utilisateurId String
-  sondage       Sondage @relation(fields: [sondageId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
   sondageId     String
+  sondage       Sondage  @relation(fields: [sondageId], references: [id], onDelete: Cascade)
+  utilisateur   User     @relation(fields: [utilisateurId], references: [id], onDelete: Cascade)
 
   @@map("reponse_sondage")
 }
-
-// ==============================================
-// MODÈLES EXISTANTS (CONSERVÉS)
-// ==============================================
 
 model Abonnement {
   id        String         @id @default(cuid())
@@ -231,7 +198,7 @@ model Abonnement {
   periode   PlanAbonnement
   datedebut DateTime       @default(now())
   datefin   DateTime       @updatedAt
-  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("abonnement")
 }
@@ -239,7 +206,7 @@ model Abonnement {
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime
   updatedAt DateTime
   ipAddress String?
@@ -247,7 +214,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@map("session")
 }
 
@@ -256,7 +222,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -266,6 +231,7 @@ model Account {
   password              String?
   createdAt             DateTime
   updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -285,11 +251,10 @@ model Presence {
   id           String         @id @default(cuid())
   statut       StatutPresence @default(ATTENTE)
   dateCreation DateTime       @default(now())
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  userId      String
-  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  evenementId String
+  userId       String
+  evenementId  String
+  evenement    Evenement      @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, evenementId])
   @@map("presence")
@@ -304,55 +269,49 @@ model StatistiqueJoueur {
   titulaire      Boolean     @default(false)
   poste          PosteJoueur
   dateCreation   DateTime    @default(now())
-
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  userId      String
-  evenement   Evenement @relation(fields: [evenementId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  evenementId String
+  userId         String
+  evenementId    String
+  evenement      Evenement   @relation(fields: [evenementId], references: [id], onDelete: Cascade)
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, evenementId])
   @@map("statistique_joueur")
 }
 
 model StatistiqueEquipe {
-  id String @id @default(cuid())
-
+  id            String        @id @default(cuid())
   resultatMatch ResultatMatch
   butsMarques   Int           @default(0)
   butsEncaisses Int           @default(0)
   cleanSheet    Boolean       @default(false)
   tirsTotal     Int?
   tirsCadres    Int?
-
-  domicile     Boolean     @default(true)
-  competition  competition @default(CHAMPIONNAT)
-  adversaire   String
-  dateCreation DateTime    @default(now())
-
-  equipe      Equipe     @relation(fields: [equipeId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  equipeId    String
-  evenement   Evenement? @relation(fields: [evenementId], references: [id], onDelete: Cascade) // <-- AJOUT: Suppression en cascade
-  evenementId String?    @unique
+  domicile      Boolean       @default(true)
+  competition   competition   @default(CHAMPIONNAT)
+  adversaire    String
+  dateCreation  DateTime      @default(now())
+  equipeId      String
+  evenementId   String?       @unique
+  equipe        Equipe        @relation(fields: [equipeId], references: [id], onDelete: Cascade)
+  evenement     Evenement?    @relation(fields: [evenementId], references: [id], onDelete: Cascade)
 
   @@index([equipeId])
   @@map("statistique_equipe")
 }
 
 model Notification {
-  id        String           @id @default(cuid())
-  type      TypeNotification
-  title     String
-  message   String
-  data      Json? // Données contextuelles (matchId, blessureId, etc.)
-  read      Boolean          @default(false)
-  delivered Boolean          @default(false) // Si envoyée via WebSocket
-  createdAt DateTime         @default(now())
-
-  fromUserName  String?
+  id            String           @id @default(cuid())
+  type          TypeNotification
+  title         String
+  message       String
+  data          Json?
+  read          Boolean          @default(false)
+  delivered     Boolean          @default(false)
+  createdAt     DateTime         @default(now())
+  userId        String
   fromUserImage String?
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String
+  fromUserName  String?
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, read])
   @@index([userId, delivered])
@@ -360,9 +319,73 @@ model Notification {
   @@map("notification")
 }
 
-// ==============================================
-// ENUMS
-// ==============================================
+model Conversation {
+  id           String                    @id @default(cuid())
+  type         ConversationType          @default(PRIVATE)
+  name         String?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversation")
+}
+
+model ConversationParticipant {
+  id               String       @id @default(cuid())
+  joinedAt         DateTime     @default(now())
+  isPinned         Boolean      @default(false)
+  lastReadAt       DateTime?
+  pinnedMessageIds String[]     @default([])
+  userId           String
+  conversationId   String
+  conversation     Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversationId])
+  @@map("conversation_participant")
+}
+
+model Message {
+  id             String            @id @default(cuid())
+  content        String
+  createdAt      DateTime          @default(now())
+  read           Boolean           @default(false)
+  readAt         DateTime?
+  deletedForAll  Boolean           @default(false)
+  senderId       String
+  conversationId String
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User              @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  deletions      MessageDeletion[]
+
+  @@index([conversationId, createdAt])
+  @@map("message")
+}
+
+model MessageDeletion {
+  id        String   @id @default(cuid())
+  messageId String
+  userId    String
+  deletedAt DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@map("message_deletion")
+}
+
+enum StatutConvocation {
+  EN_ATTENTE
+  CONFIRME
+  REFUSE
+  EXPIRE
+}
+
+enum ConversationType {
+  PRIVATE
+  GROUP
+}
 
 enum TypeNotification {
   CONVOCATION_MATCH
@@ -388,7 +411,7 @@ enum Plan {
 
 enum PlanAbonnement {
   mois
-  année
+  // année
 }
 
 enum RoleEquipe {
@@ -437,7 +460,6 @@ enum competition {
   COUPE
 }
 
-// Nouveaux enums
 enum StatutClub {
   PUBLIC
   PRIVE
