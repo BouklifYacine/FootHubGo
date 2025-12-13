@@ -1,12 +1,13 @@
 "use client";
 
 import { RiDeleteBinLine } from "@remixicon/react";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Swords, MapPin } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +48,7 @@ export function EventDialog({
   canEdit = false,
 }: EventDialogProps) {
   const [isEditMode, setIsEditMode] = useState(false);
+  const router = useRouter();
 
   const createEvent = useCreateEvent();
   const updateEvent = useUpdateEvent();
@@ -67,7 +69,7 @@ export function EventDialog({
     resolver: zodResolver(EventSchema),
     defaultValues: {
       typeEvenement: "ENTRAINEMENT",
-      dateDebut: new Date(),
+      dateDebut: dayjs().add(7, "day").toDate(),
     },
   });
 
@@ -90,7 +92,7 @@ export function EventDialog({
         // Creating new event
         reset({
           titre: "",
-          dateDebut: event?.start || new Date(),
+          dateDebut: event?.start || dayjs().add(7, "day").toDate(),
           typeEvenement: "ENTRAINEMENT",
           lieu: "",
           adversaire: null,
@@ -101,6 +103,9 @@ export function EventDialog({
   }, [isOpen, event, reset]);
 
   const onSubmit = (data: EventInput) => {
+    // Guard: Only coaches can create/update events
+    if (!canEdit) return;
+
     if (isCreating) {
       createEvent.mutate(data, {
         onSuccess: () => {
@@ -121,6 +126,9 @@ export function EventDialog({
   };
 
   const handleDelete = () => {
+    // Guard: Only coaches can delete events
+    if (!canEdit) return;
+
     if (event?.id) {
       deleteEvent.mutate(event.id, {
         onSuccess: () => {
@@ -162,7 +170,10 @@ export function EventDialog({
               </div>
               <div>
                 <Label className="text-muted-foreground text-xs">Date</Label>
-                <p>{event?.start && format(event.start, "PP p")}</p>
+                <p>
+                  {event?.start &&
+                    dayjs(event.start).format("D MMMM YYYY [à] HH:mm")}
+                </p>
               </div>
               <div>
                 <Label className="text-muted-foreground text-xs">Type</Label>
@@ -315,30 +326,64 @@ export function EventDialog({
           {isViewing ? (
             <>
               {canEdit && (
-                <div className="flex w-full justify-between items-center">
+                <div className="flex w-full justify-end items-center gap-2">
+                  {(event?.typeEvenement === "CHAMPIONNAT" ||
+                    event?.typeEvenement === "COUPE") && (
+                    <Button
+                      variant="secondary"
+                      onClick={() =>
+                        router.push(`/dashboardfoothub/evenements/${event.id}`)
+                      }
+                    >
+                      Gérer convocations
+                    </Button>
+                  )}
                   <Button
                     variant="destructive"
                     size="sm"
                     onClick={handleDelete}
                     disabled={isLoading}
                   >
-                    <RiDeleteBinLine className="mr-2 h-4 w-4" />
                     Supprimer
                   </Button>
-                  <div className="flex gap-2">
-                    <Button variant="outline" onClick={onClose}>
-                      Fermer
-                    </Button>
-                    <Button onClick={() => setIsEditMode(true)}>
-                      Modifier
-                    </Button>
-                  </div>
+                  <Button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsEditMode(true);
+                    }}
+                  >
+                    Modifier
+                  </Button>
                 </div>
               )}
               {!canEdit && (
-                <Button className="w-full sm:w-auto" onClick={onClose}>
-                  Fermer
-                </Button>
+                <div className="flex w-full justify-between items-center gap-2">
+                  {(event?.typeEvenement === "CHAMPIONNAT" ||
+                    event?.typeEvenement === "COUPE") && (
+                    <Button
+                      className="w-full"
+                      onClick={() =>
+                        router.push(`/dashboardfoothub/evenements/${event.id}`)
+                      }
+                    >
+                      Voir convocation
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    className={
+                      event?.typeEvenement === "CHAMPIONNAT" ||
+                      event?.typeEvenement === "COUPE"
+                        ? "w-auto"
+                        : "w-full sm:w-auto"
+                    }
+                    variant="outline"
+                    onClick={onClose}
+                  >
+                    Fermer
+                  </Button>
+                </div>
               )}
             </>
           ) : (

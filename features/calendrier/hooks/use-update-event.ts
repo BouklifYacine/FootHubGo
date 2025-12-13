@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 import { updateEventAction } from "../actions/update-event.action";
 import { EventInput } from "../schemas/event.schema";
 

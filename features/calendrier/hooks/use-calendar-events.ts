@@ -19,7 +19,7 @@ export const useCalendarEvents = () => {
         id: e.id,
         title: e.titre,
         description: e.description,
-        location: e.location,
+        location: e.lieu,
         start: new Date(e.dateDebut),
         end: dayjs(e.dateDebut).add(2, "hour").toDate(),
         color: eventColorMap[e.typeEvenement as keyof typeof eventColorMap],

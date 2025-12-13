@@ -18,9 +18,10 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   PlusIcon,
+  Filter,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import toast from "react-hot-toast";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,14 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+
 import { CalendarEvent, CalendarView } from "../types";
 import {
   AgendaDaysToShow,
@@ -71,6 +80,29 @@ export function EventCalendar({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(
     null
   );
+
+  // Filter state - Default to empty (shows all events)
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      // If no filters are selected, show all events
+      if (selectedTypes.length === 0) return true;
+
+      // If event doesn't have a type, show it only if no filters active (already handled above)
+      // or deciding how to handle untyped events in strict filter mode...
+      // For now, if strict filter is active, untyped events are hidden unless we add an "Other" category.
+      if (!event.typeEvenement) return false;
+
+      return selectedTypes.includes(event.typeEvenement);
+    });
+  }, [events, selectedTypes]);
+
+  const toggleType = (type: string) => {
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
+    );
+  };
 
   // Add keyboard shortcuts for view switching
   useEffect(() => {
@@ -181,25 +213,13 @@ export function EventCalendar({
 
     if (event.id) {
       onEventUpdate?.(event);
-      // Show toast notification when an event is updated
-      toast(`Événement "${event.title}" mis à jour`, {
-        description: format(new Date(event.start), "d MMM yyyy", {
-          locale: fr,
-        }),
-        position: "bottom-left",
-      });
+      toast.success(`Événement "${event.title}" mis à jour`);
     } else {
       onEventAdd?.({
         ...event,
         id: Math.random().toString(36).substring(2, 11),
       });
-      // Show toast notification when an event is added
-      toast(`Événement "${event.title}" ajouté`, {
-        description: format(new Date(event.start), "d MMM yyyy", {
-          locale: fr,
-        }),
-        position: "bottom-left",
-      });
+      toast.success(`Événement "${event.title}" ajouté`);
     }
     setIsEventDialogOpen(false);
     setSelectedEvent(null);
@@ -215,12 +235,7 @@ export function EventCalendar({
 
     // Show toast notification when an event is deleted
     if (deletedEvent) {
-      toast(`Événement "${deletedEvent.title}" supprimé`, {
-        description: format(new Date(deletedEvent.start), "d MMM yyyy", {
-          locale: fr,
-        }),
-        position: "bottom-left",
-      });
+      toast.success(`Événement "${deletedEvent.title}" supprimé`);
     }
   };
 
@@ -230,12 +245,7 @@ export function EventCalendar({
     onEventUpdate?.(updatedEvent);
 
     // Show toast notification when an event is updated via drag and drop
-    toast(`Événement "${updatedEvent.title}" déplacé`, {
-      description: format(new Date(updatedEvent.start), "d MMM yyyy", {
-        locale: fr,
-      }),
-      position: "bottom-left",
-    });
+    // toast.success(`Événement "${updatedEvent.title}" déplacé`);
   };
 
   const viewTitle = useMemo(() => {
@@ -332,6 +342,51 @@ export function EventCalendar({
             </h2>
           </div>
           <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Filter size={16} />
+                  <span className="max-sm:hidden">Filtrer</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56" align="end">
+                <div className="space-y-4">
+                  <h4 className="font-medium leading-none">
+                    Types d'événements
+                  </h4>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="filter-entrainement"
+                        checked={selectedTypes.includes("ENTRAINEMENT")}
+                        onCheckedChange={() => toggleType("ENTRAINEMENT")}
+                        className="data-[state=checked]:bg-orange-500 data-[state=checked]:border-orange-500"
+                      />
+                      <Label htmlFor="filter-entrainement">Entraînement</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="filter-championnat"
+                        checked={selectedTypes.includes("CHAMPIONNAT")}
+                        onCheckedChange={() => toggleType("CHAMPIONNAT")}
+                        className="data-[state=checked]:bg-sky-500 data-[state=checked]:border-sky-500"
+                      />
+                      <Label htmlFor="filter-championnat">Championnat</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="filter-coupe"
+                        checked={selectedTypes.includes("COUPE")}
+                        onCheckedChange={() => toggleType("COUPE")}
+                        className="data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+                      />
+                      <Label htmlFor="filter-coupe">Coupe</Label>
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button className="gap-1.5 max-[479px]:h-8" variant="outline">
@@ -390,7 +445,7 @@ export function EventCalendar({
           {view === "Mois" && (
             <MonthView
               currentDate={currentDate}
-              events={events}
+              events={filteredEvents}
               onEventCreate={handleEventCreate}
               onEventSelect={handleEventSelect}
             />
@@ -398,7 +453,7 @@ export function EventCalendar({
           {view === "week" && (
             <WeekView
               currentDate={currentDate}
-              events={events}
+              events={filteredEvents}
               onEventCreate={handleEventCreate}
               onEventSelect={handleEventSelect}
             />
@@ -406,7 +461,7 @@ export function EventCalendar({
           {view === "day" && (
             <DayView
               currentDate={currentDate}
-              events={events}
+              events={filteredEvents}
               onEventCreate={handleEventCreate}
               onEventSelect={handleEventSelect}
             />
@@ -414,7 +469,7 @@ export function EventCalendar({
           {view === "agenda" && (
             <AgendaView
               currentDate={currentDate}
-              events={events}
+              events={filteredEvents}
               onEventSelect={handleEventSelect}
             />
           )}
@@ -427,8 +482,6 @@ export function EventCalendar({
             setIsEventDialogOpen(false);
             setSelectedEvent(null);
           }}
-          onDelete={handleEventDelete}
-          onSave={handleEventSave}
           canEdit={canEdit}
         />
       </CalendarDndProvider>

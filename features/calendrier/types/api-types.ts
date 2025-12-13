@@ -4,7 +4,7 @@ export type CalendarEventResponse = {
   id: string;
   titre: string;
   description?: string;
-  location?: string;
+  lieu?: string;
   typeEvenement: TypeEvenement;
   dateDebut: Date;
   adversaire?: string;
