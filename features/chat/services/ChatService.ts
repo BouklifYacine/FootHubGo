@@ -1,56 +1,21 @@
 import ky from "ky";
-import {
+import type {
   ConversationsResponse,
   MessagesResponse,
   ClubMembersResponse,
-  Conversation,
-  Message,
-} from "../types/chat.types";
+  CreateConversationResponse,
+  PinConversationResponse,
+  BlockStatusResponse,
+  ConversationInput,
+  MessageInput,
+  PinConversationInput,
+  BlockUserInput,
+} from "../types";
+import type { Conversation, Message } from "../types";
 
 const api = ky.create({
   prefixUrl: "/api",
 });
-
-// Input Types
-export interface ConversationInput {
-  type: "PRIVATE" | "GROUP";
-  participantIds: string[];
-  name?: string;
-}
-
-export interface MessageInput {
-  conversationId: string;
-  content: string;
-}
-
-export interface PinConversationInput {
-  conversationId: string;
-  action: "pin" | "unpin";
-}
-
-export interface BlockUserInput {
-  userId: string;
-  action: "block" | "unblock";
-}
-
-// Response Types
-export interface PinConversationResponse {
-  success: boolean;
-  action: string;
-  conversationId: string;
-  isPinned: boolean;
-}
-
-export interface CreateConversationResponse {
-  conversation: Conversation;
-  existed: boolean;
-}
-
-export interface BlockStatusResponse {
-  isBlockedByMe: boolean;
-  isBlockedByThem: boolean;
-  canChat: boolean;
-}
 
 export const ChatService = {
   // Conversations
