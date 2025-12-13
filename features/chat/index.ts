@@ -1,8 +1,8 @@
 // Types
-export * from "./types/chat.types";
+export * from "./types";
 
 // Services
-export { ChatService } from "./services/ChatService";
+export * from "./services";
 
 // Hooks
 export { useConversations } from "./hooks/useConversations";
@@ -21,9 +21,22 @@ export {
   useManageMembers,
 } from "./hooks/useGroupManagement";
 
-// Components
+// Components - Legacy exports (backward compatibility)
 export { ConversationItem } from "./components/ConversationItem";
 export { MessageBubble } from "./components/MessageBubble";
 export { ChatHeader } from "./components/ChatHeader";
 export { NewConversationDialog } from "./components/NewConversationDialog";
 export { GroupSettingsDialog } from "./components/GroupSettingsDialog";
+
+// Components - New organized exports
+export {
+  ConversationSearch,
+  ConversationList,
+  EmptyConversations,
+} from "./components/sidebar";
+export { ChatInput, EmojiPickerButton, SendButton } from "./components/input";
+export {
+  MessageList,
+  TypingIndicator,
+  EmptyMessages,
+} from "./components/messages";
