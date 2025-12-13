@@ -33,7 +33,10 @@ import { Label } from "@/components/ui/label";
 import { requesttojoinclubSchema } from "@/features/requesttojoinclub/schema/requesttojoinclubschema";
 import { cn } from "@/lib/utils";
 import { UseSendRequestToAClub } from "../hooks/UseSendRequestToAClub";
-import { getFormattedNiveauOptions, getFormattedPosteOptions } from "@/lib/formatEnums";
+import {
+  getFormattedNiveauOptions,
+  getFormattedPosteOptions,
+} from "@/lib/formatEnums";
 
 const validatePoste = ({ value }: { value: unknown }) => {
   const result = requesttojoinclubSchema.shape.poste.safeParse(value);
@@ -56,6 +59,7 @@ type Props = {
 
 export default function TransferRequestToaClubButton({ TeamId }: Props) {
   const [open, setOpen] = useState(false);
+  const [requestSent, setRequestSent] = useState(false);
   const mutation = UseSendRequestToAClub();
 
   const posteOptions = getFormattedPosteOptions();
@@ -69,6 +73,7 @@ export default function TransferRequestToaClubButton({ TeamId }: Props) {
     },
     onSubmit: async ({ value }) => {
       await mutation.mutateAsync({ teamId: TeamId, data: value });
+      setRequestSent(true);
       setOpen(false);
       form.reset();
     },
@@ -80,23 +85,28 @@ export default function TransferRequestToaClubButton({ TeamId }: Props) {
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-xl">
+              <Button
+                variant="outline"
+                size="icon"
+                className="rounded-xl"
+                disabled={requestSent}
+              >
                 <Handshake className="h-4 w-4" />
               </Button>
             </DialogTrigger>
           </TooltipTrigger>
           <TooltipContent className="px-2 py-1 text-xs">
-            Faire une demande pour rejoindre ce club
+            {requestSent
+              ? "Demande en attente pour ce club"
+              : "Faire une demande pour rejoindre ce club"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       <DialogContent className="sm:max-w-[550px] p-0 gap-0 overflow-hidden border-none shadow-2xl dark:bg-zinc-950/95 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
-        
         <div className="px-6 py-6 border-b dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold flex items-center gap-3 text-primary">
-          
               Rejoindre le club
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
@@ -118,17 +128,21 @@ export default function TransferRequestToaClubButton({ TeamId }: Props) {
               {(field) => (
                 <div className="space-y-2 group">
                   <Label className="text-sm font-semibold text-foreground/80 group-focus-within:text-primary transition-colors flex items-center gap-2">
-              
                     Poste souhaité *
                   </Label>
                   <Select
                     value={field.state.value}
-                    onValueChange={(val) => field.handleChange(val as PosteJoueur)}
+                    onValueChange={(val) =>
+                      field.handleChange(val as PosteJoueur)
+                    }
                   >
-                    <SelectTrigger className={cn(
+                    <SelectTrigger
+                      className={cn(
                         "h-12 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-primary/20 transition-all",
-                        field.state.meta.errors.length && "border-red-500 focus:ring-red-500/20"
-                      )}>
+                        field.state.meta.errors.length &&
+                          "border-red-500 focus:ring-red-500/20"
+                      )}
+                    >
                       <SelectValue placeholder="Sélectionnez votre poste" />
                     </SelectTrigger>
                     <SelectContent>
@@ -152,18 +166,21 @@ export default function TransferRequestToaClubButton({ TeamId }: Props) {
               {(field) => (
                 <div className="space-y-2 group">
                   <Label className="text-sm font-semibold text-foreground/80 group-focus-within:text-primary transition-colors flex items-center gap-2">
-             
-                     Votre niveau estimé *
-
+                    Votre niveau estimé *
                   </Label>
                   <Select
                     value={field.state.value}
-                    onValueChange={(val) => field.handleChange(val as NiveauClub)}
+                    onValueChange={(val) =>
+                      field.handleChange(val as NiveauClub)
+                    }
                   >
-                    <SelectTrigger className={cn(
+                    <SelectTrigger
+                      className={cn(
                         "h-12 bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-primary/20 transition-all",
-                        field.state.meta.errors.length && "border-red-500 focus:ring-red-500/20"
-                      )}>
+                        field.state.meta.errors.length &&
+                          "border-red-500 focus:ring-red-500/20"
+                      )}
+                    >
                       <SelectValue placeholder="Sélectionnez votre niveau" />
                     </SelectTrigger>
                     <SelectContent>
@@ -183,7 +200,10 @@ export default function TransferRequestToaClubButton({ TeamId }: Props) {
               )}
             </form.Field>
 
-            <form.Field name="motivation" validators={{ onChange: validateMotivation }}>
+            <form.Field
+              name="motivation"
+              validators={{ onChange: validateMotivation }}
+            >
               {(field) => (
                 <div className="space-y-2 group">
                   <Label
@@ -201,7 +221,8 @@ export default function TransferRequestToaClubButton({ TeamId }: Props) {
                     placeholder="Pourquoi voulez-vous rejoindre ce club ?"
                     className={cn(
                       "min-h-[120px] resize-none bg-zinc-50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-muted-foreground/40",
-                      field.state.meta.errors.length && "border-red-500 focus:ring-red-500/20"
+                      field.state.meta.errors.length &&
+                        "border-red-500 focus:ring-red-500/20"
                     )}
                   />
                   {field.state.meta.errors.length > 0 && (
@@ -224,7 +245,7 @@ export default function TransferRequestToaClubButton({ TeamId }: Props) {
                   Annuler
                 </Button>
               </DialogClose>
-              
+
               <Button
                 type="submit"
                 disabled={mutation.isPending}

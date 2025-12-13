@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import {
   Table,
@@ -7,16 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { ClubStats } from "@/features/club/services/club.service";
 import Image from "next/image";
-import { Handshake } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import TransferRequestToaClubButton from "@/features/requesttojoinclub/component/TransferRequestToaClubButton";
 
 interface ClubTableProps {
@@ -106,7 +100,7 @@ export function ClubTable({ clubs }: ClubTableProps) {
                 {item.stats.differenceDeButsGlobale}
               </TableCell>
               <TableCell className="text-right">
-               <TransferRequestToaClubButton TeamId={item.equipe.id}></TransferRequestToaClubButton>
+                <TransferRequestToaClubButton TeamId={item.equipe.id} />
               </TableCell>
             </TableRow>
           ))}

@@ -1,6 +1,9 @@
-import { JoinClubPayload, JoinClubResponse, RequestToJoinClubApi } from "../types/GetRequestToJoinClubTypes";
+import {
+  JoinClubPayload,
+  JoinClubResponse,
+  RequestToJoinClubApi,
+} from "../types/GetRequestToJoinClubTypes";
 import ky from "ky";
-
 
 export const GetRequestToJoinClubListService = {
   ApiCall: async (): Promise<RequestToJoinClubApi> => {
@@ -11,15 +14,39 @@ export const GetRequestToJoinClubListService = {
 };
 
 export const JoinClubService = {
-  sendRequest: async (teamId: string, data: JoinClubPayload): Promise<JoinClubResponse> => {
-    return await ky.post(`/api/requesttojoinclub/team/${teamId}`, {
-      json: data, 
-    }).json();
+  sendRequest: async (
+    teamId: string,
+    data: JoinClubPayload
+  ): Promise<JoinClubResponse> => {
+    return await ky
+      .post(`/api/requesttojoinclub/team/${teamId}`, {
+        json: data,
+      })
+      .json();
   },
 };
 
 export const DeleteRequestToJoinClubService = {
-  deleteRequest : async (teamId: string, requestId : string): Promise<JoinClubResponse> => {
-    return await ky.delete(`/api/requesttojoinclub/team/${teamId}/request/${requestId}` ).json()
-  }
-}
+  deleteRequest: async (
+    teamId: string,
+    requestId: string
+  ): Promise<JoinClubResponse> => {
+    return await ky
+      .delete(`/api/requesttojoinclub/team/${teamId}/request/${requestId}`)
+      .json();
+  },
+};
+
+export const UpdateRequestToJoinClubService = {
+  patchRequest: async (
+    teamId: string,
+    requestId: string,
+    data: JoinClubPayload
+  ): Promise<JoinClubResponse> => {
+    return await ky
+      .patch(`/api/requesttojoinclub/team/${teamId}/request/${requestId}`, {
+        json: data,
+      })
+      .json();
+  },
+};
