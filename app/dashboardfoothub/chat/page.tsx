@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -20,6 +20,7 @@ import {
   useUpdateGroup,
   useDeleteGroup,
   useManageMembers,
+  useDeleteConversation,
   Conversation,
   ClubMember,
   ChatSidebar,
@@ -59,6 +60,7 @@ export default function ChatPage() {
   const updateGroup = useUpdateGroup();
   const deleteGroup = useDeleteGroup();
   const manageMembers = useManageMembers();
+  const deleteConversation = useDeleteConversation();
 
   const otherUserId = useMemo(() => {
     if (!selectedConversation || selectedConversation.type === "GROUP")
@@ -67,10 +69,15 @@ export default function ChatPage() {
   }, [selectedConversation, userId]);
 
   const { data: blockStatus } = useBlockStatus(otherUserId);
-  const { typingUsers, emitTyping, emitStopTyping } = useChatWebSocket(
-    userId,
-    selectedConversation?.id || null
-  );
+  const { typingUsers, emitTyping, emitStopTyping, emitRead } =
+    useChatWebSocket(userId, selectedConversation?.id || null);
+
+  // Emit read receipt when messages are marked as read
+  useEffect(() => {
+    if (messagesData?.markedAsRead && selectedConversation?.id) {
+      emitRead(selectedConversation.id, messagesData.markedAsRead.readAt);
+    }
+  }, [messagesData?.markedAsRead, selectedConversation?.id, emitRead]);
 
   const conversations = useMemo(
     () => conversationsData?.conversations || [],
@@ -282,6 +289,13 @@ export default function ChatPage() {
     setShowChat(false);
   }, []);
 
+  const handleDeleteConversation = useCallback(() => {
+    if (!selectedConversation) return;
+    deleteConversation.mutate(selectedConversation.id);
+    setSelectedConversation(null);
+    setShowChat(false);
+  }, [selectedConversation, deleteConversation]);
+
   if (conversationsLoading && conversations.length === 0) {
     return (
       <div className="flex h-[calc(100vh-120px)] bg-white dark:bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg items-center justify-center">
@@ -328,6 +342,8 @@ export default function ChatPage() {
           deleteGroup.isPending ||
           manageMembers.isPending
         }
+        isRateLimited={sendMessage.isRateLimited}
+        onClearRateLimit={sendMessage.clearRateLimit}
         showChat={showChat}
         onSendMessage={handleSendMessage}
         onTyping={emitTyping}
@@ -340,8 +356,8 @@ export default function ChatPage() {
         onKickMember={handleKickMember}
         onLeaveGroup={handleLeaveGroup}
         onDeleteGroup={handleDeleteGroup}
+        onDeleteConversation={handleDeleteConversation}
         onAddMembers={handleAddMembers}
-        onUpdateConversation={setSelectedConversation}
       />
     </div>
   );

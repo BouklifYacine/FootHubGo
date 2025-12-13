@@ -110,18 +110,15 @@ export const MessageBubble = memo(function MessageBubble({
               )}
             >
               {dayjs(msg.createdAt).format("HH:mm")}
-              {/* Seen indicator for my messages */}
+              {/* Read receipt indicator for my messages - WhatsApp style */}
               {isOwn && (
-                <span className="flex items-center gap-0.5">
+                <span className="flex items-center ml-1">
                   {msg.read ? (
-                    <CheckCheck className="h-3 w-3 text-green-400" />
+                    // Green double check = message read by recipient
+                    <CheckCheck className="h-3.5 w-3.5 text-green-400" />
                   ) : (
-                    <CheckCheck className="h-3 w-3" />
-                  )}
-                  {msg.readAt && (
-                    <span className="text-[9px]">
-                      Vu {dayjs(msg.readAt).format("HH:mm")}
-                    </span>
+                    // Gray double check = message delivered but not read
+                    <CheckCheck className="h-3.5 w-3.5 text-zinc-400" />
                   )}
                 </span>
               )}

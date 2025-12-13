@@ -1,38 +1,34 @@
 "use client";
 
-import React, { memo, useCallback } from "react";
+import React, { memo } from "react";
 import { cn } from "@/lib/utils";
 import { Conversation, ClubMember, Message } from "../../types";
 import { ChatHeader } from "../ChatHeader";
 import { MessageList } from "../messages/MessageList";
 import { ChatInput } from "../input/ChatInput";
 import { BlockedWarning } from "./BlockedWarning";
+import { RateLimitWarning } from "./RateLimitWarning";
 import { EmptyChat } from "./EmptyChat";
 
 interface ChatMainPanelProps {
-  // State
   conversation: Conversation | null;
   messages: Message[];
   messagesLoading: boolean;
   typingUsers: string[];
-  // User info
   userId: string | undefined;
   userName: string;
   userImage: string | undefined;
-  // Block status
   blockStatus?: {
     isBlockedByMe?: boolean;
     isBlockedByThem?: boolean;
     canChat?: boolean;
   };
-  // Club members for adding
   clubMembers: ClubMember[];
-  // Mutation states
   isSending: boolean;
   isGroupUpdating: boolean;
-  // Mobile
+  isRateLimited: boolean;
+  onClearRateLimit: () => void;
   showChat: boolean;
-  // Handlers
   onSendMessage: (content: string) => void;
   onTyping: () => void;
   onStopTyping: () => void;
@@ -44,10 +40,8 @@ interface ChatMainPanelProps {
   onKickMember: (userId: string) => void;
   onLeaveGroup: () => void;
   onDeleteGroup: () => void;
+  onDeleteConversation: () => void;
   onAddMembers: (memberIds: string[]) => void;
-  onUpdateConversation: (
-    updater: (prev: Conversation | null) => Conversation | null
-  ) => void;
 }
 
 export const ChatMainPanel = memo(function ChatMainPanel({
@@ -62,6 +56,8 @@ export const ChatMainPanel = memo(function ChatMainPanel({
   clubMembers,
   isSending,
   isGroupUpdating,
+  isRateLimited,
+  onClearRateLimit,
   showChat,
   onSendMessage,
   onTyping,
@@ -74,59 +70,9 @@ export const ChatMainPanel = memo(function ChatMainPanel({
   onKickMember,
   onLeaveGroup,
   onDeleteGroup,
+  onDeleteConversation,
   onAddMembers,
-  onUpdateConversation,
 }: ChatMainPanelProps) {
-  // Optimistic update handlers
-  const handleRename = useCallback(
-    (name: string) => {
-      onUpdateConversation((prev) => (prev ? { ...prev, name } : null));
-      onRenameGroup(name);
-    },
-    [onUpdateConversation, onRenameGroup]
-  );
-
-  const handleKick = useCallback(
-    (targetUserId: string) => {
-      onUpdateConversation((prev) =>
-        prev
-          ? {
-              ...prev,
-              participants: prev.participants.filter(
-                (p) => p.id !== targetUserId
-              ),
-            }
-          : null
-      );
-      onKickMember(targetUserId);
-    },
-    [onUpdateConversation, onKickMember]
-  );
-
-  const handleAddMembers = useCallback(
-    (memberIds: string[]) => {
-      const newMembers = clubMembers.filter((m) => memberIds.includes(m.id));
-      onUpdateConversation((prev) =>
-        prev
-          ? {
-              ...prev,
-              participants: [
-                ...prev.participants,
-                ...newMembers.map((m) => ({
-                  id: m.id,
-                  name: m.name,
-                  image: m.image,
-                  isOnline: false,
-                })),
-              ],
-            }
-          : null
-      );
-      onAddMembers(memberIds);
-    },
-    [onUpdateConversation, onAddMembers, clubMembers]
-  );
-
   if (!conversation) {
     return <EmptyChat className={cn(showChat ? "flex" : "hidden md:flex")} />;
   }
@@ -145,11 +91,12 @@ export const ChatMainPanel = memo(function ChatMainPanel({
         onPinConversation={onPinConversation}
         onBlockUser={onBlockUser}
         isBlocked={blockStatus?.isBlockedByMe}
-        onRenameGroup={handleRename}
-        onKickMember={handleKick}
+        onRenameGroup={onRenameGroup}
+        onKickMember={onKickMember}
         onLeaveGroup={onLeaveGroup}
         onDeleteGroup={onDeleteGroup}
-        onAddMembers={handleAddMembers}
+        onDeleteConversation={onDeleteConversation}
+        onAddMembers={onAddMembers}
         availableMembers={clubMembers}
         isGroupUpdating={isGroupUpdating}
       />
@@ -173,16 +120,23 @@ export const ChatMainPanel = memo(function ChatMainPanel({
         isBlockedByThem={blockStatus?.isBlockedByThem || false}
       />
 
+      <RateLimitWarning
+        isRateLimited={isRateLimited}
+        onExpire={onClearRateLimit}
+      />
+
       <ChatInput
         onSend={onSendMessage}
         onTyping={onTyping}
         onStopTyping={onStopTyping}
-        disabled={blockStatus?.canChat === false}
+        disabled={blockStatus?.canChat === false || isRateLimited}
         isLoading={isSending}
         placeholder={
-          blockStatus?.canChat === false
-            ? "Conversation verrouillée"
-            : "Écrivez un message..."
+          isRateLimited
+            ? "Patientez avant d'envoyer..."
+            : blockStatus?.canChat === false
+              ? "Conversation verrouillée"
+              : "Écrivez un message..."
         }
       />
     </div>

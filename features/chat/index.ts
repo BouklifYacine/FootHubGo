@@ -21,6 +21,7 @@ export {
   useManageMembers,
 } from "./hooks/useGroupManagement";
 export { useChatPage } from "./hooks/useChatPage";
+export { useDeleteConversation } from "./hooks/useDeleteConversation";
 
 // Components - Legacy exports (backward compatibility)
 export { ConversationItem } from "./components/ConversationItem";
@@ -46,4 +47,5 @@ export {
   ChatMainPanel,
   EmptyChat,
   BlockedWarning,
+  RateLimitWarning,
 } from "./components/layout";

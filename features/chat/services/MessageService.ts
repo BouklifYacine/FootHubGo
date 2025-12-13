@@ -1,25 +1,18 @@
-import ky from "ky";
+import { ChatService } from "./ChatService";
 import type { MessagesResponse, MessageInput, Message } from "../types";
-
-const api = ky.create({
-  prefixUrl: "/api",
-});
 
 export const MessageService = {
   getByConversation: (conversationId: string): Promise<MessagesResponse> =>
-    api
-      .get(`chat/messages?conversationId=${conversationId}`)
-      .json<MessagesResponse>(),
+    ChatService.getMessages(conversationId),
 
   send: (data: MessageInput): Promise<{ message: Message }> =>
-    api.post("chat/messages", { json: data }).json<{ message: Message }>(),
+    ChatService.sendMessage(data),
 
-  delete: (messageId: string) =>
-    api.delete(`chat/messages/${messageId}`).json(),
+  delete: (messageId: string) => ChatService.deleteMessage(messageId),
 
   markAsRead: (conversationId: string) =>
-    api.post("chat/messages/read", { json: { conversationId } }).json(),
+    ChatService.markAsRead(conversationId),
 
   pin: (data: { conversationId: string; messageId: string }) =>
-    api.post("chat/messages/pin", { json: data }).json(),
+    ChatService.pinMessage(data),
 };

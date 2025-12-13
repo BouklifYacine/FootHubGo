@@ -3,7 +3,9 @@ import { prisma } from "@/prisma";
 import { auth } from "@/auth";
 import { headers } from "next/headers";
 
-// DELETE /api/chat/conversations/[id] - Delete a group (creator only)
+// DELETE /api/chat/conversations/[id] - Delete a conversation
+// Groups: only creator can delete
+// Private: any participant can delete
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -23,7 +25,13 @@ export async function DELETE(
   try {
     const conversation = await prisma.conversation.findUnique({
       where: { id: conversationId },
-      select: { creatorId: true, type: true },
+      select: {
+        creatorId: true,
+        type: true,
+        participants: {
+          select: { userId: true },
+        },
+      },
     });
 
     if (!conversation) {
@@ -33,25 +41,33 @@ export async function DELETE(
       );
     }
 
-    if (conversation.type !== "GROUP") {
+    // Check user is a participant
+    const isParticipant = conversation.participants.some(
+      (p) => p.userId === userId
+    );
+    if (!isParticipant) {
       return NextResponse.json(
-        { message: "Seuls les groupes peuvent être supprimés" },
-        { status: 400 }
-      );
-    }
-
-    if (conversation.creatorId !== userId) {
-      return NextResponse.json(
-        { message: "Seul le créateur peut supprimer le groupe" },
+        { message: "Accès non autorisé" },
         { status: 403 }
       );
     }
 
+    if (conversation.type === "GROUP") {
+      // Groups can only be deleted by creator
+      if (conversation.creatorId !== userId) {
+        return NextResponse.json(
+          { message: "Seul le créateur peut supprimer le groupe" },
+          { status: 403 }
+        );
+      }
+    }
+
+    // Delete the conversation (cascades to messages and participants)
     await prisma.conversation.delete({
       where: { id: conversationId },
     });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, type: conversation.type });
   } catch (error) {
     console.error("Error deleting conversation:", error);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });

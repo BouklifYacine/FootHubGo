@@ -10,6 +10,11 @@ export interface ConversationsResponse {
 export interface MessagesResponse {
   messages: Message[];
   conversationId: string;
+  markedAsRead?: {
+    messageIds: string[];
+    readAt: string;
+    readByUserId: string;
+  } | null;
 }
 
 export interface ClubMembersResponse {

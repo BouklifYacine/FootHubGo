@@ -78,6 +78,33 @@ export async function GET(request: NextRequest) {
         isPinned: participation.pinnedMessageIds.includes(msg.id),
       }));
 
+    // Mark unread messages from OTHER users as read
+    const unreadMessageIds = messages
+      .filter((msg) => msg.senderId !== userId && !msg.read)
+      .map((msg) => msg.id);
+
+    const readAt = new Date();
+
+    if (unreadMessageIds.length > 0) {
+      await prisma.message.updateMany({
+        where: {
+          id: { in: unreadMessageIds },
+        },
+        data: {
+          read: true,
+          readAt: readAt,
+        },
+      });
+
+      // Update the transformed messages to reflect read status
+      transformedMessages.forEach((msg) => {
+        if (unreadMessageIds.includes(msg.id)) {
+          msg.read = true;
+          msg.readAt = readAt.toISOString();
+        }
+      });
+    }
+
     // Update last read time for the user
     await prisma.conversationParticipant.update({
       where: {
@@ -86,13 +113,22 @@ export async function GET(request: NextRequest) {
           conversationId,
         },
       },
-      data: { lastReadAt: new Date() },
+      data: { lastReadAt: readAt },
     });
 
     return NextResponse.json({
       messages: transformedMessages,
       conversationId,
       pinnedMessageIds: participation.pinnedMessageIds,
+      // Include info for WebSocket to notify sender(s) their messages were read
+      markedAsRead:
+        unreadMessageIds.length > 0
+          ? {
+              messageIds: unreadMessageIds,
+              readAt: readAt.toISOString(),
+              readByUserId: userId,
+            }
+          : null,
     });
   } catch (error) {
     console.error("Error fetching messages:", error);

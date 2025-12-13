@@ -137,9 +137,23 @@ export function useChatWebSocket(
     }
   }, [conversationId]);
 
+  const emitRead = useCallback(
+    (targetConversationId: string, readAt: string) => {
+      if (socketRef.current && userId) {
+        socketRef.current.emit("chat:read", {
+          conversationId: targetConversationId,
+          userId,
+          readAt,
+        });
+      }
+    },
+    [userId]
+  );
+
   return {
     typingUsers,
     emitTyping,
     emitStopTyping,
+    emitRead,
   };
 }

@@ -34,6 +34,8 @@ interface GroupSettingsDialogProps {
   onAddMembers?: (memberIds: string[]) => void;
   availableMembers?: ClubMember[];
   isUpdating: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const GroupSettingsDialog = memo(function GroupSettingsDialog({
@@ -47,8 +49,13 @@ export const GroupSettingsDialog = memo(function GroupSettingsDialog({
   onAddMembers,
   availableMembers = [],
   isUpdating,
+  open: controlledOpen,
+  onOpenChange,
 }: GroupSettingsDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = onOpenChange || setInternalOpen;
+
   const [newName, setNewName] = useState(conversation.name || "");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showAddMembers, setShowAddMembers] = useState(false);
@@ -106,11 +113,13 @@ export const GroupSettingsDialog = memo(function GroupSettingsDialog({
         }
       }}
     >
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
-          <Settings className="h-4 w-4 text-zinc-500" />
-        </Button>
-      </DialogTrigger>
+      {controlledOpen === undefined && (
+        <DialogTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg">
+            <Settings className="h-4 w-4 text-zinc-500" />
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
