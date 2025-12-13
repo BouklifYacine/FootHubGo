@@ -17,3 +17,9 @@ export const JoinClubService = {
     }).json();
   },
 };
+
+export const DeleteRequestToJoinClubService = {
+  deleteRequest : async (teamId: string, requestId : string): Promise<JoinClubResponse> => {
+    return await ky.delete(`/api/requesttojoinclub/team/${teamId}/request/${requestId}` ).json()
+  }
+}

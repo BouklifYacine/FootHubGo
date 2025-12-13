@@ -27,14 +27,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { formatNiveauClub, formatPosteJoueur } from "@/lib/formatEnums"; 
+import { useDeleteRequestToAClub } from "../hooks/useDeleteRequestToAClub";
+import DeleteRequestButton from "./DeleteRequestButton";
 
 function RequestToJoinClubCard() {
   const { data: requests, isPending } = useGetRequestToJoinClub();
+  const { mutate, isPending: PendingDeleteRequest } =  useDeleteRequestToAClub()
 
-  const handleDelete = (id: string) => {
-    if(confirm("Voulez-vous vraiment annuler cette demande ?")) {
-        console.log("Suppression de la demande", id);
-    }
+  const DeleteRequest = (requestId: string, teamId: string) => {
+    mutate({requestId, teamId})
   };
 
   const handleEdit = (id: string) => {
@@ -46,16 +47,16 @@ function RequestToJoinClubCard() {
     <>
       <div className="w-full max-w-3xl flex flex-col gap-6 mx-auto md:mx-0 px-4 md:px-0">
         <h1 className="font-bold text-2xl tracking-tight text-zinc-900 dark:text-zinc-50">
-            Vos candidatures
+            Vos demandes de transfert
         </h1>
 
-        {isPending && (
+        {isPending || PendingDeleteRequest && (
           <div className="flex justify-start py-10">
             <Loader2 className="animate-spin text-zinc-400" />
           </div>
         )}
 
-        {!isPending && (!requests || requests.length === 0) && (
+        {!isPending && (!requests) && (
            <div className="flex flex-col items-center justify-center py-16 px-4 bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl text-center">
              <div className="bg-zinc-100 dark:bg-zinc-800 p-4 rounded-full mb-4">
                 <SearchX className="h-8 w-8 text-zinc-400" />
@@ -146,16 +147,7 @@ function RequestToJoinClubCard() {
 
                         <DropdownMenuSeparator />
                         
-                        <DropdownMenuItem 
-                            className="cursor-pointer gap-2 py-2.5 text-red-600 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-900/10"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(req.id);
-                            }}
-                        >
-                            <Trash2 size={16} />
-                            <span className="font-medium">Annuler la demande</span>
-                        </DropdownMenuItem>
+                      <DeleteRequestButton requestId={req.id} equipeId={req.equipeId} PendingDeleteRequest={PendingDeleteRequest} DeleteRequest={DeleteRequest}></DeleteRequestButton>
                     </DropdownMenuContent>
                   </DropdownMenu>
 
@@ -216,21 +208,13 @@ function RequestToJoinClubCard() {
                                 })}
                             </span>
                         </div>
-                        
-                        <div className="flex flex-col gap-1">
-                            <span className="text-[10px] uppercase tracking-widest text-zinc-400 font-bold">
-                                Type
-                            </span>
-                            <span className="font-bold text-base text-zinc-800 dark:text-zinc-100">
-                                Spontané
-                            </span>
-                        </div>
+                    
                     </div>
 
                     <Separator className="bg-zinc-100 dark:bg-zinc-800" />
 
                     <div className="bg-zinc-50 dark:bg-zinc-900 rounded-xl p-5 border border-zinc-100 dark:border-zinc-800">
-                        <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold mb-2 block">
+                        <span className="text-[12px] uppercase tracking-wider text-zinc-400 font-bold mb-2 block">
                             Message au coach
                         </span>
                         <p className="text-sm text-zinc-600 dark:text-zinc-300 italic leading-relaxed font-medium">

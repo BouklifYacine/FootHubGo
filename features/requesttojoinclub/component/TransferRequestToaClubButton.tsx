@@ -30,10 +30,9 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-
 import { requesttojoinclubSchema } from "@/features/requesttojoinclub/schema/requesttojoinclubschema";
 import { cn } from "@/lib/utils";
-import { useJoinClub } from "../hooks/UseSendRequestToAClub";
+import { UseSendRequestToAClub } from "../hooks/UseSendRequestToAClub";
 import { getFormattedNiveauOptions, getFormattedPosteOptions } from "@/lib/formatEnums";
 
 const validatePoste = ({ value }: { value: unknown }) => {
@@ -57,7 +56,7 @@ type Props = {
 
 export default function TransferRequestToaClubButton({ TeamId }: Props) {
   const [open, setOpen] = useState(false);
-  const mutation = useJoinClub();
+  const mutation = UseSendRequestToAClub();
 
   const posteOptions = getFormattedPosteOptions();
   const niveauOptions = getFormattedNiveauOptions();

@@ -14,7 +14,7 @@ interface RouteParams {
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
   try {
     const { id: teamId, requestid } = await params;
-     const userId = GetSessionId()
+     const userId = await GetSessionId()
 
     const existingRequest = await prisma.demandeAdhesion.findUnique({
       where: { id: requestid },
@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id: teamId, requestid } = await params;
-    const userId = GetSessionId()
+    const userId = await GetSessionId()
 
 
     const requestToDelete = await prisma.demandeAdhesion.findUnique({

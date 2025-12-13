@@ -7,7 +7,7 @@ type TeamSummary = {
   niveau: $Enums.NiveauClub;
 };
 
-type RequestBase = {
+export type RequestBase = {
   id: string;
   createdAt: Date;
   userId: string;

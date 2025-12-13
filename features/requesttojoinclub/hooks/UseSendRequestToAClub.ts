@@ -3,7 +3,7 @@ import { HTTPError } from "ky";
 import { JoinClubPayload, JoinClubResponse, JoinClubService } from "..";
 import toast from "react-hot-toast";
 
-export const useJoinClub = () => {
+export const UseSendRequestToAClub = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
