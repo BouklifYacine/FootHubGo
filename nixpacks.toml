@@ -1,23 +1,19 @@
 [phases.setup]
-nixPkgs = ["nodejs_20", "openssl"]
-nixLibs = ["gcc-unwrapped", "libuuid", "libGL"]
-nixOverlays = ["https://github.com/railwayapp/nix-npm-overlay/archive/main.tar.gz"]
-nixpkgsArchive = "ffeebf0acf3ae8b29f8c7049cd911b9636efd7e7"
-aptPkgs = ["curl", "wget"]
+nixPkgs = ["...", "nodejs_22", "openssl"]
 
 [phases.install]
 dependsOn = ["setup"]
-cmds = ["npm ci"]
-cacheDirectories = ["/root/.npm"]
+cmds = ["bun install --frozen-lockfile"]
+cacheDirectories = ["/root/.bun/install/cache"]
 paths = ["/app/node_modules/.bin"]
 
 [phases.build]
 dependsOn = ["install"]
-cmds = ["npm run build"]
+cmds = ["bun run build"]
 cacheDirectories = [".next/cache", "node_modules/.cache"]
 
 [start]
-cmd = "npm run start"
+cmd = "bun run start"
 
 [variables]
 NODE_ENV = "production"

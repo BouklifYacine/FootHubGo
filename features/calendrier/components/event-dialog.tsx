@@ -10,7 +10,6 @@ import {
   MapPin,
   Users,
   Lock,
-  MoreHorizontal,
   Pencil,
   Trash2,
 } from "lucide-react";
@@ -42,14 +41,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { CalendarEvent } from "../types";
 import { EventSchema, EventInput } from "../schemas/event.schema";
 import { useCreateEvent } from "../hooks/use-create-event";
@@ -65,27 +56,13 @@ interface EventDialogProps {
   canEdit?: boolean;
 }
 
-const presenceStatusConfig = {
-  PRESENT: {
-    label: "Présent",
-    variant: "default" as const,
-    className: "bg-green-500 hover:bg-green-600",
-  },
-  ABSENT: { label: "Absent", variant: "destructive" as const, className: "" },
-  ATTENTE: {
-    label: "En attente",
-    variant: "secondary" as const,
-    className: "",
-  },
-};
-
 export function EventDialog({
   event,
   isOpen,
   onClose,
   canEdit = false,
 }: EventDialogProps) {
-  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const router = useRouter();
 
   const createEvent = useCreateEvent();
@@ -93,7 +70,13 @@ export function EventDialog({
   const deleteEvent = useDeleteEvent();
 
   const isCreating = !event || !event.id;
+  const isEditMode = Boolean(event?.id && editingEventId === event.id);
   const isViewing = !isCreating && !isEditMode;
+
+  const handleClose = () => {
+    setEditingEventId(null);
+    onClose();
+  };
 
   // Check if modification/deletion is blocked due to stats
   const isProtected =
@@ -141,7 +124,7 @@ export function EventDialog({
       if (isCreating) {
         createEvent.mutate(data, {
           onSuccess: () => {
-            onClose();
+            handleClose();
           },
         });
       } else if (event?.id) {
@@ -149,8 +132,7 @@ export function EventDialog({
           { id: event.id, data },
           {
             onSuccess: () => {
-              setIsEditMode(false);
-              onClose();
+              handleClose();
             },
           }
         );
@@ -167,8 +149,6 @@ export function EventDialog({
   useEffect(() => {
     if (isOpen) {
       form.reset(defaultValues);
-      // Default to view mode for existing events, always edit mode for new events
-      setIsEditMode(!(event && event.id));
     }
   }, [isOpen, event, defaultValues, form]);
 
@@ -181,7 +161,7 @@ export function EventDialog({
     if (event?.id) {
       deleteEvent.mutate(event.id, {
         onSuccess: () => {
-          onClose();
+          handleClose();
         },
       });
     }
@@ -191,7 +171,7 @@ export function EventDialog({
     createEvent.isPending || updateEvent.isPending || deleteEvent.isPending;
 
   return (
-    <Dialog onOpenChange={(open) => !open && onClose()} open={isOpen}>
+    <Dialog onOpenChange={(open) => !open && handleClose()} open={isOpen}>
       <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -304,7 +284,7 @@ export function EventDialog({
                 const error = field.state.meta.errors[0]?.message;
                 return (
                   <div className="space-y-1">
-                    <Label htmlFor="typeEvenement">Type d'événement</Label>
+                    <Label htmlFor="typeEvenement">Type d&apos;événement</Label>
                     <Select
                       onValueChange={(value) => {
                         field.handleChange(
@@ -434,7 +414,7 @@ export function EventDialog({
                       <DropdownMenuItem
                         onClick={() => {
                           if (!isProtected) {
-                            setIsEditMode(true);
+                            setEditingEventId(event?.id ?? null);
                           }
                         }}
                         disabled={isProtected}
@@ -484,7 +464,7 @@ export function EventDialog({
                         : "w-full sm:w-auto"
                     }
                     variant="outline"
-                    onClick={onClose}
+                    onClick={handleClose}
                   >
                     Fermer
                   </Button>
@@ -497,9 +477,9 @@ export function EventDialog({
                 variant="outline"
                 type="button"
                 onClick={() => {
-                  if (isCreating) onClose();
+                  if (isCreating) handleClose();
                   else {
-                    setIsEditMode(false);
+                    setEditingEventId(null);
                     form.reset();
                   }
                 }}

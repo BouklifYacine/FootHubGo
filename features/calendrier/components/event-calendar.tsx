@@ -21,7 +21,6 @@ import {
   CalendarCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -57,9 +56,7 @@ import { EventDialog } from "./event-dialog";
 
 export interface EventCalendarProps {
   events?: CalendarEvent[];
-  onEventAdd?: (event: CalendarEvent) => void;
   onEventUpdate?: (event: CalendarEvent) => void;
-  onEventDelete?: (eventId: string) => void;
   className?: string;
   initialView?: CalendarView;
   canEdit?: boolean;
@@ -67,9 +64,7 @@ export interface EventCalendarProps {
 
 export function EventCalendar({
   events = [],
-  onEventAdd,
   onEventUpdate,
-  onEventDelete,
   className,
   initialView = "Mois",
   canEdit = false,
@@ -208,37 +203,6 @@ export function EventCalendar({
     setIsEventDialogOpen(true);
   };
 
-  const handleEventSave = (event: CalendarEvent) => {
-    if (!canEdit) return;
-
-    if (event.id) {
-      onEventUpdate?.(event);
-      toast.success(`Événement "${event.title}" mis à jour`);
-    } else {
-      onEventAdd?.({
-        ...event,
-        id: Math.random().toString(36).substring(2, 11),
-      });
-      toast.success(`Événement "${event.title}" ajouté`);
-    }
-    setIsEventDialogOpen(false);
-    setSelectedEvent(null);
-  };
-
-  const handleEventDelete = (eventId: string) => {
-    if (!canEdit) return;
-
-    const deletedEvent = events.find((e) => e.id === eventId);
-    onEventDelete?.(eventId);
-    setIsEventDialogOpen(false);
-    setSelectedEvent(null);
-
-    // Show toast notification when an event is deleted
-    if (deletedEvent) {
-      toast.success(`Événement "${deletedEvent.title}" supprimé`);
-    }
-  };
-
   const handleEventUpdate = (updatedEvent: CalendarEvent) => {
     if (!canEdit) return;
 
@@ -317,7 +281,7 @@ export function EventCalendar({
                 className="min-[480px]:hidden"
                 size={16}
               />
-              <span className="max-[479px]:sr-only">Aujourd'hui</span>
+              <span className="max-[479px]:sr-only">Aujourd&apos;hui</span>
             </Button>
             <div className="flex items-center sm:gap-2">
               <Button
@@ -352,7 +316,7 @@ export function EventCalendar({
               <PopoverContent className="w-56" align="end">
                 <div className="space-y-4">
                   <h4 className="font-medium leading-none">
-                    Types d'événements
+                    Types d&apos;événements
                   </h4>
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">

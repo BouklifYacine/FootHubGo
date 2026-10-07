@@ -104,7 +104,7 @@ export default function ModifyRequestButton({
               Modifier la demande
             </DialogTitle>
             <DialogDescription className="text-base pt-2">
-              Modifiez votre candidature avant qu'elle ne soit traitée.
+              Modifiez votre candidature avant qu&apos;elle ne soit traitée.
             </DialogDescription>
           </DialogHeader>
         </div>

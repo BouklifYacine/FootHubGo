@@ -68,7 +68,7 @@ function ChartsStatsTeam({ StatsEquipeData }: Props) {
 
   return (
     <div className="flex flex-col items-center justify-center p-4">
-      <h2 className="md:text-3xl text-xl font-semibold mb-4">Statistiques de l'équipe</h2>
+      <h2 className="md:text-3xl text-xl font-semibold mb-4">Statistiques de l&apos;équipe</h2>
 
       <ResponsiveContainer width={500} height={400}>
         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>

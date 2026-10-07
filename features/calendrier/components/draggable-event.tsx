@@ -51,7 +51,7 @@ export function DraggableEvent({
       data: {
         dragHandlePosition,
         event,
-        height: height || elementRef.current?.offsetHeight || null,
+        height: height ?? null,
         isFirstDay,
         isLastDay,
         isMultiDay: isMultiDayEvent,

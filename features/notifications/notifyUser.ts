@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma";
+import type { Server as SocketServer } from "socket.io";
 
 type NotificationData = {
   userId: string;
@@ -31,7 +32,7 @@ export async function notifyUser(notification: NotificationData) {
   });
 
   try {
-    const io = (globalThis as any).io;
+    const io = (globalThis as typeof globalThis & { io?: SocketServer }).io;
     if (io) {
       io.to(`user:${notification.userId}`).emit("notification", notif);
 

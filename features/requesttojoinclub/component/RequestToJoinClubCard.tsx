@@ -3,7 +3,7 @@
 import AvatarSimple from "@/components/Avatar/AvatarSimple";
 import { useGetRequestToJoinClub } from "../hooks/UseGetRequestToJoinClubUser";
 import LogoLiverpool from "@/public/england_arsenal.svg";
-import { Loader2, SearchX, MoreVertical, Eye, Trash2 } from "lucide-react";
+import { Loader2, SearchX, MoreVertical, Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -55,7 +55,7 @@ function RequestToJoinClubCard() {
               Aucune candidature
             </h3>
             <p className="text-sm text-zinc-500 max-w-xs mt-2 leading-relaxed">
-              Vous n'avez pas encore postulé dans un club.
+              Vous n&apos;avez pas encore postulé dans un club.
             </p>
           </div>
         )}
@@ -222,7 +222,7 @@ function RequestToJoinClubCard() {
                         Message au coach
                       </span>
                       <p className="text-sm text-zinc-600 dark:text-zinc-300 italic leading-relaxed font-medium">
-                        "{req.motivation}"
+                        &quot;{req.motivation}&quot;
                       </p>
                     </div>
                   </div>

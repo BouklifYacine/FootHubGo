@@ -40,7 +40,7 @@ export function useUpdateInjury(sessionId: string) {
     onSuccess: () => {
       toast.success("Blessure mise à jour avec succès");
     },
-    onError: (error: any, variables, context) => {
+    onError: (error: Error, variables, context) => {
       if (context?.previousInjuries) {
         queryClient.setQueryData(
           ["playerInjuries", sessionId],

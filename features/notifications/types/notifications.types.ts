@@ -5,6 +5,8 @@ export type Notification = {
   message: string;
   read: boolean;
   createdAt: Date;
+  fromUserName?: string | null;
+  fromUserImage?: string | null;
   user: {
     image: string | null;
     name: string;

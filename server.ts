@@ -88,14 +88,14 @@ app.prepare().then(() => {
     });
   });
 
-  (global as any).io = io;
+  (globalThis as typeof globalThis & { io?: Server }).io = io;
 
   const startServer = (port: number) => {
     httpServer
       .listen(port, () => {
         console.log(`🚀 Serveur prêt sur http://localhost:${port}`);
       })
-      .on("error", (err: any) => {
+      .on("error", (err: NodeJS.ErrnoException) => {
         if (err.code === "EADDRINUSE") {
           console.log(
             `Le port ${port} est déjà utilisé, tentative sur le port ${port + 1}`

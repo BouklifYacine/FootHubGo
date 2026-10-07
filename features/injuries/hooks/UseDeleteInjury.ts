@@ -30,7 +30,7 @@ export function useDeleteInjury(sessionId: string) {
     onSuccess: () => {
       toast.success("Blessure supprimée avec succès");
     },
-    onError: (error: any, variables, context) => {
+    onError: (error: Error, variables, context) => {
       if (context?.previousInjuries) {
         queryClient.setQueryData(
           ["playerInjuries", sessionId],

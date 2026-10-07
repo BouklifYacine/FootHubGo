@@ -14,7 +14,7 @@ import {
 } from "date-fns";
 import { fr } from "date-fns/locale"; // French locale
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { DefaultStartHour, EventGap, EventHeight } from "./constants";
 import {
@@ -83,15 +83,10 @@ export function MonthView({
     onEventSelect(event);
   };
 
-  const [isMounted, setIsMounted] = useState(false);
   const { contentRef, getVisibleEventCount } = useEventVisibility({
     eventGap: EventGap,
     eventHeight: EventHeight,
   });
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   return (
     <div className="contents" data-slot="month-view">
@@ -122,9 +117,7 @@ export function MonthView({
               const allEvents = getAllEventsForDay(events, day);
 
               const isReferenceCell = weekIndex === 0 && dayIndex === 0;
-              const visibleCount = isMounted
-                ? getVisibleEventCount(allDayEvents.length)
-                : undefined;
+              const visibleCount = getVisibleEventCount(allDayEvents.length);
               const hasMore =
                 visibleCount !== undefined &&
                 allDayEvents.length > visibleCount;
@@ -161,8 +154,7 @@ export function MonthView({
                         const isFirstDay = isSameDay(day, eventStart);
                         const isLastDay = isSameDay(day, eventEnd);
 
-                        const isHidden =
-                          isMounted && visibleCount && index >= visibleCount;
+                        const isHidden = index >= visibleCount;
 
                         if (!visibleCount) return null;
 

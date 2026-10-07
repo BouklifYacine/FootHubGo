@@ -34,7 +34,7 @@ export const CoachInjuryTable = ({ clubId }: { clubId: string }) => {
           <Activity className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold">Aucun joueur trouvé</h3>
           <p className="text-muted-foreground">
-            Il n'y a pas encore de joueurs dans votre effectif.
+            Il n&apos;y a pas encore de joueurs dans votre effectif.
           </p>
         </CardContent>
       </Card>
@@ -49,7 +49,7 @@ export const CoachInjuryTable = ({ clubId }: { clubId: string }) => {
             <div className="p-2 bg-primary/10 rounded-lg">
               <Activity className="h-6 w-6 text-primary" />
             </div>
-            État de l'effectif
+            État de l&apos;effectif
           </CardTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span className="font-medium">{players.length}</span>

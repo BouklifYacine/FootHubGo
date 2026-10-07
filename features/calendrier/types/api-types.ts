@@ -1,4 +1,4 @@
-import { Evenement, TypeEvenement } from "@/generated/prisma/browser";
+import { TypeEvenement } from "@/generated/prisma/browser";
 
 export type PresenceInfo = {
   userId: string;

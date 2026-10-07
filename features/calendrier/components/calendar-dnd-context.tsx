@@ -19,7 +19,6 @@ import {
   type ReactNode,
   useContext,
   useId,
-  useRef,
   useState,
 } from "react";
 import { CalendarEvent } from "../types";
@@ -87,9 +86,6 @@ export function CalendarDndProvider({
     };
   } | null>(null);
 
-  // Store original event dimensions
-  const eventDimensions = useRef<{ height: number }>({ height: 0 });
-
   // Configure sensors for better drag detection
   const sensors = useSensors(
     useSensor(MouseSensor, {
@@ -156,11 +152,7 @@ export function CalendarDndProvider({
     setMultiDayWidth(eventMultiDayWidth || null);
     setDragHandlePosition(eventDragHandlePosition || null);
 
-    // Store event height if provided
-    if (height) {
-      eventDimensions.current.height = height;
-      setEventHeight(height);
-    }
+    setEventHeight(height ?? active.rect.current.initial?.height ?? null);
   };
 
   const handleDragOver = (event: DragOverEvent) => {

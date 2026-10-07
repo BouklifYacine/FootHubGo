@@ -46,7 +46,7 @@ function CoachApplicationsCard({ teamId }: Props) {
             Aucune candidature
           </h3>
           <p className="text-sm text-zinc-500 max-w-xs mt-2 leading-relaxed">
-            Vous n'avez reçu aucune demande d'adhésion pour le moment.
+            Vous n&apos;avez reçu aucune demande d&apos;adhésion pour le moment.
           </p>
         </div>
       )}
@@ -146,7 +146,7 @@ function CoachApplicationsCard({ teamId }: Props) {
                           {app.user.name}
                         </DialogTitle>
                         <p className="text-sm text-zinc-500 font-medium mt-1">
-                          Demande d'adhésion
+                          Demande d&apos;adhésion
                         </p>
                       </div>
 
@@ -194,7 +194,7 @@ function CoachApplicationsCard({ teamId }: Props) {
                             Motivation
                           </span>
                           <p className="text-sm text-zinc-600 dark:text-zinc-300 italic leading-relaxed font-medium">
-                            "{app.motivation}"
+                            &quot;{app.motivation}&quot;
                           </p>
                         </div>
 

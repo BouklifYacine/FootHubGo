@@ -76,7 +76,7 @@ export function RejoindreClubModal({ texte }: Props) {
           <DialogHeader>
             <DialogTitle>Rejoindre un club</DialogTitle>
             <DialogDescription>
-              Entrez le code d'invitation à 6 chiffres pour rejoindre un club.
+              Entrez le code d&apos;invitation à 6 chiffres pour rejoindre un club.
             </DialogDescription>
           </DialogHeader>
           <form.Field name="codeInvitation">

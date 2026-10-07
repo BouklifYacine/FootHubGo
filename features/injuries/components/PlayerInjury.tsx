@@ -18,7 +18,7 @@ export const PlayerInjury = ({ sessionId }: { sessionId: string }) => {
         </div>
         <h3 className="text-lg font-semibold mb-1">Aucune blessure active</h3>
         <p className="text-muted-foreground">
-          L'historique de vos blessures apparaîtra ici.
+          L&apos;historique de vos blessures apparaîtra ici.
         </p>
       </div>
     );

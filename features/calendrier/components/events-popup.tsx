@@ -2,7 +2,7 @@
 
 import { format, isSameDay } from "date-fns";
 import { XIcon } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarEvent } from "../types";
 import { EventItem } from "./event-item";
 
@@ -22,6 +22,7 @@ export function EventsPopup({
   onEventSelect,
 }: EventsPopupProps) {
   const popupRef = useRef<HTMLDivElement>(null);
+  const [adjustedPosition, setAdjustedPosition] = useState(position);
 
   // Handle click outside to close popup
   useEffect(() => {
@@ -59,29 +60,21 @@ export function EventsPopup({
     onClose();
   };
 
-  // Adjust position to ensure popup stays within viewport
-  const adjustedPosition = useMemo(() => {
-    const positionCopy = { ...position };
+  // Measure after mount so the popup stays inside the viewport.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const popup = popupRef.current;
+      if (!popup) return;
 
-    // Check if we need to adjust the position to fit in the viewport
-    if (popupRef.current) {
-      const rect = popupRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+      const rect = popup.getBoundingClientRect();
+      setAdjustedPosition({
+        left: Math.max(0, Math.min(position.left, window.innerWidth - rect.width)),
+        top: Math.max(0, Math.min(position.top, window.innerHeight - rect.height)),
+      });
+    });
 
-      // Adjust horizontally if needed
-      if (positionCopy.left + rect.width > viewportWidth) {
-        positionCopy.left = Math.max(0, viewportWidth - rect.width);
-      }
-
-      // Adjust vertically if needed
-      if (positionCopy.top + rect.height > viewportHeight) {
-        positionCopy.top = Math.max(0, viewportHeight - rect.height);
-      }
-    }
-
-    return positionCopy;
-  }, [position]);
+    return () => cancelAnimationFrame(frame);
+  }, [events.length, position]);
 
   return (
     <div

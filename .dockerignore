@@ -53,6 +53,9 @@ Thumbs.db
 .cache
 .parcel-cache
 .eslintcache
+generated
+.env
+.env.*
 
 # Fichiers de sauvegarde
 *.bak

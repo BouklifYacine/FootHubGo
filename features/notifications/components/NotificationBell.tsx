@@ -80,8 +80,8 @@ export function NotificationBell({ userId }: { userId?: string } = {}) {
           </div>
         ) : (
           notifications.map((notif) => {
-            const fromName = (notif as any).fromUserName;
-            const fromImage = (notif as any).fromUserImage;
+            const fromName = notif.fromUserName;
+            const fromImage = notif.fromUserImage;
 
             return (
               <div

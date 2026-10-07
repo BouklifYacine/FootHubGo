@@ -49,7 +49,7 @@ export function AgendaView({
           />
           <h3 className="font-medium text-lg">Aucun événement trouvé</h3>
           <p className="text-muted-foreground">
-            Il n'y a aucun événement prévu pour cette période.
+            Il n&apos;y a aucun événement prévu pour cette période.
           </p>
         </div>
       ) : (

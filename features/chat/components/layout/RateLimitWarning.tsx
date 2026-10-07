@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 
 interface RateLimitWarningProps {
@@ -12,35 +12,27 @@ export function RateLimitWarning({
   isRateLimited,
   onExpire,
 }: RateLimitWarningProps) {
+  if (!isRateLimited) return null;
+
+  return <RateLimitCountdown onExpire={onExpire} />;
+}
+
+function RateLimitCountdown({ onExpire }: { onExpire?: () => void }) {
+  const countdownRef = useRef(60);
   const [countdown, setCountdown] = useState(60);
 
   useEffect(() => {
-    if (!isRateLimited) {
-      setCountdown(60);
-      return;
-    }
-
     const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          return 0;
-        }
-        return prev - 1;
-      });
+      countdownRef.current -= 1;
+      if (countdownRef.current <= 0) {
+        countdownRef.current = 60;
+        onExpire?.();
+      }
+      setCountdown(countdownRef.current);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isRateLimited]);
-
-  // Handle expiration when countdown reaches 0
-  useEffect(() => {
-    if (countdown === 0 && isRateLimited) {
-      onExpire?.();
-      setCountdown(60);
-    }
-  }, [countdown, isRateLimited, onExpire]);
-
-  if (!isRateLimited) return null;
+  }, [onExpire]);
 
   return (
     <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm text-center border-t border-amber-200 dark:border-amber-800/30 flex items-center justify-center gap-2">

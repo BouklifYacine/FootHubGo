@@ -25,7 +25,7 @@ export function ClubTable({ clubs }: ClubTableProps) {
           Aucun club trouvé
         </p>
         <p className="text-sm text-muted-foreground mt-1">
-          Il n'y a actuellement aucun club inscrit sur la plateforme.
+          Il n&apos;y a actuellement aucun club inscrit sur la plateforme.
         </p>
       </div>
     );

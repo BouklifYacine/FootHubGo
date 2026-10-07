@@ -112,7 +112,7 @@ export function BoutonModifierStatsEquipe({ eventid, statsEquipe }: Props) {
 
       <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Modifier les statistiques d'équipe</DialogTitle>
+          <DialogTitle>Modifier les statistiques d&apos;équipe</DialogTitle>
           <DialogDescription>
             Ajustez les informations sur la performance de votre équipe
           </DialogDescription>
