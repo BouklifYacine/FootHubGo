@@ -9,9 +9,11 @@ const messages: Record<string, string> = {
   INVALID_OTP: "Code invalide",
   OTP_EXPIRED: "Code expiré, demandez-en un nouveau",
   TOO_MANY_ATTEMPTS: "Trop de tentatives, demandez un nouveau code",
+  ACCOUNT_LOCKED: "Trop de tentatives sur ce compte, réessayez dans 15 minutes",
 };
 
 export function authErrorMessage(error: { code?: string; status?: number } | null | undefined) {
+  if (error?.code === "ACCOUNT_LOCKED") return messages.ACCOUNT_LOCKED;
   if (error?.status === 429) return "Trop de tentatives, réessayez dans quelques instants";
   return (error?.code && messages[error.code]) || "Une erreur est survenue";
 }

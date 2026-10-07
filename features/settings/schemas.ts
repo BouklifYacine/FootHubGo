@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { emailSchema, nameSchema, passwordSchema } from "@/features/auth/schemas";
+import { codeSchema, emailSchema, nameSchema, passwordSchema } from "@/features/auth/schemas";
 
 /** Current password, asked before every sensitive change (verified server side). */
 const currentPasswordSchema = z.string().min(1, "Vous devez mettre votre mot de passe actuel");
@@ -9,10 +9,14 @@ export const updateNameSchema = z.object({ name: nameSchema, password: z.string(
 
 export const updateEmailSchema = z.object({ email: emailSchema, password: currentPasswordSchema });
 
+export const confirmEmailChangeSchema = z.object({ code: codeSchema });
+
 export const updatePasswordSchema = z.object({
   currentPassword: currentPasswordSchema,
   newPassword: passwordSchema,
 });
+
+export const notificationPreferencesSchema = z.object({ emailReminders: z.boolean() });
 
 export const deleteAccountSchema = z.object({ password: z.string() });
 

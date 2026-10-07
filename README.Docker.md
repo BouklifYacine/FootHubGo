@@ -37,6 +37,35 @@ docker compose down
 
 Au démarrage, le conteneur exécute `bun run db:deploy` avec le CLI Prisma local 7.10.0, puis démarre `server.ts` via `bun run start` (`tsx server.ts`). Le serveur personnalisé conserve Socket.IO; le build standalone de Next.js n’est pas utilisé.
 
+### Reverse proxy et adresse IP des clients
+
+Les limites de tentatives (connexion, code d'invitation, mot de passe) sont calculées par adresse IP.
+Le serveur (`server.ts`) détermine cette IP **une seule fois** et ignore les en-têtes envoyés par le client :
+
+- `TRUSTED_IP_HEADER` vide (défaut) : adresse TCP de la connexion. Correct si l'application est exposée
+  directement, mais derrière un proxy tous les utilisateurs auraient l'IP du proxy.
+- Derrière un reverse proxy : `TRUSTED_IP_HEADER` = l'en-tête écrit par **votre** proxy
+  (`x-real-ip` pour Nginx/Caddy configurés ainsi, `fly-client-ip` sur Fly.io, `cf-connecting-ip` derrière
+  Cloudflare ; avec `x-forwarded-for`, la dernière valeur de la liste est utilisée).
+
+Dans ce second cas, le port de l'application **ne doit être joignable que par le proxy** : sinon un client
+peut envoyer l'en-tête lui-même et contourner les limites. Le `docker-compose.yaml` publie donc le port sur
+`127.0.0.1:3000` uniquement (le proxy tourne sur l'hôte) ; pour un proxy dans Compose, retirez `ports` et
+placez les deux services sur le même réseau.
+
+Exemple Caddy (sur l'hôte) :
+
+```
+foothubgo.example.fr {
+  reverse_proxy 127.0.0.1:3000 {
+    header_up X-Real-IP {remote_host}
+  }
+}
+```
+
+avec `TRUSTED_IP_HEADER="x-real-ip"`. Les compteurs sont en mémoire : ils supposent **une seule instance**
+de l'application (voir `lib/rate-limit.ts`).
+
 ## PostgreSQL 18
 
 Les Compose utilisent `postgres:18-alpine` avec le volume `pg18_data` (l'image 18 se monte sur
@@ -59,5 +88,6 @@ Les données d'un volume 16 ne sont pas lisibles par la 18. Deux options en loca
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_ENDPOINT_URL_S3` et `S3_BUCKET_NAME` : stockage S3 compatible.
 - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` et `STRIPE_YEARLY_PRICE_ID` : Stripe.
 - `POSTGRES_USER`, `POSTGRES_PASSWORD` et `POSTGRES_DB` : base PostgreSQL du Compose local.
+- `TRUSTED_IP_HEADER` : en-tête du reverse proxy qui porte l'IP du client (voir plus haut).
 
 La liste de référence et les commentaires sont dans `env.exemple`. Ne placez pas de secrets dans l’image ou dans le dépôt.

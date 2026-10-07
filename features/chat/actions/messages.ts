@@ -2,7 +2,7 @@
 
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
-import { requireUser } from "@/lib/auth/session";
+import { findMembership, requireUser } from "@/lib/auth/session";
 import { forbidden, notFound } from "@/lib/errors";
 import { emitToConversation, emitToUser } from "@/server/realtime/emitter";
 import { conversationIdSchema, deleteMessageSchema, sendMessageSchema } from "../schemas";
@@ -19,10 +19,15 @@ export const sendMessage = action(sendMessageSchema, async ({ conversationId, co
       where: { conversationId, userId: { not: user.id } },
       select: { userId: true },
     });
-    await assertNotBlocked(
-      user.id,
-      others.map((other) => other.userId),
-    );
+    const otherIds = others.map((other) => other.userId);
+    await assertNotBlocked(user.id, otherIds);
+    // Former teammates can read their history but no longer write to each other.
+    const membership = await findMembership(user.id);
+    const stillTeammates =
+      membership !== null &&
+      (await prisma.teamMember.count({ where: { teamId: membership.teamId, userId: { in: otherIds } } })) ===
+        otherIds.length;
+    if (!stillTeammates) throw forbidden("Vous ne faites plus partie du même club que ce joueur");
   }
   await assertCanSendMessage(user.id);
 
@@ -54,7 +59,8 @@ export const deleteMessage = action(deleteMessageSchema, async ({ messageId, sco
 
   if (scope === "all") {
     if (message.senderId !== user.id) throw forbidden("Seul l'expéditeur peut supprimer pour tous");
-    await prisma.message.update({ where: { id: messageId }, data: { deletedForAll: true } });
+    // The text is erased, not only hidden.
+    await prisma.message.update({ where: { id: messageId }, data: { deletedForAll: true, content: "" } });
     await emitToConversation(message.conversationId, "chat:message_deleted", payload);
   } else {
     await prisma.messageDeletion.upsert({

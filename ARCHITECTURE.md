@@ -12,7 +12,8 @@ Data lives in PostgreSQL through Prisma 7. Client state is TanStack Query; forms
 | **Read** | `GET` route handler in `app/api/**/route.ts`, wrapped with `route()`, calling a function from `features/<f>/server/queries.ts` | `useQuery({ queryKey: queryKeys.x, queryFn: () => fetchJson(url) })` |
 | **Write** | Server action in `features/<f>/actions.ts` (`"use server"`), built with `action(schema, handler)` | `useActionMutation(action, { invalidate: [queryKeys.x] })` |
 
-Exceptions that stay REST: `app/api/auth/[...all]` (better-auth) and `app/api/webhooks/stripe` (external callers).
+Exceptions that stay REST: `app/api/auth/[...all]` (better-auth), `app/api/webhooks/stripe` and
+`app/api/unsubscribe` (one-click unsubscribe from mail clients, signed token): external callers.
 
 Why: server actions give CSRF protection, end-to-end types and no client fetch layer for writes,
 but Next.js queues them one at a time, so reads go through cacheable, parallel `GET` routes.
@@ -31,6 +32,10 @@ but Next.js queues them one at a time, so reads go through cacheable, parallel `
 | `lib/form` | `useAppForm` with `TextField`, `NumberField`, `TextareaField`, `SelectField`, `CheckboxField`, `DateField`, `SubmitButton`. |
 | `lib/enum-labels.ts` | French labels for every Prisma enum + `toOptions()` for selects. |
 | `lib/types.ts` | `Serialized<T>`: the JSON shape of a server value (Dates become strings). |
+| `lib/rate-limit.ts` | `rateLimiter(name, { max, windowMs })` + `enforceRateLimit(...)`: in-memory, one process only. |
+| `lib/client-ip.ts` | `clientIpFrom(headers)`: the client IP resolved by `server.ts` (`TRUSTED_IP_HEADER`). |
+| `lib/signed-token.ts` | Purpose-bound HMAC tokens (unsubscribe links, hashed one-time codes). |
+| `lib/security-headers.ts` | CSP and other security headers set in `next.config.ts`. |
 
 ## Feature folder
 

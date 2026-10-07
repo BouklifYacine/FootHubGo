@@ -25,6 +25,8 @@ model User {
   updatedAt                DateTime
   isOnline                 Boolean                   @default(false)
   lastSeen                 DateTime?
+  /// Event reminder emails (the day before). Turned off from the settings or the unsubscribe link.
+  emailReminders           Boolean                   @default(true)
   callUps                  CallUp[]
   memberships              TeamMember[]
   subscription             Subscription?
@@ -58,7 +60,7 @@ model Team {
   description  String?
   logoUrl      String?
   createdAt    DateTime       @default(now()) @map("dateCreation")
-  inviteCode   String?        @map("codeInvitation")
+  inviteCode   String?        @unique @map("codeInvitation")
   visibility   TeamVisibility @default(PUBLIC) @map("statut")
   level        TeamLevel      @default(RECREATIONAL) @map("niveau")
   members      TeamMember[]
@@ -218,6 +220,15 @@ model Subscription {
   user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("abonnement")
+}
+
+/// Stripe webhook events already handled: Stripe retries deliveries, each event is processed once.
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@map("stripe_event")
 }
 
 model Session {

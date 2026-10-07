@@ -30,8 +30,10 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # Published on the host loopback only: put a reverse proxy (Caddy, Nginx, Traefik) in front for
+    # HTTPS and set TRUSTED_IP_HEADER to the header it writes (see README.Docker.md).
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     env_file:
       - .env.production.local
     # Utilisation de la base de données Neon en production

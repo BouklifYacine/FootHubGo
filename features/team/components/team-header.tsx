@@ -18,6 +18,7 @@ import { DeleteTeamDialog } from "./delete-team-dialog";
 import { InitialsAvatar } from "./initials-avatar";
 import { InviteCodeDialog } from "./invite-code-dialog";
 import { TeamFormDialog } from "./team-form-dialog";
+import { formatInviteCode } from "../invite-code";
 
 type OpenDialog = "invite" | "edit" | "delete" | null;
 
@@ -79,7 +80,7 @@ export function TeamHeader({ data }: { data: MyTeam }) {
           <Badge className="rounded-xl px-3 py-1 text-xs md:text-sm">{teamLevelLabels[team.level]}</Badge>
           <p className="mt-1 text-sm font-light tracking-tighter md:text-lg">Niveau</p>
         </div>
-        {team.inviteCode && <Counter label="Code" value={team.inviteCode} mono />}
+        {team.inviteCode && <Counter label="Code" value={formatInviteCode(team.inviteCode)} mono />}
       </div>
 
       {team.description && (
@@ -111,7 +112,7 @@ export function TeamHeader({ data }: { data: MyTeam }) {
 function Counter({ label, value, mono }: { label: string; value: string | number; mono?: boolean }) {
   return (
     <div className="flex flex-col items-center">
-      <p className={`text-xl font-bold md:text-3xl ${mono ? "font-mono" : ""}`}>{value}</p>
+      <p className={mono ? "font-mono text-base font-bold md:text-xl" : "text-xl font-bold md:text-3xl"}>{value}</p>
       <p className="text-sm font-light tracking-tighter md:text-lg">{label}</p>
     </div>
   );

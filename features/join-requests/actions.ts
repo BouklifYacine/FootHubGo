@@ -3,6 +3,7 @@
 import { z } from "zod";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
+import { enforceRateLimit, rateLimiter } from "@/lib/rate-limit";
 import { findMembership, requireCoach, requireUser } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
 import { playerPositionLabels } from "@/lib/enum-labels";
@@ -23,8 +24,12 @@ async function findOwnRequest(requestId: string, userId: string) {
   return request;
 }
 
+/** Each request notifies the coaches: 10 per hour per user (send / cancel loops included). */
+const joinRequestBudget = rateLimiter("join-requests", { max: 10, windowMs: 60 * 60_000 });
+
 export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ...input }) => {
   const user = await requireUser();
+  enforceRateLimit([[joinRequestBudget, user.id]], "Trop de demandes envoyées. Réessayez plus tard.");
 
   const team = await prisma.team.findUnique({
     where: { id: teamId },

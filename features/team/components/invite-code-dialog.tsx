@@ -14,6 +14,7 @@ import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { regenerateInviteCode, removeInviteCode } from "../actions";
 import type { MyTeam } from "../hooks/use-my-team";
+import { formatInviteCode } from "../invite-code";
 
 type Props = {
   open: boolean;
@@ -39,7 +40,7 @@ export function InviteCodeDialog({ open, onOpenChange, code }: Props) {
 
   const copy = async () => {
     if (!code) return;
-    await navigator.clipboard.writeText(code);
+    await navigator.clipboard.writeText(formatInviteCode(code));
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
@@ -59,8 +60,8 @@ export function InviteCodeDialog({ open, onOpenChange, code }: Props) {
         <div className="flex flex-col gap-4 py-4">
           {code && (
             <div className="flex items-center gap-2">
-              <span className="flex-1 rounded-lg border px-4 py-2 text-center font-mono text-2xl">
-                {code}
+              <span className="flex-1 rounded-lg border px-4 py-2 text-center font-mono text-xl tracking-wider sm:text-2xl">
+                {formatInviteCode(code)}
               </span>
               <Button variant="outline" size="icon" onClick={copy} aria-label="Copier le code">
                 {copied ? <Check className="size-4" /> : <Copy className="size-4" />}

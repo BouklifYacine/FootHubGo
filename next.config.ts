@@ -1,10 +1,16 @@
 import type { NextConfig } from "next";
+import { securityHeaders } from "./lib/security-headers";
 
 // Pas de output: "standalone" : l'app tourne via le serveur custom (server.ts + Socket.IO).
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   serverExternalPackages: ["@node-rs/argon2"],
   // Avatars are uploaded through a server action (max 2 Mo, checked in features/settings/actions.ts).
   experimental: { serverActions: { bodySizeLimit: "3mb" } },
+  async headers() {
+    const dev = process.env.NODE_ENV !== "production";
+    return [{ source: "/:path*", headers: securityHeaders({ dev, appUrl: process.env.NEXT_PUBLIC_URL }) }];
+  },
   async redirects() {
     return [
       {
@@ -30,23 +36,16 @@ const nextConfig: NextConfig = {
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
     ];
   },
+  // Only the hosts of real avatars: the image optimizer must not proxy arbitrary sites.
   images: {
     remotePatterns: [
-      { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
-      { protocol: 'https', hostname: 'boilerplategogo.s3.auto.amazonaws.com' },
-      { protocol: 'https', hostname: 'boilerplategogo.fly.storage.tigris.dev' },
-      { protocol: 'https', hostname: 'github.com' },
-      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
-      { protocol: 'https', hostname: 'sportal.fr' },
-      { protocol: 'https', hostname: 'icdn.empireofthekop.com' },
-      { protocol: 'https', hostname: 'i.eurosport.com' },
-      { protocol: 'https', hostname: 'cdn.vox-cdn.com' },
-      { protocol: 'https', hostname: 'yop.l-frii.com' },
-      { protocol: 'https', hostname: 'assets.goal.com' },
-      { protocol: 'https', hostname: 't3.storage.dev' },
-      { protocol: 'https', hostname: 'fly.storage.tigris.dev' }
+      { protocol: "https", hostname: "avatars.githubusercontent.com" },
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "*.fly.storage.tigris.dev" },
+      { protocol: "https", hostname: "*.t3.storage.dev" },
+      { protocol: "https", hostname: "boilerplategogo.s3.auto.amazonaws.com" },
     ],
-  }
+  },
 };
 
 export default nextConfig;

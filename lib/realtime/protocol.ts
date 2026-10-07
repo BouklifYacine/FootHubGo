@@ -87,7 +87,7 @@ export type ClientToServerEvents = {
   "chat:typing": (payload: TypingPayload) => void;
 };
 
-export type SocketData = { userId: string; userName: string };
+export type SocketData = { userId: string; userName: string; sessionId: string };
 
 /** Error message sent by the auth middleware when the session cookie is missing / invalid. */
 export const UNAUTHORIZED_ERROR = "unauthorized";

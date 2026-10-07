@@ -2,6 +2,7 @@
 
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
+import { enforceRateLimit, rateLimiter } from "@/lib/rate-limit";
 import { requireCoach, requireMember } from "@/lib/auth/session";
 import { AppError, notFound } from "@/lib/errors";
 import { notifyUsers } from "@/features/notifications/server/notify-user";
@@ -18,8 +19,12 @@ async function findTeamPoll(pollId: string, teamId: string) {
   return poll;
 }
 
+/** Each poll notifies the whole team: 20 per hour per coach. */
+const pollBudget = rateLimiter("polls", { max: 20, windowMs: 60 * 60_000 });
+
 export const createPoll = action(createPollSchema, async ({ question, options, isMulti, expiresAt }) => {
   const { user, membership } = await requireCoach();
+  enforceRateLimit([[pollBudget, user.id]], "Trop de sondages créés. Réessayez plus tard.");
   await prisma.poll.create({
     data: { question, options, isMulti, expiresAt, creatorId: user.id, teamId: membership.teamId },
   });

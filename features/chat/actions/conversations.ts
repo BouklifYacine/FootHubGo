@@ -2,6 +2,7 @@
 
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
+import { enforceRateLimit, rateLimiter } from "@/lib/rate-limit";
 import { requireMember, requireUser } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
 import { emitToUsers, leaveConversationRoom } from "@/server/realtime/emitter";
@@ -15,8 +16,11 @@ import { assertNotBlocked, assertTeammates, requireParticipant } from "../server
 import { conversationInclude, toConversationDto } from "../server/dto";
 
 /** Opens (or reuses) a private conversation, or creates a group, with members of the caller's team. */
+const conversationBudget = rateLimiter("conversations", { max: 20, windowMs: 60 * 60_000 });
+
 export const createConversation = action(createConversationSchema, async (input) => {
   const { user, membership } = await requireMember();
+  enforceRateLimit([[conversationBudget, user.id]], "Trop de conversations créées. Réessayez plus tard.");
   const otherIds = input.type === "PRIVATE" ? [input.userId] : [...new Set(input.userIds)];
   if (otherIds.includes(user.id)) throw new AppError("Vous ne pouvez pas vous ajouter vous-même");
 

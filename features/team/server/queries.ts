@@ -1,7 +1,11 @@
 import { prisma } from "@/prisma";
 import { findMembership } from "@/lib/auth/session";
 
-/** The current user's team, its members (with active injuries) and the user's role. */
+/**
+ * The current user's team, its members and the user's role.
+ * Health data: everyone sees that a teammate is injured (`isInjured`), only the coach gets the
+ * injury details (type, dates, description).
+ */
 export async function getMyTeam(userId: string) {
   const membership = await findMembership(userId);
   if (!membership) return { team: null, members: [], role: "NO_CLUB" as const };
@@ -18,7 +22,7 @@ export async function getMyTeam(userId: string) {
           email: isCoach,
           injuries: {
             where: { teamId: membership.teamId, endDate: { gte: new Date() } },
-            select: { id: true, type: true, startDate: true, endDate: true, description: true },
+            select: { id: true, type: isCoach, startDate: isCoach, endDate: isCoach, description: isCoach },
           },
         },
       },

@@ -34,3 +34,21 @@ describe("reminderRecipients", () => {
     expect(reminderRecipients({ type: "CUP", players, attendances: [], callUps: [] })).toEqual([]);
   });
 });
+
+describe("reminderRecipients: extra player fields", () => {
+  test("the email preference is passed through to each recipient", () => {
+    const recipients = reminderRecipients({
+      type: "TRAINING",
+      players: [
+        { userId: "a", name: "a", email: "a@test.fr", emailReminders: true },
+        { userId: "b", name: "b", email: "b@test.fr", emailReminders: false },
+      ],
+      attendances: [],
+      callUps: [],
+    });
+    expect(recipients.map((r) => [r.userId, r.emailReminders])).toEqual([
+      ["a", true],
+      ["b", false],
+    ]);
+  });
+});

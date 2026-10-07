@@ -1,13 +1,16 @@
 "use server";
 
-import { randomInt } from "node:crypto";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
 import { findMembership, requireCoach, requireMember, requireUser } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
+import { clientIpFrom } from "@/lib/client-ip";
+import { enforceRateLimit, rateLimiter } from "@/lib/rate-limit";
 import { notifyUser, notifyUsers } from "@/features/notifications/server/notify-user";
 import { inviteCodeSchema, memberPositionSchema, memberRoleSchema, teamSchema } from "./schemas";
+import { generateInviteCode } from "./invite-code";
 import {
   deleteTeamWithChat,
   syncChatOnMemberJoined,
@@ -18,14 +21,18 @@ import {
 
 /* ---------- helpers ---------- */
 
-/** 6-digit invite code, unique among teams (crypto RNG, not Math.random). */
-async function generateInviteCode() {
+/** A new invite code, unique among teams (also enforced by a unique index). */
+async function newInviteCode() {
   for (;;) {
-    const code = randomInt(100_000, 1_000_000).toString();
+    const code = generateInviteCode();
     const taken = await prisma.team.findFirst({ where: { inviteCode: code }, select: { id: true } });
     if (!taken) return code;
   }
 }
+
+/** Code guessing: 5 attempts per user and 20 per IP every 10 minutes. */
+const joinAttemptsPerUser = rateLimiter("join-code-user", { max: 5, windowMs: 10 * 60_000 });
+const joinAttemptsPerIp = rateLimiter("join-code-ip", { max: 20, windowMs: 10 * 60_000 });
 
 async function assertNameAvailable(name: string, exceptTeamId?: string) {
   const existing = await prisma.team.findFirst({
@@ -67,7 +74,7 @@ export const createTeam = action(teamSchema, async (input) => {
     data: {
       ...input,
       description: input.description || null,
-      inviteCode: await generateInviteCode(),
+      inviteCode: await newInviteCode(),
       members: { create: { userId: user.id, role: "COACH" } },
     },
   });
@@ -101,7 +108,7 @@ export const regenerateInviteCode = action(z.void(), async () => {
   const { membership } = await requireCoach();
   const team = await prisma.team.update({
     where: { id: membership.teamId },
-    data: { inviteCode: await generateInviteCode() },
+    data: { inviteCode: await newInviteCode() },
     select: { inviteCode: true },
   });
   return { message: "Nouveau code d'invitation généré", data: { inviteCode: team.inviteCode } };
@@ -117,6 +124,13 @@ export const removeInviteCode = action(z.void(), async () => {
 
 export const joinTeamWithCode = action(inviteCodeSchema, async ({ inviteCode }) => {
   const user = await requireUser();
+  enforceRateLimit(
+    [
+      [joinAttemptsPerUser, user.id],
+      [joinAttemptsPerIp, clientIpFrom(await headers())],
+    ],
+    "Trop de tentatives. Réessayez dans 10 minutes.",
+  );
   if (await findMembership(user.id)) {
     throw new AppError("Vous êtes déjà membre d'un club. Quittez-le d'abord.");
   }
