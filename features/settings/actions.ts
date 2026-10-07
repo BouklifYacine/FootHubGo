@@ -2,13 +2,13 @@
 
 import { createElement } from "react";
 import { z } from "zod";
-import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
 import { requireUser, findMembership } from "@/lib/auth/session";
 import { AppError } from "@/lib/errors";
 import { hashPassword } from "@/lib/argon2";
-import { objectKeyFromUrl, publicObjectUrl, s3, S3_BUCKET } from "@/lib/s3";
+import { avatarPrefix, publicObjectUrl, s3, S3_BUCKET } from "@/lib/s3";
 import { sendEmail } from "@/emails/send-email";
 import {
   AccountDeletedEmail,
@@ -18,6 +18,7 @@ import {
 } from "@/emails/account-emails";
 import { cancelCustomerSubscriptions } from "@/features/billing/server/subscriptions";
 import { verifyCurrentPassword } from "./server/password";
+import { deleteAllAvatars, deleteOwnAvatar } from "./server/avatar";
 import {
   AVATAR_MAX_BYTES,
   AVATAR_TYPES,
@@ -97,10 +98,10 @@ export const deleteAccount = action(deleteAccountSchema, async ({ password }) =>
 
   const dbUser = await prisma.user.findUniqueOrThrow({
     where: { id: user.id },
-    select: { clientId: true, image: true },
+    select: { clientId: true },
   });
   if (dbUser.clientId) await cancelCustomerSubscriptions(dbUser.clientId);
-  await deleteStoredAvatar(dbUser.image);
+  await deleteAllAvatars(user.id);
 
   // Sessions, accounts, subscription... are removed by `onDelete: Cascade`.
   await prisma.user.delete({ where: { id: user.id } });
@@ -131,7 +132,7 @@ export const uploadAvatar = action(avatarSchema, async (file) => {
   const user = await requireUser();
 
   const extension = file.type.split("/")[1];
-  const key = `avatars/${user.id}/${crypto.randomUUID()}.${extension}`;
+  const key = `${avatarPrefix(user.id)}${crypto.randomUUID()}.${extension}`;
   await s3.send(
     new PutObjectCommand({
       Bucket: S3_BUCKET,
@@ -145,7 +146,7 @@ export const uploadAvatar = action(avatarSchema, async (file) => {
   const previous = await prisma.user.findUnique({ where: { id: user.id }, select: { image: true } });
   const image = publicObjectUrl(key);
   await prisma.user.update({ where: { id: user.id }, data: { image } });
-  await deleteStoredAvatar(previous?.image);
+  await deleteOwnAvatar(previous?.image, user.id);
 
   return { message: "Photo de profil mise à jour", data: image };
 });
@@ -156,15 +157,6 @@ export const removeAvatar = action(z.void(), async () => {
   if (!image) throw new AppError("Aucune photo à supprimer");
 
   await prisma.user.update({ where: { id: user.id }, data: { image: null } });
-  await deleteStoredAvatar(image);
+  await deleteOwnAvatar(image, user.id);
   return { message: "Photo de profil supprimée" };
 });
-
-/** Deletes an avatar from our bucket (OAuth avatars hosted elsewhere are left alone). */
-async function deleteStoredAvatar(url: string | null | undefined) {
-  const key = url && objectKeyFromUrl(url);
-  if (!key) return;
-  await s3.send(new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: key })).catch((error) => {
-    console.error("[avatar] delete failed", key, error);
-  });
-}
