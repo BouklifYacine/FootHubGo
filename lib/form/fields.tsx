@@ -56,8 +56,15 @@ function FieldShell({
 export function TextField({
   type = "text",
   placeholder,
+  inputMode,
+  autoComplete,
   ...props
-}: BaseProps & { type?: "text" | "email" | "password" | "url"; placeholder?: string }) {
+}: BaseProps & {
+  type?: "text" | "email" | "password" | "url";
+  placeholder?: string;
+  inputMode?: "numeric" | "email" | "text";
+  autoComplete?: string;
+}) {
   const field = useFieldContext<string>();
   return (
     <FieldShell {...props}>
@@ -66,6 +73,8 @@ export function TextField({
         name={field.name}
         type={type}
         placeholder={placeholder}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
         value={field.state.value ?? ""}
         onBlur={field.handleBlur}
         onChange={(e) => field.handleChange(e.target.value)}

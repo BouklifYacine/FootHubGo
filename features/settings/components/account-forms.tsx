@@ -1,12 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { signOutAndRedirect } from "@/lib/auth-client";
 import { useAppForm } from "@/lib/form";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { PasswordField } from "@/features/auth/components/password-field";
-import { updateEmail, updateName, updatePassword } from "../actions";
-import { updateEmailSchema, updateNameSchema, updatePasswordSchema } from "../schemas";
+import { confirmEmailChange, requestEmailChange, updateName, updatePassword } from "../actions";
+import { confirmEmailChangeSchema, updateEmailSchema, updateNameSchema, updatePasswordSchema } from "../schemas";
 import { SettingsCard } from "./settings-card";
 
 /** Social-only accounts (no password) change their name without confirmation. */
@@ -44,8 +46,30 @@ export function NameForm({ currentName, hasPassword }: { currentName: string; ha
   );
 }
 
+/** Two steps: password + new address, then the code sent to that address. */
 export function EmailForm() {
-  const mutation = useActionMutation(updateEmail, { onSuccess: () => signOutAndRedirect() });
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+
+  return (
+    <SettingsCard
+      title="Email"
+      description={
+        pendingEmail
+          ? `Saisissez le code envoyé à ${pendingEmail}. Vous serez ensuite déconnecté de tous vos appareils.`
+          : "Un code de confirmation sera envoyé à la nouvelle adresse"
+      }
+    >
+      {pendingEmail ? (
+        <ConfirmEmailForm onCancel={() => setPendingEmail(null)} />
+      ) : (
+        <RequestEmailForm onSent={setPendingEmail} />
+      )}
+    </SettingsCard>
+  );
+}
+
+function RequestEmailForm({ onSent }: { onSent: (email: string) => void }) {
+  const mutation = useActionMutation(requestEmailChange, { onSuccess: (data) => onSent(data.email) });
   const form = useAppForm({
     defaultValues: { email: "", password: "" },
     validators: { onSubmit: updateEmailSchema },
@@ -53,25 +77,56 @@ export function EmailForm() {
   });
 
   return (
-    <SettingsCard title="Email" description="Vous serez déconnecté de tous vos appareils après le changement">
-      <form
-        className="grid gap-4"
-        onSubmit={(e) => {
-          e.preventDefault();
-          form.handleSubmit();
-        }}
-      >
-        <form.AppField name="email">
-          {(field) => <field.TextField label="Nouvel email" type="email" placeholder="votre@email.com" />}
-        </form.AppField>
-        <form.AppField name="password">
-          {() => <PasswordField label="Mot de passe actuel" autoComplete="current-password" />}
-        </form.AppField>
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+    >
+      <form.AppField name="email">
+        {(field) => <field.TextField label="Nouvel email" type="email" placeholder="votre@email.com" />}
+      </form.AppField>
+      <form.AppField name="password">
+        {() => <PasswordField label="Mot de passe actuel" autoComplete="current-password" />}
+      </form.AppField>
+      <form.AppForm>
+        <form.SubmitButton className="w-fit">Recevoir un code</form.SubmitButton>
+      </form.AppForm>
+    </form>
+  );
+}
+
+function ConfirmEmailForm({ onCancel }: { onCancel: () => void }) {
+  const mutation = useActionMutation(confirmEmailChange, { onSuccess: () => signOutAndRedirect() });
+  const form = useAppForm({
+    defaultValues: { code: "" },
+    validators: { onSubmit: confirmEmailChangeSchema },
+    onSubmit: ({ value }) => mutation.mutateAsync(value).catch(() => undefined),
+  });
+
+  return (
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+    >
+      <form.AppField name="code">
+        {(field) => (
+          <field.TextField label="Code reçu par email" inputMode="numeric" autoComplete="one-time-code" placeholder="123456" />
+        )}
+      </form.AppField>
+      <div className="flex gap-2">
         <form.AppForm>
-          <form.SubmitButton className="w-fit">Changer l&apos;email</form.SubmitButton>
+          <form.SubmitButton className="w-fit">Confirmer le changement</form.SubmitButton>
         </form.AppForm>
-      </form>
-    </SettingsCard>
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          Annuler
+        </Button>
+      </div>
+    </form>
   );
 }
 

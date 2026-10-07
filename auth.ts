@@ -17,7 +17,10 @@ const OTP_EXPIRES_IN_MINUTES = 10;
 export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
 
-/** Per-account lockout: 10 failed password sign-ins in 15 minutes lock the account for the rest of the window. */
+/**
+ * Per-account lockout: 10 password sign-ins in 15 minutes without a success lock the account for the
+ * rest of the window. Counted before the check (parallel attempts can't exceed it), reset on success.
+ */
 const signInFailures = rateLimiter("sign-in-failures", { max: 10, windowMs: 15 * 60_000 });
 const signInEmailOf = (body: unknown) =>
   String((body as { email?: unknown } | undefined)?.email ?? "").trim().toLowerCase();
@@ -54,7 +57,7 @@ export const auth = betterAuth({
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-in/email") return;
       const email = signInEmailOf(ctx.body);
-      if (email && !signInFailures.peek(email).ok) {
+      if (email && !signInFailures.hit(email).ok) {
         throw APIError.from("TOO_MANY_REQUESTS", {
           code: "ACCOUNT_LOCKED",
           message: "Trop de tentatives sur ce compte, réessayez dans 15 minutes",
@@ -64,9 +67,7 @@ export const auth = betterAuth({
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-in/email") return;
       const email = signInEmailOf(ctx.body);
-      if (!email) return;
-      if (isAPIError(ctx.context.returned)) signInFailures.hit(email);
-      else signInFailures.reset(email);
+      if (email && !isAPIError(ctx.context.returned)) signInFailures.reset(email);
     }),
   },
   // OAuth errors (e.g. account not linked) land on a French page instead of better-auth's default.
