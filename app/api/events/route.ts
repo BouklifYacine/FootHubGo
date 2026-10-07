@@ -13,5 +13,5 @@ const filtersSchema = z.object({
 export const GET = route(async ({ req }) => {
   const { user, membership } = await requireMember();
   const filters = filtersSchema.parse(Object.fromEntries(req.nextUrl.searchParams));
-  return listEvents(membership.teamId, user.id, filters);
+  return listEvents(membership, user.id, filters);
 });

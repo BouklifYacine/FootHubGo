@@ -33,6 +33,18 @@ export function EventDetail({ eventId }: { eventId: string }) {
     );
   }
 
+  if (event.isClubEvent) {
+    return (
+      <>
+        <EventHeader event={event} />
+        <p className="mx-auto max-w-xl text-center text-sm text-muted-foreground">
+          Événement du club : visible par toutes les sections, sans convocation ni présence à indiquer.
+        </p>
+        {event.description && <p className="mx-auto max-w-xl whitespace-pre-line text-center">{event.description}</p>}
+      </>
+    );
+  }
+
   if (event.type === "TRAINING") {
     return (
       <>

@@ -5,16 +5,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { CallUpPicker } from "@/features/call-ups/components/call-up-picker";
 import type { EventListItem } from "@/features/events/types";
 import { EventDetails } from "./event-details";
-import { EventForm } from "./event-form";
+import { EventForm, type ScopeOption } from "./event-form";
 
 export type EventDialogState = { mode: "create"; start: Date } | { mode: "view"; event: EventListItem } | null;
 
-type Props = { state: EventDialogState; canEdit: boolean; onClose: () => void };
+type Props = { state: EventDialogState; scopeOptions?: ScopeOption[]; onClose: () => void };
 
 type ViewStep = "details" | "edit" | "call-ups";
 
 /** One dialog for the calendar: create, view, then edit an event or call players up. */
-export function EventDialog({ state, canEdit, onClose }: Props) {
+export function EventDialog({ state, scopeOptions, onClose }: Props) {
   const [step, setStep] = useState<ViewStep>("details");
   const close = () => {
     setStep("details");
@@ -38,13 +38,12 @@ export function EventDialog({ state, canEdit, onClose }: Props) {
           <DialogDescription className="sr-only">{mode && title[mode]}</DialogDescription>
         </DialogHeader>
 
-        {state?.mode === "create" && <EventForm defaultStart={state.start} onDone={close} onCancel={close} />}
+        {state?.mode === "create" && <EventForm defaultStart={state.start} scopeOptions={scopeOptions} onDone={close} onCancel={close} />}
         {state?.mode === "view" && step === "edit" && <EventForm event={state.event} onDone={close} onCancel={back} />}
         {state?.mode === "view" && step === "call-ups" && <CallUpPicker eventId={state.event.id} onBack={back} />}
         {state?.mode === "view" && step === "details" && (
           <EventDetails
             event={state.event}
-            canEdit={canEdit}
             onEdit={() => setStep("edit")}
             onCallUps={() => setStep("call-ups")}
             onDeleted={close}

@@ -1,7 +1,26 @@
+import { prisma } from "@/prisma";
 import { requireTeamPage } from "@/features/auth/server/page-guards";
 import { EventCalendar } from "@/features/calendar/components/event-calendar";
+import { canManageSection, isClubAdmin } from "@/features/clubs/rules";
 
 export default async function CalendarPage() {
   const { membership } = await requireTeamPage();
-  return <EventCalendar canEdit={membership.role === "COACH"} />;
+
+  // Club OWNER / ADMIN choose who a new event is for: the active section (default), the whole club
+  // or another section of the club. The server checks the choice again (createEvent).
+  let scopeOptions: { value: string; label: string }[] | undefined;
+  if (isClubAdmin(membership.clubRole)) {
+    const sections = await prisma.team.findMany({
+      where: { clubId: membership.clubId, id: { not: membership.teamId } },
+      select: { id: true, name: true },
+      orderBy: { createdAt: "asc" },
+    });
+    scopeOptions = [
+      { value: membership.teamId, label: `${membership.team.name} (section active)` },
+      { value: "CLUB", label: "Tout le club" },
+      ...sections.map((section) => ({ value: section.id, label: section.name })),
+    ];
+  }
+
+  return <EventCalendar canEdit={canManageSection(membership, membership.teamId)} scopeOptions={scopeOptions} />;
 }

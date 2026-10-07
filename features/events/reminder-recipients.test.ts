@@ -51,4 +51,16 @@ describe("reminderRecipients: extra player fields", () => {
       ["b", false],
     ]);
   });
+
+  test("club-wide event: every club member, whatever the type", () => {
+    const recipients = reminderRecipients({
+      type: "LEAGUE",
+      isClubEvent: true,
+      players,
+      attendances: [],
+      callUps: [],
+    });
+    expect(recipients.map((r) => r.userId)).toEqual(["a", "b", "c"]);
+    expect(recipients[0].action).toContain("club");
+  });
 });

@@ -52,6 +52,12 @@ export async function sendDueReminders(now = new Date()) {
           },
         },
       },
+      // Club-wide events (no section) remind every club member.
+      club: {
+        select: {
+          members: { select: { userId: true, user: { select: { name: true, email: true, emailReminders: true } } } },
+        },
+      },
       attendances: { select: { userId: true, status: true } },
       callUps: { select: { userId: true, status: true } },
     },
@@ -69,7 +75,8 @@ export async function sendDueReminders(now = new Date()) {
 
     const recipients = reminderRecipients({
       type: event.type,
-      players: event.team.members.map((m) => ({
+      isClubEvent: event.team === null,
+      players: (event.team ?? event.club).members.map((m) => ({
         userId: m.userId,
         name: m.user.name,
         email: m.user.email,
