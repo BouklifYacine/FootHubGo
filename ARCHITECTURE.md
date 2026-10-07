@@ -88,7 +88,7 @@ update before doing the work). `DISABLE_JOBS=1` turns them off on an instance.
 
 - `dev`: daily work. Every change goes to `dev` (directly or through a short-lived `feat/*` / `fix/*` branch
   opened as a PR against `dev`). CI runs on every push and PR.
-- `main`: what is released. Only updated by a PR `dev` → `main` with a green CI, then tagged `vX.Y.Z`.
+- `main`: what is released. Only updated by a PR `dev` → `main` with a green CI; the release is automatic.
 - Delete a feature branch once merged.
 
 ## Tests, CI and releases
@@ -96,6 +96,6 @@ update before doing the work). `DISABLE_JOBS=1` turns them off on an instance.
 - Unit tests sit next to the code (`*.test.ts`, `bun test`) and target pure functions
   (rules, recurrence, recipients). Keep business rules pure so they stay testable without a database.
 - `.github/workflows/ci.yml`: typecheck, lint, tests, migrations on an empty PostgreSQL, build — on every PR.
-- `.github/workflows/release.yml`: pushing a tag `vX.Y.Z` publishes the GitHub Release (notes from
-  `CHANGELOG.md`) and the Docker image `ghcr.io/bouklifyacine/foothubgo:X.Y.Z`.
+- `.github/workflows/release.yml`: when `main` gets a `package.json` version without a release, it creates
+  the tag `vX.Y.Z`, the GitHub Release (notes from `CHANGELOG.md`) and the image `ghcr.io/bouklifyacine/foothubgo:X.Y.Z`.
 - Every PR updates the "Non publié" section of `CHANGELOG.md`.
