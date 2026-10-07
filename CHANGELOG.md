@@ -11,6 +11,58 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 
 ## [Non publié]
 
+### Ajouté
+
+- **Préférences de notification** : section « Notifications » dans les paramètres pour couper les rappels
+  d'événements par email (la notification dans l'application est toujours envoyée).
+- **Lien de désabonnement** dans les emails de rappel : un clic, sans être connecté, coupe ces emails
+  (jeton signé) ; en-têtes `List-Unsubscribe` / `List-Unsubscribe-Post` pour le bouton des messageries.
+- Variable d'environnement `TRUSTED_IP_HEADER` (en-tête du reverse proxy portant l'IP du client, voir
+  `README.Docker.md`).
+- Tests unitaires : limiteur de tentatives, codes d'invitation, jetons signés, changement d'email, résolution
+  de l'IP, type d'image, en-têtes de sécurité, règles de groupe et d'administration.
+
+### Modifié
+
+- **Codes d'invitation** de 12 caractères (`ABCD-EFGH-JKMN`, sans caractères ambigus), saisis avec ou sans
+  tirets. Les anciens codes à 6 chiffres sont remplacés par la migration : les coachs doivent partager le
+  nouveau code affiché dans « Code d'invitation ».
+- **Changement d'email** en deux étapes : un code est envoyé à la nouvelle adresse, l'email ne change
+  qu'après sa saisie. Les emails sont enregistrés en minuscules (migration des adresses existantes).
+- Mot de passe : 8 à 128 caractères (les mots de passe existants plus courts restent valides).
+- Page d'accueil : logos de clubs professionnels, photos d'entraîneurs et avis invérifiables retirés,
+  section « Pensé pour le football amateur », grille tarifaire en français (abonnement club mensuel ou annuel).
+- Les joueurs voient qu'un coéquipier est blessé, plus le détail de la blessure (réservé au coach).
+- Le classement n'affiche plus les clubs privés (sauf le sien).
+- Un membre qui quitte un club quitte aussi les groupes de discussion de ce club et ne peut plus écrire en
+  privé à ses anciens coéquipiers (l'historique reste lisible).
+- Docker Compose : l'application n'est publiée que sur `127.0.0.1:3000` (à placer derrière un reverse proxy).
+
+### Corrigé
+
+- Webhook Stripe : chaque événement n'est traité qu'une fois (table `stripe_event`), plus de double email
+  de confirmation lors des renvois de Stripe.
+- La suppression d'un compte par un administrateur supprime ses avatars et refuse de laisser un club sans
+  entraîneur.
+- Un message « supprimé pour tous » est réellement effacé en base.
+
+### Sécurité
+
+- Limites de tentatives (en mémoire, une seule instance) : code d'invitation (5 par utilisateur et 20 par IP
+  en 10 min), mot de passe actuel dans les paramètres (5 en 15 min puis déconnexion partout), connexion
+  (verrouillage du compte après 10 échecs en 15 min), demandes d'adhésion, sondages, conversations, avatars.
+- IP du client déterminée par le serveur (connexion TCP ou en-tête du proxy configuré) : `X-Forwarded-For`
+  envoyé par un client n'est plus pris en compte par les limites de better-auth.
+- Points d'accès better-auth inutilisés désactivés (`/update-user`, `/change-password`, `/change-email`) ;
+  seuls les avatars `avatars/<id>/` de l'utilisateur peuvent être supprimés du stockage.
+- Socket.IO : dépendances corrigées (engine.io, socket.io-parser, ws), connexions d'une autre origine
+  refusées, taille des messages limitée ; les sockets sont fermés à la déconnexion, au changement de mot de
+  passe ou d'email et à la suppression du compte.
+- En-têtes HTTP : CSP, HSTS (production), `X-Frame-Options`, `nosniff`, `Referrer-Policy`,
+  `Permissions-Policy` ; optimiseur d'images limité aux hôtes des avatars.
+- Avatars : type vérifié sur le contenu du fichier. Journaux d'erreurs sans les arguments des requêtes Prisma.
+- Dépendances : `defu` et `mysql2` mis à jour via `overrides`.
+
 ## [1.0.0] - 2026-10-10
 
 Première version stable : nouvelle architecture, corrections de sécurité et nouvelles fonctionnalités.
