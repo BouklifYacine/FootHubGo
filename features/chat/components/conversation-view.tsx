@@ -66,7 +66,7 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
             {c.type === "GROUP" && (
               <DropdownMenuItem onClick={() => setSettingsOpen(true)}>Paramètres du groupe</DropdownMenuItem>
             )}
-            {c.type !== "TEAM" && (
+            {c.type !== "TEAM" && c.type !== "CLUB" && (
               <DropdownMenuItem onClick={() => pin.mutate({ conversationId: c.id, pinned: !c.isPinned })}>
                 {c.isPinned ? "Désépingler" : "Épingler"}
               </DropdownMenuItem>
@@ -89,7 +89,8 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
                 Supprimer
               </DropdownMenuItem>
             )}
-            {c.type === "TEAM" && <DropdownMenuItem disabled>Salon de l&apos;équipe</DropdownMenuItem>}
+            {c.type === "TEAM" && <DropdownMenuItem disabled>Salon de la section</DropdownMenuItem>}
+            {c.type === "CLUB" && <DropdownMenuItem disabled>Salon du club</DropdownMenuItem>}
           </DropdownMenuContent>
         </DropdownMenu>
       </header>

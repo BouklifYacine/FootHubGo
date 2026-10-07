@@ -4,10 +4,15 @@ import { ADMIN_PAGE_SIZE, adminUsersFiltersSchema } from "../schemas";
 
 const PRICES = { MONTH: 5, YEAR: 50 } as const;
 
-/** User counts and subscription revenue (active subscriptions only). */
+/**
+ * User counts and subscription revenue (active subscriptions only). Subscriptions belong to clubs;
+ * legacy per-user subscriptions (users without a club) are counted too.
+ */
 export async function getAdminStats() {
-  const [totalUsers, proUsers, subscriptions] = await Promise.all([
+  const [totalUsers, totalClubs, proClubs, proUsers, subscriptions] = await Promise.all([
     prisma.user.count(),
+    prisma.club.count(),
+    prisma.club.count({ where: { plan: "pro" } }),
     prisma.user.count({ where: { plan: "pro" } }),
     prisma.subscription.groupBy({
       by: ["period"],
@@ -25,6 +30,9 @@ export async function getAdminStats() {
 
   return {
     totalUsers,
+    totalClubs,
+    proClubs,
+    /** Legacy subscribers without a club. */
     proUsers,
     monthly,
     yearly,

@@ -16,11 +16,16 @@ export const queryKeys = {
     attendances: ["me", "attendances"] as const,
   },
 
+  /** Club directory (clubs and their sections). */
   teams: {
     all: ["teams"] as const,
-    detail: (teamId: string) => ["teams", teamId] as const,
-    members: (teamId: string) => ["teams", teamId, "members"] as const,
-    joinRequests: (teamId: string) => ["teams", teamId, "join-requests"] as const,
+  },
+
+  /** The caller's club: management page and the join requests they review. */
+  club: {
+    all: ["club"] as const,
+    admin: ["club", "admin"] as const,
+    joinRequests: ["club", "join-requests"] as const,
   },
 
   events: {

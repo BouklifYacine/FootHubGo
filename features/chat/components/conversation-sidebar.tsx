@@ -29,16 +29,17 @@ type Props = {
   className?: string;
 };
 
-/** Team channel(s) first, then pinned, then the other conversations by latest activity. */
+/** Club and section channels first, then pinned, then the other conversations by latest activity. */
 export function ConversationSidebar({ conversations, myId, selectedId, onSelect, className }: Props) {
   const [search, setSearch] = useState("");
   const visible = conversations
     .filter((c) => c.name.toLowerCase().includes(search.trim().toLowerCase()))
     .toSorted(byActivity);
+  const isChannel = (c: ConversationDto) => c.type === "TEAM" || c.type === "CLUB";
   const sections = [
-    { title: "Équipe", items: visible.filter((c) => c.type === "TEAM") },
-    { title: "Épinglés", items: visible.filter((c) => c.type !== "TEAM" && c.isPinned) },
-    { title: "Messages", items: visible.filter((c) => c.type !== "TEAM" && !c.isPinned) },
+    { title: "Club et sections", items: visible.filter(isChannel).toSorted((a, b) => (a.type === "CLUB" ? -1 : b.type === "CLUB" ? 1 : 0)) },
+    { title: "Épinglés", items: visible.filter((c) => !isChannel(c) && c.isPinned) },
+    { title: "Messages", items: visible.filter((c) => !isChannel(c) && !c.isPinned) },
   ];
 
   return (

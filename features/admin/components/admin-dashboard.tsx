@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, CreditCard, Landmark, UserPlus, UserRound, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, CreditCard, Landmark, Shield, UserPlus, UserRound, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,7 +42,8 @@ function StatsRow() {
   return (
     <div className="flex flex-col gap-4 md:flex-row">
       <StatCard icon={Users} title="Utilisateurs" value={stats.totalUsers} />
-      <StatCard icon={UserPlus} title="Abonnés" value={stats.proUsers} />
+      <StatCard icon={Shield} title="Clubs" value={stats.totalClubs} />
+      <StatCard icon={UserPlus} title="Abonnements" value={stats.proClubs + stats.proUsers} />
       <StatCard icon={Landmark} title="Revenus" value={`${stats.revenue}€`} />
       <StatCard icon={CreditCard} title="MRR" value={`${stats.mrr}€`} />
       <StatCard icon={UserRound} title="Revenus / utilisateur" value={`${stats.revenuePerUser}€`} />

@@ -9,7 +9,8 @@ import { cancelCustomerSubscriptions } from "@/features/billing/server/subscript
 import { deleteAllAvatars } from "@/features/settings/server/avatar";
 import { disconnectUserSockets } from "@/server/realtime/emitter";
 import { changeUserRoleSchema, deleteUsersSchema } from "./schemas";
-import { leavesTeamWithoutCoach } from "./rules";
+import { syncChatOnClubLeft } from "@/features/team/server/team-chat";
+import { clubLosingItsOwner } from "./rules";
 
 export const changeUserRole = action(changeUserRoleSchema, async ({ userId, role }) => {
   const admin = await requireAdmin();
@@ -23,15 +24,22 @@ export const deleteUsers = action(deleteUsersSchema, async (ids) => {
   const admin = await requireAdmin();
   if (ids.includes(admin.id)) throw new AppError("Vous ne pouvez pas supprimer votre propre compte ici");
 
-  // A team must keep a coach: deleting its only coach while players remain would orphan it.
-  const coachedTeams = await prisma.teamMember.findMany({
-    where: { userId: { in: ids }, role: "COACH" },
-    select: { team: { select: { name: true, members: { select: { userId: true, role: true } } } } },
+  // A club must keep its owner (subscription, deletion): they hand it over first.
+  const owners = await prisma.clubMember.findMany({
+    where: { userId: { in: ids }, role: "OWNER" },
+    select: { userId: true, club: { select: { name: true } } },
   });
-  const orphaned = coachedTeams.find(({ team }) => leavesTeamWithoutCoach(team.members, ids));
-  if (orphaned) {
-    throw new AppError(`Le club ${orphaned.team.name} n'aurait plus d'entraîneur : nommez-en un autre d'abord`);
+  const blocking = clubLosingItsOwner(
+    owners.map((owner) => ({ userId: owner.userId, clubName: owner.club.name })),
+    ids,
+  );
+  if (blocking) {
+    throw new AppError(`Propriétaire du club ${blocking.clubName} : la propriété doit d'abord être transférée`);
   }
+  const clubMembers = await prisma.clubMember.findMany({
+    where: { userId: { in: ids } },
+    select: { userId: true, clubId: true, sectionMemberships: { select: { teamId: true } } },
+  });
 
   const users = await prisma.user.findMany({
     where: { id: { in: ids } },
@@ -39,7 +47,7 @@ export const deleteUsers = action(deleteUsersSchema, async (ids) => {
   });
   await Promise.all(users.flatMap((user) => (user.clientId ? [cancelCustomerSubscriptions(user.clientId)] : [])));
 
-  // Sessions, accounts, subscriptions... are removed by `onDelete: Cascade`.
+  // Sessions, accounts, legacy subscriptions, club and section memberships... are removed by `onDelete: Cascade`.
   const [, { count }] = await prisma.$transaction([
     prisma.notification.updateMany({
       where: { fromUserName: { in: users.map((user) => user.name) } },
@@ -48,5 +56,8 @@ export const deleteUsers = action(deleteUsersSchema, async (ids) => {
     prisma.user.deleteMany({ where: { id: { in: ids } } }),
   ]);
   await Promise.all(users.map((user) => Promise.all([deleteAllAvatars(user.id), disconnectUserSockets(user.id)])));
+  for (const member of clubMembers) {
+    await syncChatOnClubLeft(member.clubId, member.sectionMemberships.map((m) => m.teamId), member.userId);
+  }
   return { message: `${count} utilisateur${count > 1 ? "s" : ""} supprimé${count > 1 ? "s" : ""}` };
 });

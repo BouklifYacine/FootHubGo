@@ -10,7 +10,7 @@ import { z } from "zod";
 // DTOs (JSON shapes sent over the wire and returned by the chat / notification GET routes)
 // ---------------------------------------------------------------------------
 
-export type ConversationType = "PRIVATE" | "GROUP" | "TEAM";
+export type ConversationType = "PRIVATE" | "GROUP" | "TEAM" | "CLUB";
 export type ParticipantRole = "ADMIN" | "MEMBER";
 
 export type ParticipantDto = {

@@ -4,14 +4,21 @@ import { AppError, forbidden, notFound } from "@/lib/errors";
 /**
  * The caller's participation in a conversation (with the conversation type), or 404.
  * 404 rather than 403 so ids of conversations you are not in don't leak.
- * A team channel also requires being a CURRENT member of the team (defense against a stale participant row).
+ * A section / club channel also requires being a CURRENT member of the section / club (defense against a
+ * stale participant row).
  */
 export async function requireParticipant(userId: string, conversationId: string) {
   const participant = await prisma.conversationParticipant.findFirst({
     where: {
       userId,
       conversationId,
-      conversation: { OR: [{ teamId: null }, { team: { members: { some: { userId } } } }] },
+      conversation: {
+        OR: [
+          { teamId: null, clubId: null },
+          { team: { members: { some: { userId } } } },
+          { club: { members: { some: { userId } } } },
+        ],
+      },
     },
     include: { conversation: { select: { id: true, type: true, teamId: true } } },
   });
@@ -29,10 +36,10 @@ export async function requireGroupAdmin(userId: string, conversationId: string) 
   return participant;
 }
 
-/** DMs and groups are limited to members of the caller's team. */
-export async function assertTeammates(teamId: string, userIds: string[]) {
+/** DMs and groups are limited to members of the caller's club (every section). */
+export async function assertTeammates(clubId: string, userIds: string[]) {
   const unique = [...new Set(userIds)];
-  const count = await prisma.teamMember.count({ where: { teamId, userId: { in: unique } } });
+  const count = await prisma.clubMember.count({ where: { clubId, userId: { in: unique } } });
   if (count !== unique.length) throw forbidden("Vous ne pouvez discuter qu'avec les membres de votre club");
 }
 
