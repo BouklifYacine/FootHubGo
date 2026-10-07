@@ -24,7 +24,8 @@ export function contentSecurityPolicy({ dev, appUrl }: { dev: boolean; appUrl?: 
     "base-uri": ["'self'"],
     "form-action": ["'self'"],
     "frame-ancestors": ["'none'"],
-    ...(dev ? {} : { "upgrade-insecure-requests": [] }),
+    // No upgrade-insecure-requests: it would break a production build served over plain http
+    // (Docker image tried on localhost). HSTS keeps real deployments on https.
   };
 
   return Object.entries(directives)

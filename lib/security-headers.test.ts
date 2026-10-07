@@ -24,7 +24,6 @@ describe("securityHeaders", () => {
     const csp = contentSecurityPolicy({ dev: true, appUrl: "http://localhost:3000" });
     expect(csp).toContain("'unsafe-eval'");
     expect(csp).toContain("ws://localhost:3000");
-    expect(csp).not.toContain("upgrade-insecure-requests");
   });
 
   test("works without an app URL", () => {
