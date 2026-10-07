@@ -23,7 +23,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 } & (
-  | { mode: "create"; teamId: string }
+  | { mode: "create"; teamId: string; sectionName?: string }
   | { mode: "edit"; requestId: string; defaultValues: JoinRequestInput }
 );
 
@@ -37,12 +37,12 @@ export function JoinRequestDialog(props: Props) {
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-primary">
-            {isEdit ? "Modifier la demande" : "Rejoindre le club"}
+            {isEdit ? "Modifier la demande" : `Rejoindre ${props.mode === "create" && props.sectionName ? props.sectionName : "le club"}`}
           </DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Modifiez votre candidature avant qu'elle ne soit traitée."
-              : "Envoyez votre candidature à l'entraîneur."}
+              : "Votre candidature est envoyée aux entraîneurs de la section."}
           </DialogDescription>
         </DialogHeader>
         <JoinRequestForm {...props} onDone={() => onOpenChange(false)} />

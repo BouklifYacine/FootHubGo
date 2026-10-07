@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { CircleCheck, CircleX, LogOut, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -29,7 +28,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { authClient } from "@/lib/auth-client";
-import { playerPositionLabels, teamRoleLabels, toOptions } from "@/lib/enum-labels";
+import { clubRoleLabels, playerPositionLabels, teamRoleLabels, toOptions } from "@/lib/enum-labels";
+import { removeMemberError, sectionRoleChangeError } from "@/features/clubs/rules";
+import { useRefreshAll } from "@/features/clubs/hooks/use-refresh-all";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import type { PlayerPosition } from "@/generated/prisma/browser";
@@ -52,10 +53,12 @@ function patchMember(previous: unknown, memberId: string, patch: (m: MyTeamMembe
 }
 
 export function SquadTable({ data }: { data: MyTeam }) {
-  const router = useRouter();
+  const refreshAll = useRefreshAll();
   const { data: session } = authClient.useSession();
   const [memberToKick, setMemberToKick] = useState<MyTeamMember | null>(null);
   const isCoach = data.role === "COACH";
+  const myClubRole = data.club?.role ?? "MEMBER";
+  const leavesClub = data.sections.length <= 1;
 
   const updateRole = useActionMutation(updateMemberRole, {
     invalidate: [queryKeys.me.team],
@@ -79,10 +82,7 @@ export function SquadTable({ data }: { data: MyTeam }) {
       update: (previous, memberId) => patchMember(previous, memberId, () => null),
     },
   });
-  const leave = useActionMutation(leaveTeam, {
-    invalidate: [queryKeys.me.all, queryKeys.home, queryKeys.teams.all],
-    onSuccess: () => router.push("/app"),
-  });
+  const leave = useActionMutation(leaveTeam, { onSuccess: () => refreshAll("/app") });
 
   if (data.members.length === 0) return <p>Pas de joueurs dans l&apos;effectif</p>;
 
@@ -106,6 +106,12 @@ export function SquadTable({ data }: { data: MyTeam }) {
             {data.members.map((member) => {
               const isMe = member.userId === session?.user.id;
               const isLicensed = member.role === "COACH" || member.isLicensed;
+              // Same rules as the server actions (features/clubs/rules.ts): only show what is allowed.
+              const me = { userId: session?.user.id ?? "", clubRole: myClubRole };
+              const target = { userId: member.userId, clubRole: member.clubRole };
+              const canChangeRole = sectionRoleChangeError(me, target) === null;
+              const canKick =
+                removeMemberError({ ...me, coachesSection: isCoach }, { ...target, sectionRole: member.role }) === null;
               return (
                 <TableRow key={member.id}>
                   <TableCell>
@@ -113,11 +119,14 @@ export function SquadTable({ data }: { data: MyTeam }) {
                   </TableCell>
                   <TableCell>{member.user.name}</TableCell>
                   <TableCell>
-                    <Badge
-                      className={member.role === "COACH" ? "bg-emerald-500 text-white" : "bg-sky-500 text-white"}
-                    >
-                      {teamRoleLabels[member.role]}
-                    </Badge>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge
+                        className={member.role === "COACH" ? "bg-emerald-500 text-white" : "bg-sky-500 text-white"}
+                      >
+                        {teamRoleLabels[member.role]}
+                      </Badge>
+                      {member.clubRole !== "MEMBER" && <Badge variant="outline">{clubRoleLabels[member.clubRole]}</Badge>}
+                    </div>
                   </TableCell>
                   <TableCell>{member.position ? playerPositionLabels[member.position] : "Sans poste"}</TableCell>
                   <TableCell>
@@ -136,16 +145,16 @@ export function SquadTable({ data }: { data: MyTeam }) {
                         disabled={leave.isPending}
                       >
                         <LogOut className="size-4" />
-                        Quitter le club
+                        {leavesClub ? "Quitter le club" : "Quitter la section"}
                       </Button>
-                    ) : isCoach && member.role !== "COACH" ? (
+                    ) : data.canManage ? (
                       <MemberActions
                         disabled={updateRole.isPending || updatePosition.isPending || kick.isPending}
-                        onRoleChange={(role) => updateRole.mutate({ memberId: member.id, role })}
+                        onRoleChange={canChangeRole ? (role) => updateRole.mutate({ memberId: member.id, role }) : undefined}
+                        onKick={canKick ? () => setMemberToKick(member) : undefined}
                         onPositionChange={(position) =>
                           updatePosition.mutate({ memberId: member.id, position })
                         }
-                        onKick={() => setMemberToKick(member)}
                       />
                     ) : null}
                   </TableCell>
@@ -159,10 +168,10 @@ export function SquadTable({ data }: { data: MyTeam }) {
       <AlertDialog open={!!memberToKick} onOpenChange={(open) => !open && setMemberToKick(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Exclure ce joueur ?</AlertDialogTitle>
+            <AlertDialogTitle>Retirer ce membre de la section ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir exclure <strong>{memberToKick?.user.name}</strong> du club ? Le
-              joueur sera immédiatement retiré.
+              <strong>{memberToKick?.user.name}</strong> sera immédiatement retiré de la section (et du club si
+              c&apos;est sa seule section).
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -171,7 +180,7 @@ export function SquadTable({ data }: { data: MyTeam }) {
               onClick={() => memberToKick && kick.mutate(memberToKick.id)}
               className="bg-red-500 hover:bg-red-600"
             >
-              Exclure
+              Retirer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -195,9 +204,10 @@ function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
 
 type MemberActionsProps = {
   disabled: boolean;
-  onRoleChange: (role: "COACH" | "PLAYER") => void;
+  /** Omitted when the caller may not change this member's role (club OWNER / ADMIN only). */
+  onRoleChange?: (role: "COACH" | "PLAYER") => void;
   onPositionChange: (position: PlayerPosition) => void;
-  onKick: () => void;
+  onKick?: () => void;
 };
 
 function MemberActions({ disabled, onRoleChange, onPositionChange, onKick }: MemberActionsProps) {
@@ -211,18 +221,20 @@ function MemberActions({ disabled, onRoleChange, onPositionChange, onKick }: Mem
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Pencil className="mr-2 size-4" />
-            Modifier le rôle
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={() => onRoleChange("PLAYER")}>Joueur</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onRoleChange("COACH")}>Entraîneur</DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
+        {onRoleChange && (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Pencil className="mr-2 size-4" />
+              Modifier le rôle
+            </DropdownMenuSubTrigger>
+            <DropdownMenuPortal>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => onRoleChange("PLAYER")}>Joueur</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onRoleChange("COACH")}>Entraîneur</DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuPortal>
+          </DropdownMenuSub>
+        )}
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <Pencil className="mr-2 size-4" />
@@ -238,11 +250,15 @@ function MemberActions({ disabled, onRoleChange, onPositionChange, onKick }: Mem
             </DropdownMenuSubContent>
           </DropdownMenuPortal>
         </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={onKick}>
-          <Trash2 className="mr-2 size-4" />
-          Exclure du club
-        </DropdownMenuItem>
+        {onKick && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={onKick}>
+              <Trash2 className="mr-2 size-4" />
+              Retirer de la section
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

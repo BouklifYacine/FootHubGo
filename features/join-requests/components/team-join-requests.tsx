@@ -9,13 +9,13 @@ import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { cn } from "@/lib/utils";
 import { InitialsAvatar } from "@/features/team/components/initials-avatar";
 import { reviewJoinRequest } from "../actions";
-import { useTeamJoinRequests } from "../hooks/use-team-join-requests";
+import { useManagedJoinRequests } from "../hooks/use-managed-join-requests";
 import type { TeamJoinRequest } from "../types";
 import { EmptyRequests, RequestDetails, RequestStatusBadge } from "./request-details";
 
-/** Coach side: the join requests received by the team. */
-export function TeamJoinRequests({ teamId }: { teamId: string }) {
-  const { data: requests, isPending } = useTeamJoinRequests(teamId);
+/** Coach / club admin side: the join requests received by the sections they manage. */
+export function TeamJoinRequests() {
+  const { data: requests, isPending } = useManagedJoinRequests();
   const pendingCount = requests?.filter((request) => request.status === "PENDING").length ?? 0;
 
   return (
@@ -32,13 +32,13 @@ export function TeamJoinRequests({ teamId }: { teamId: string }) {
       ) : !requests?.length ? (
         <EmptyRequests text="Vous n'avez reçu aucune demande d'adhésion pour le moment." />
       ) : (
-        requests.map((request) => <TeamJoinRequestCard key={request.id} teamId={teamId} request={request} />)
+        requests.map((request) => <TeamJoinRequestCard key={request.id} request={request} />)
       )}
     </section>
   );
 }
 
-function TeamJoinRequestCard({ teamId, request }: { teamId: string; request: TeamJoinRequest }) {
+function TeamJoinRequestCard({ request }: { request: TeamJoinRequest }) {
   const isPending = request.status === "PENDING";
 
   return (
@@ -56,6 +56,7 @@ function TeamJoinRequestCard({ teamId, request }: { teamId: string; request: Tea
             <span className="rounded-md bg-zinc-100 px-2 py-0.5 font-semibold tracking-wider text-zinc-500 uppercase dark:bg-zinc-800">
               {playerPositionLabels[request.position]}
             </span>
+            <span className="font-medium">Section : {request.team.name}</span>
             <span className="text-zinc-400">Niveau : {teamLevelLabels[request.level]}</span>
             <span className="text-zinc-400">{new Date(request.createdAt).toLocaleDateString("fr-FR")}</span>
           </div>
@@ -80,11 +81,11 @@ function TeamJoinRequestCard({ teamId, request }: { teamId: string; request: Tea
                 </div>
                 <RequestDetails request={request} motivationLabel="Motivation" />
                 <div className="flex justify-center pb-8">
-                  <ReviewButtons teamId={teamId} requestId={request.id} />
+                  <ReviewButtons requestId={request.id} />
                 </div>
               </DialogContent>
             </Dialog>
-            <ReviewButtons teamId={teamId} requestId={request.id} />
+            <ReviewButtons requestId={request.id} />
           </>
         )}
       </div>
@@ -92,11 +93,11 @@ function TeamJoinRequestCard({ teamId, request }: { teamId: string; request: Tea
   );
 }
 
-function ReviewButtons({ teamId, requestId }: { teamId: string; requestId: string }) {
+function ReviewButtons({ requestId }: { requestId: string }) {
   const review = useActionMutation(reviewJoinRequest, {
-    invalidate: [queryKeys.teams.joinRequests(teamId), queryKeys.me.team, queryKeys.home],
+    invalidate: [queryKeys.club.all, queryKeys.me.team, queryKeys.home],
     optimistic: {
-      queryKey: queryKeys.teams.joinRequests(teamId),
+      queryKey: queryKeys.club.joinRequests,
       update: (previous, { decision }) =>
         (previous as TeamJoinRequest[] | undefined)?.map((r) =>
           r.id === requestId ? { ...r, status: decision } : r,

@@ -8,67 +8,126 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRouter } from "next/navigation";
 import { useAppForm } from "@/lib/form";
-import { teamLevelLabels, teamVisibilityLabels, toOptions } from "@/lib/enum-labels";
+import { clubVisibilityLabels, sectionCategoryLabels, teamLevelLabels, toOptions } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
-import type { TeamLevel, TeamVisibility } from "@/generated/prisma/browser";
-import { createTeam, updateTeam } from "../actions";
-import { teamSchema, type TeamInput } from "../schemas";
+import type { ClubVisibility, SectionCategory, TeamLevel } from "@/generated/prisma/browser";
+import { createClub, updateClub } from "../actions";
+import { useRefreshAll } from "../hooks/use-refresh-all";
+import { clubSchema, createClubSchema, type ClubInput } from "../schemas";
 
 const levelOptions = toOptions(teamLevelLabels);
-const visibilityOptions = toOptions(teamVisibilityLabels);
+const visibilityOptions = toOptions(clubVisibilityLabels);
+const categoryOptions = toOptions(sectionCategoryLabels);
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Edit mode when given, create mode otherwise. */
-  team?: TeamInput;
+  /** Edit mode (club information) when given; create mode (club + first section) otherwise. */
+  club?: ClubInput;
 };
 
-export function TeamFormDialog({ open, onOpenChange, team }: Props) {
+export function ClubFormDialog({ open, onOpenChange, club }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] w-[95vw] max-w-md overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{team ? "Modifier le club" : "Créer un club"}</DialogTitle>
+          <DialogTitle>{club ? "Modifier le club" : "Créer un club"}</DialogTitle>
           <DialogDescription>
-            {team
+            {club
               ? "Mettez à jour les informations de votre club."
-              : "Remplissez le formulaire pour créer votre club. Vous en serez l'entraîneur."}
+              : "Créez votre club et sa première section. Vous en serez le propriétaire et l'entraîneur."}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so the form starts fresh every time. */}
-        <TeamForm team={team} onDone={() => onOpenChange(false)} />
+        {club ? (
+          <EditClubForm club={club} onDone={() => onOpenChange(false)} />
+        ) : (
+          <CreateClubForm onDone={() => onOpenChange(false)} />
+        )}
       </DialogContent>
     </Dialog>
   );
 }
 
-function TeamForm({ team, onDone }: { team?: TeamInput; onDone: () => void }) {
-  const router = useRouter();
-  const invalidate = [queryKeys.me.all, queryKeys.home, queryKeys.teams.all];
-  const create = useActionMutation(createTeam, {
-    invalidate,
+function CreateClubForm({ onDone }: { onDone: () => void }) {
+  const refreshAll = useRefreshAll();
+  const create = useActionMutation(createClub, {
     onSuccess: () => {
       onDone();
-      router.push("/app/squad");
+      refreshAll("/app/squad");
     },
   });
-  const update = useActionMutation(updateTeam, { invalidate, onSuccess: onDone });
 
   const form = useAppForm({
     defaultValues: {
-      name: team?.name ?? "",
-      description: team?.description ?? "",
-      level: team?.level as TeamLevel | undefined,
-      visibility: (team?.visibility ?? "PUBLIC") as TeamVisibility,
+      name: "",
+      description: "",
+      visibility: "PUBLIC" as ClubVisibility,
+      sectionName: "Seniors",
+      category: "SENIOR" as SectionCategory,
+      level: undefined as TeamLevel | undefined,
     },
-    validators: { onSubmit: teamSchema },
+    validators: { onSubmit: createClubSchema },
     onSubmit: async ({ value }) => {
-      const input = teamSchema.parse(value);
-      await (team ? update : create).mutateAsync(input).catch(() => undefined);
+      await create.mutateAsync(createClubSchema.parse(value)).catch(() => undefined);
+    },
+  });
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+      }}
+      className="space-y-4"
+    >
+      <form.AppField name="name">
+        {(field) => <field.TextField label="Nom du club *" placeholder="FC Exemple" />}
+      </form.AppField>
+      <form.AppField name="visibility">
+        {(field) => (
+          <field.SelectField
+            label="Visibilité *"
+            options={visibilityOptions}
+            description="Seuls les clubs publics reçoivent des demandes d'adhésion."
+          />
+        )}
+      </form.AppField>
+      <form.AppField name="description">
+        {(field) => <field.TextareaField label="Description" placeholder="Présentez votre club" rows={2} />}
+      </form.AppField>
+      <p className="pt-2 text-sm font-medium">Première section</p>
+      <form.AppField name="sectionName">
+        {(field) => <field.TextField label="Nom de la section *" placeholder="Seniors A" />}
+      </form.AppField>
+      <form.AppField name="category">
+        {(field) => <field.SelectField label="Catégorie *" options={categoryOptions} />}
+      </form.AppField>
+      <form.AppField name="level">
+        {(field) => <field.SelectField label="Niveau *" options={levelOptions} placeholder="Choisir un niveau" />}
+      </form.AppField>
+      <DialogFooter>
+        <form.AppForm>
+          <form.SubmitButton>Créer</form.SubmitButton>
+        </form.AppForm>
+      </DialogFooter>
+    </form>
+  );
+}
+
+function EditClubForm({ club, onDone }: { club: ClubInput; onDone: () => void }) {
+  const update = useActionMutation(updateClub, {
+    invalidate: [queryKeys.me.all, queryKeys.home, queryKeys.teams.all, queryKeys.club.all, queryKeys.chat.all],
+    onSuccess: onDone,
+  });
+
+  const form = useAppForm({
+    defaultValues: club,
+    validators: { onSubmit: clubSchema },
+    onSubmit: async ({ value }) => {
+      await update.mutateAsync(clubSchema.parse(value)).catch(() => undefined);
     },
   });
 
@@ -82,11 +141,6 @@ function TeamForm({ team, onDone }: { team?: TeamInput; onDone: () => void }) {
     >
       <form.AppField name="name">
         {(field) => <field.TextField label="Nom du club *" placeholder="Nom du club" />}
-      </form.AppField>
-      <form.AppField name="level">
-        {(field) => (
-          <field.SelectField label="Niveau *" options={levelOptions} placeholder="Choisir un niveau" />
-        )}
       </form.AppField>
       <form.AppField name="visibility">
         {(field) => (
@@ -102,7 +156,7 @@ function TeamForm({ team, onDone }: { team?: TeamInput; onDone: () => void }) {
       </form.AppField>
       <DialogFooter>
         <form.AppForm>
-          <form.SubmitButton>{team ? "Enregistrer" : "Créer"}</form.SubmitButton>
+          <form.SubmitButton>Enregistrer</form.SubmitButton>
         </form.AppForm>
       </DialogFooter>
     </form>

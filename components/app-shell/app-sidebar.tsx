@@ -13,6 +13,7 @@ import {
   House,
   LayoutDashboard,
   MessageCircle,
+  Shield,
   UsersRound,
   Vote,
   type LucideIcon,
@@ -33,13 +34,14 @@ import {
 import type { TeamRole } from "@/generated/prisma/browser";
 import { useUnreadMessagesCount } from "@/features/chat/hooks/use-conversations";
 import { useMyTeam } from "@/features/team/hooks/use-my-team";
+import { SectionSwitcher } from "@/features/clubs/components/section-switcher";
 import { NavUser } from "./nav-user";
 
-type NavItem = { title: string; url: string; icon: LucideIcon; roles?: TeamRole[] };
+type NavItem = { title: string; url: string; icon: LucideIcon; roles?: TeamRole[]; clubAdmin?: boolean; manager?: boolean };
 
 const appItems: NavItem[] = [
   { title: "Accueil", url: "/app", icon: House },
-  { title: "Transfert", url: "/app/transfers", icon: ArrowLeftRight, roles: ["NO_CLUB", "COACH"] },
+  { title: "Transfert", url: "/app/transfers", icon: ArrowLeftRight, roles: ["NO_CLUB"], manager: true },
   { title: "Effectif", url: "/app/squad", icon: UsersRound, roles: ["COACH", "PLAYER"] },
   { title: "Événements", url: "/app/events", icon: Calendar, roles: ["COACH", "PLAYER"] },
   { title: "Statistiques", url: "/app/stats", icon: ChartNoAxesCombined, roles: ["COACH", "PLAYER"] },
@@ -48,6 +50,7 @@ const appItems: NavItem[] = [
   { title: "Calendrier", url: "/app/calendar", icon: CalendarDays, roles: ["COACH", "PLAYER"] },
   { title: "Sondages", url: "/app/polls", icon: Vote, roles: ["COACH", "PLAYER"] },
   { title: "Messages", url: "/app/chat", icon: MessageCircle, roles: ["COACH", "PLAYER"] },
+  { title: "Club", url: "/app/club", icon: Shield, roles: [], clubAdmin: true },
 ];
 
 const adminItems: NavItem[] = [
@@ -61,27 +64,34 @@ export function AppSidebar({ variant }: { variant: "app" | "admin" }) {
   const role = data?.role ?? "NO_CLUB";
   const unreadMessages = useUnreadMessagesCount(variant === "app" && role !== "NO_CLUB");
 
-  const items =
-    variant === "admin" ? adminItems : appItems.filter((item) => !item.roles || item.roles.includes(role));
+  const isClubAdmin = data?.club?.isAdmin ?? false;
+  const canManage = data?.canManage ?? false;
+  // Items show for the listed section roles, plus the ones for whoever manages the section
+  // (coach or club OWNER / ADMIN) and for the club OWNER / ADMIN.
+  const visible = (item: NavItem) =>
+    !item.roles || item.roles.includes(role) || (item.manager && canManage) || (item.clubAdmin && isClubAdmin);
+  const items = variant === "admin" ? adminItems : appItems.filter(visible);
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <Fan className="size-4" />
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">FootHubGo</span>
-                  <span className="truncate text-xs">
-                    {variant === "admin" ? "Administration" : (data?.team?.name ?? "Sans club")}
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {variant === "admin" ? (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild>
+                <Link href="/">
+                  <Fan className="size-4" />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">FootHubGo</span>
+                    <span className="truncate text-xs">Administration</span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        ) : (
+          <SectionSwitcher />
+        )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
