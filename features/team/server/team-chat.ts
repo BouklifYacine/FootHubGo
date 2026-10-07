@@ -3,6 +3,7 @@ import {
   addTeamConversationMember,
   ensureTeamConversation,
   notifyConversationRemoved,
+  removeFormerMemberFromTeamGroups,
   removeTeamConversationMember,
 } from "@/features/chat/server/team-conversation";
 
@@ -30,7 +31,10 @@ export function syncChatOnMemberJoined(teamId: string, userId: string) {
 }
 
 export function syncChatOnMemberLeft(teamId: string, userId: string) {
-  return safely("member left", () => removeTeamConversationMember(teamId, userId));
+  return safely("member left", async () => {
+    await removeTeamConversationMember(teamId, userId);
+    await removeFormerMemberFromTeamGroups(teamId, userId);
+  });
 }
 
 /** Re-syncs the channel name and roles (a coach is ADMIN of the channel, a player MEMBER). */

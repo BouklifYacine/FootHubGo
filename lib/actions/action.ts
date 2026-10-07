@@ -1,6 +1,6 @@
 import { unstable_rethrow } from "next/navigation";
 import { z } from "zod";
-import { AppError } from "@/lib/errors";
+import { AppError, loggableError } from "@/lib/errors";
 
 export type ActionResult<T = undefined> =
   | { success: true; message: string; data: T }
@@ -35,7 +35,7 @@ export function action<S extends z.ZodType, T = undefined>(
     } catch (error) {
       unstable_rethrow(error); // let redirect() / notFound() through
       if (error instanceof AppError) return { success: false, message: error.message };
-      console.error("[action]", error);
+      console.error("[action]", loggableError(error));
       return { success: false, message: "Une erreur est survenue" };
     }
   };

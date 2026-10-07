@@ -9,10 +9,16 @@ import {
   summarizeTeamStats,
 } from "../compute";
 
-/** League table of every team (aggregated by the database) + last 5 results. */
-export async function getLeaderboard() {
+/**
+ * League table (aggregated by the database) + last 5 results. Private teams are not listed,
+ * except the viewer's own team.
+ */
+export async function getLeaderboard(viewerTeamId?: string | null) {
   const [teams, results, goals] = await Promise.all([
     prisma.team.findMany({
+      where: {
+        OR: [{ visibility: { not: "PRIVATE" } }, ...(viewerTeamId ? [{ id: viewerTeamId }] : [])],
+      },
       select: {
         id: true,
         name: true,

@@ -2,6 +2,7 @@ import { prisma } from "@/prisma";
 import { notFound } from "@/lib/errors";
 import type { ParticipantRole, TeamRole } from "@/generated/prisma/client";
 import { emitToConversation, emitToUsers, leaveConversationRoom } from "@/server/realtime/emitter";
+import { nextGroupAdmin } from "../group-rules";
 
 /**
  * Team channels: every team has exactly one TEAM conversation whose participants mirror
@@ -115,4 +116,38 @@ export async function ensureTeamChannelMembership(userId: string, teamId: string
     select: { id: true },
   });
   if (!participant) await ensureTeamConversation(teamId);
+}
+
+/**
+ * A former member leaves the team's custom groups too (groups are created between teammates):
+ * every GROUP they are in that still has a current member of the team. An admin hands over to the
+ * longest-standing member; an empty group is deleted. Private conversations stay readable, but
+ * sending requires a shared team again (see sendMessage).
+ */
+export async function removeFormerMemberFromTeamGroups(teamId: string, userId: string): Promise<void> {
+  const groups = await prisma.conversation.findMany({
+    where: {
+      type: "GROUP",
+      participants: { some: { userId } },
+      AND: [{ participants: { some: { userId: { not: userId }, user: { memberships: { some: { teamId } } } } } }],
+    },
+    select: { id: true, participants: { select: { userId: true, role: true, joinedAt: true } } },
+  });
+
+  for (const group of groups) {
+    const newAdmin = nextGroupAdmin(group.participants, userId);
+    await prisma.$transaction([
+      prisma.conversationParticipant.deleteMany({ where: { conversationId: group.id, userId } }),
+      ...(newAdmin
+        ? [
+            prisma.conversationParticipant.update({
+              where: { userId_conversationId: { userId: newAdmin, conversationId: group.id } },
+              data: { role: "ADMIN" as const },
+            }),
+          ]
+        : []),
+    ]);
+    notifyConversationRemoved(group.id, [userId]);
+    await emitToConversation(group.id, "chat:conversation_updated", { conversationId: group.id });
+  }
 }
