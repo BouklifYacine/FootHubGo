@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,22 +13,25 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { queryKeys } from "@/lib/query/keys";
+import { useRefreshAll } from "@/features/clubs/hooks/use-refresh-all";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { joinTeamWithCode } from "../actions";
 import { INVITE_CODE_LENGTH, formatInviteCode, normalizeInviteCode } from "../invite-code";
 
-/** "Rejoindre un club" button + dialog asking for the invite code (XXXX-XXXX-XXXX). */
-export function JoinTeamDialog() {
-  const router = useRouter();
+/**
+ * "Rejoindre une section" button + dialog asking for the invite code (XXXX-XXXX-XXXX). Members of a
+ * club use it too, to join another section of their club.
+ */
+export function JoinTeamDialog({ label = "Rejoindre un club" }: { label?: string }) {
+  const refreshAll = useRefreshAll();
   const [open, setOpen] = useState(false);
   const [code, setCode] = useState("");
 
+  // The code joins one section (made active), and its club when the user has none yet.
   const join = useActionMutation(joinTeamWithCode, {
-    invalidate: [queryKeys.me.all, queryKeys.home, queryKeys.teams.all],
     onSuccess: () => {
       setOpen(false);
-      router.push("/app/squad");
+      refreshAll("/app/squad");
     },
   });
 
@@ -43,7 +45,7 @@ export function JoinTeamDialog() {
     >
       <DialogTrigger asChild>
         <Button variant="outline">
-          Rejoindre un club
+          {label}
           <Send className="ml-1" />
         </Button>
       </DialogTrigger>
@@ -55,9 +57,9 @@ export function JoinTeamDialog() {
           }}
         >
           <DialogHeader>
-            <DialogTitle>Rejoindre un club</DialogTitle>
+            <DialogTitle>{label}</DialogTitle>
             <DialogDescription>
-              Entrez le code d&apos;invitation donné par votre entraîneur (12 caractères, ex. ABCD-EFGH-JKMN).
+              Entrez le code d&apos;invitation de la section donné par votre entraîneur (12 caractères, ex. ABCD-EFGH-JKMN).
             </DialogDescription>
           </DialogHeader>
           <div className="py-6">

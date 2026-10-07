@@ -1,5 +1,7 @@
 import { prisma } from "@/prisma";
 import { findMembership } from "@/lib/auth/session";
+import { canManageSection, sectionDisplayName } from "@/features/clubs/rules";
+import { sectionEventsWhere } from "@/features/events/server/queries";
 
 const LEADERBOARD_SIZE = 5;
 
@@ -11,8 +13,9 @@ export async function getHomeData(userId: string) {
   const membership = await findMembership(userId);
   if (!membership) return null;
 
-  const { team, role } = membership;
+  const { team, role, club } = membership;
   const isCoach = role === "COACH";
+  const canManage = canManageSection(membership, team.id);
   const teamEvent = { event: { teamId: team.id } };
 
   const [members, recentResults, upcomingMatches, resultCounts, playerTotals, topScorers, topAssists] =
@@ -33,7 +36,7 @@ export async function getHomeData(userId: string) {
         take: 5,
       }),
       prisma.event.findMany({
-        where: { teamId: team.id, startDate: { gte: new Date() }, type: { in: ["LEAGUE", "CUP"] } },
+        where: { ...sectionEventsWhere(membership), startDate: { gte: new Date() }, type: { in: ["LEAGUE", "CUP"] } },
         select: { id: true, type: true, startDate: true, location: true, opponent: true },
         orderBy: { startDate: "asc" },
         take: 3,
@@ -89,11 +92,11 @@ export async function getHomeData(userId: string) {
     role,
     team: {
       id: team.id,
-      name: team.name,
+      name: sectionDisplayName(club.name, team.name),
       level: team.level,
-      logoUrl: team.logoUrl,
+      logoUrl: club.logoUrl,
       memberCount: members.length,
-      inviteCode: isCoach ? team.inviteCode : null,
+      inviteCode: canManage ? team.inviteCode : null,
     },
     recentResults: recentResults.flatMap(({ teamStat, playerStats, ...event }) =>
       teamStat ? [{ ...event, ...teamStat, rating: playerStats[0]?.rating ?? null }] : [],

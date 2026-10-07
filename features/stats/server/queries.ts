@@ -1,6 +1,7 @@
 import { prisma } from "@/prisma";
 import { notFound } from "@/lib/errors";
 import type { MatchResult } from "@/generated/prisma/client";
+import { sectionDisplayName } from "@/features/clubs/rules";
 import {
   buildStanding,
   compareStandings,
@@ -10,19 +11,19 @@ import {
 } from "../compute";
 
 /**
- * League table (aggregated by the database) + last 5 results. Private teams are not listed,
- * except the viewer's own team.
+ * League table of the sections (aggregated by the database) + last 5 results. Sections of private
+ * clubs are not listed, except the viewer's own section.
  */
 export async function getLeaderboard(viewerTeamId?: string | null) {
   const [teams, results, goals] = await Promise.all([
     prisma.team.findMany({
       where: {
-        OR: [{ visibility: { not: "PRIVATE" } }, ...(viewerTeamId ? [{ id: viewerTeamId }] : [])],
+        OR: [{ club: { visibility: { not: "PRIVATE" } } }, ...(viewerTeamId ? [{ id: viewerTeamId }] : [])],
       },
       select: {
         id: true,
         name: true,
-        logoUrl: true,
+        club: { select: { name: true, logoUrl: true } },
         teamStats: { select: { result: true }, orderBy: { createdAt: "desc" }, take: 5 },
       },
     }),
@@ -36,9 +37,9 @@ export async function getLeaderboard(viewerTeamId?: string | null) {
   const countOf = (teamId: string, result: MatchResult) => resultCounts.get(`${teamId}:${result}`) ?? 0;
 
   return teams
-    .map(({ teamStats, ...team }) =>
+    .map(({ teamStats, club, ...team }) =>
       buildStanding(
-        team,
+        { id: team.id, name: sectionDisplayName(club.name, team.name), logoUrl: club.logoUrl },
         {
           wins: countOf(team.id, "WIN"),
           draws: countOf(team.id, "DRAW"),
@@ -81,7 +82,7 @@ export async function getEventStats(eventId: string, teamId: string, isCoach: bo
       type: true,
       startDate: true,
       opponent: true,
-      team: { select: { name: true, logoUrl: true } },
+      team: { select: { name: true, club: { select: { name: true, logoUrl: true } } } },
       teamStat: true,
       playerStats: {
         orderBy: { createdAt: "asc" },
@@ -106,6 +107,9 @@ export async function getEventStats(eventId: string, teamId: string, isCoach: bo
       })
     : [];
 
-  const { teamStat, playerStats, ...rest } = event;
-  return { event: rest, teamStat, playerStats, eligiblePlayers, window: getStatsWindow(event.startDate) };
+  const { teamStat, playerStats, team, ...rest } = event;
+  const teamInfo = team
+    ? { name: sectionDisplayName(team.club.name, team.name), logoUrl: team.club.logoUrl }
+    : { name: "", logoUrl: null };
+  return { event: { ...rest, team: teamInfo }, teamStat, playerStats, eligiblePlayers, window: getStatsWindow(event.startDate) };
 }

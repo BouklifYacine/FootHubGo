@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { JoinTeamDialog } from "@/features/team/components/join-team-dialog";
-import { TeamFormDialog } from "@/features/team/components/team-form-dialog";
+import { ClubFormDialog } from "@/features/clubs/components/club-form-dialog";
 import { TeamDirectory } from "@/features/join-requests/components/team-directory";
 import { useHome } from "../hooks/use-home";
 import { KeyStats } from "./key-stats";
@@ -82,7 +82,7 @@ function NoTeam() {
         </Button>
         <JoinTeamDialog />
       </div>
-      <TeamFormDialog open={creating} onOpenChange={setCreating} />
+      <ClubFormDialog open={creating} onOpenChange={setCreating} />
       <TeamDirectory />
     </div>
   );

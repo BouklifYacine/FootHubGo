@@ -30,11 +30,12 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           <p className="flex items-center gap-2">
             <Mail className="size-4 text-muted-foreground" /> {profile.email}
           </p>
-          <p className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <CreditCard className="size-4 text-muted-foreground" />
             <Badge>{profile.plan === "pro" ? "Premium" : "Gratuit"}</Badge>
+            {profile.clubName && <span className="text-muted-foreground">abonnement du club {profile.clubName}</span>}
             {subscription && <Badge variant="outline">{subscriptionPeriodLabels[subscription.period]}</Badge>}
-          </p>
+          </div>
           {subscription && (
             <>
               <p className="flex items-center gap-2">

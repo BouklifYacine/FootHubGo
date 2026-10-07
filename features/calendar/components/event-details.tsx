@@ -24,14 +24,14 @@ function Detail({ label, children, wide }: { label: string; children: ReactNode;
 
 type Props = {
   event: EventListItem;
-  canEdit: boolean;
   onEdit: () => void;
   onCallUps: () => void;
   onDeleted: () => void;
 };
 
 /** Read-only view of an event, with the coach's actions. */
-export function EventDetails({ event, canEdit, onEdit, onCallUps, onDeleted }: Props) {
+export function EventDetails({ event, onEdit, onCallUps, onDeleted }: Props) {
+  const canEdit = event.canEdit;
   const deleteEvent = useDeleteEvent(onDeleted);
   const locked = event.hasStats;
   const remove = (withFollowing: boolean) => deleteEvent.mutate({ eventId: event.id, withFollowing });
@@ -40,6 +40,7 @@ export function EventDetails({ event, canEdit, onEdit, onCallUps, onDeleted }: P
     <>
       <div className="grid grid-cols-2 gap-4">
         <Detail label="Titre">{event.title}</Detail>
+        {event.isClubEvent && <Detail label="Pour">Tout le club</Detail>}
         <Detail label="Date">{format(event.startDate, "d MMMM yyyy 'à' HH:mm", { locale: fr })}</Detail>
         <Detail label="Type">
           <span className="flex items-center gap-2">
@@ -70,10 +71,10 @@ export function EventDetails({ event, canEdit, onEdit, onCallUps, onDeleted }: P
       <DialogFooter className="gap-2">
         <Button variant="outline" asChild>
           <Link href={`/app/events/${event.id}`}>
-            <Users /> {isMatch(event.type) ? "Voir les convocations" : "Voir les présences"}
+            <Users /> {event.isClubEvent ? "Voir le détail" : isMatch(event.type) ? "Voir les convocations" : "Voir les présences"}
           </Link>
         </Button>
-        {canEdit && isMatch(event.type) && (
+        {canEdit && isMatch(event.type) && !event.isClubEvent && (
           <Button variant="outline" onClick={onCallUps}>
             <Send /> Convoquer
           </Button>

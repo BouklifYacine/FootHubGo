@@ -1,15 +1,17 @@
 import type {
   AttendanceStatus,
   CallUpStatus,
+  ClubRole,
+  ClubVisibility,
   Competition,
   EventType,
   JoinRequestStatus,
   MatchResult,
   PlayerPosition,
+  SectionCategory,
   SubscriptionPeriod,
   TeamLevel,
   TeamRole,
-  TeamVisibility,
   UserRole,
 } from "@/generated/prisma/browser";
 
@@ -51,10 +53,22 @@ export const teamRoleLabels: Record<TeamRole, string> = {
   PLAYER: "Joueur",
 };
 
-export const teamVisibilityLabels: Record<TeamVisibility, string> = {
+export const clubVisibilityLabels: Record<ClubVisibility, string> = {
   PUBLIC: "Public",
   PRIVATE: "Privé",
   INVITATION: "Sur invitation",
+};
+
+export const clubRoleLabels: Record<ClubRole, string> = {
+  OWNER: "Propriétaire",
+  ADMIN: "Administrateur",
+  MEMBER: "Membre",
+};
+
+export const sectionCategoryLabels: Record<SectionCategory, string> = {
+  SENIOR: "Seniors",
+  VETERAN: "Vétérans",
+  LEISURE: "Loisir",
 };
 
 export const eventTypeLabels: Record<EventType, string> = {

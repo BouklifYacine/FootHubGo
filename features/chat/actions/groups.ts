@@ -41,7 +41,7 @@ export const addGroupMembers = action(addGroupMembersSchema, async ({ conversati
     throw new AppError(`Un groupe ne peut pas dépasser ${GROUP_MAX_MEMBERS} membres`);
   }
 
-  await assertTeammates(membership.teamId, newIds);
+  await assertTeammates(membership.clubId, newIds);
   await assertNotBlocked(user.id, newIds);
   await prisma.conversationParticipant.createMany({
     data: newIds.map((userId) => ({ userId, conversationId, role: "MEMBER" as const })),

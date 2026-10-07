@@ -5,7 +5,8 @@ import { z } from "zod";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
-import { requireUser, findMembership } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/session";
+import { syncChatOnClubLeft } from "@/features/team/server/team-chat";
 import { AppError } from "@/lib/errors";
 import { hashPassword } from "@/lib/argon2";
 import { detectImageType, imageExtension } from "@/lib/image-type";
@@ -174,9 +175,15 @@ export const deleteAccount = action(deleteAccountSchema, async ({ password }) =>
   const user = await requireUser();
   await verifyCurrentPassword(user.id, password, { required: false });
 
-  // Leaving the team first keeps it consistent (last coach, chat, notifications).
-  if (await findMembership(user.id)) {
-    throw new AppError("Quittez votre club avant de supprimer votre compte");
+  // The owner pays the club subscription and is the only one who can delete the club: they must
+  // hand the club over (or delete it) first. Other members are removed from their club by the DB
+  // cascade (club role, sections, channels).
+  const clubMember = await prisma.clubMember.findUnique({
+    where: { userId: user.id },
+    select: { role: true, clubId: true, sectionMemberships: { select: { teamId: true } } },
+  });
+  if (clubMember?.role === "OWNER") {
+    throw new AppError("Vous êtes propriétaire d'un club : transférez-en la propriété ou supprimez-le avant de supprimer votre compte");
   }
 
   const dbUser = await prisma.user.findUniqueOrThrow({
@@ -196,6 +203,9 @@ export const deleteAccount = action(deleteAccountSchema, async ({ password }) =>
     prisma.user.delete({ where: { id: user.id } }),
   ]);
   await disconnectUserSockets(user.id);
+  if (clubMember) {
+    await syncChatOnClubLeft(clubMember.clubId, clubMember.sectionMemberships.map((m) => m.teamId), user.id);
+  }
   await sendEmail({
     to: user.email,
     subject: "Compte supprimé",

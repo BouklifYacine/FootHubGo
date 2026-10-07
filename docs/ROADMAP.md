@@ -25,7 +25,10 @@ green CI required. Release: PR `dev` -> `main`, tag `v1.1.0`.
 0. Audits (read only): UX audit + security audit -> `docs/audits/ux.md`, `docs/audits/security.md`.
 1. Security fixes + launch blockers: audit findings, notification preferences + unsubscribe link,
    remove real club logos from the landing, French pricing section, tests on sensitive actions.
-2. Clubs & sections (foundation, data migration).
+2. Clubs & sections (foundation, data migration). **Done** (branch `feat/clubs-and-sections`): `Club` /
+   `ClubMember` (OWNER / ADMIN / MEMBER) above sections (`Team`, categories SENIOR / VETERAN / LEISURE), active
+   section cookie + switcher, club management page, invite code and join requests per section, club-wide
+   events, club chat channel, club subscription. One club per user for now. Audit L6 and L13 fixed.
 3. UX refactor (mobile first) + onboarding tour.
 4. Playing time + man of the match.
 5. Carpool for away matches.

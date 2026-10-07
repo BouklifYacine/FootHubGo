@@ -1,17 +1,20 @@
 import { prisma } from "@/prisma";
 import { notFound } from "@/lib/errors";
-import type { ParticipantRole, TeamRole } from "@/generated/prisma/client";
+import type { ClubRole, ParticipantRole, TeamRole } from "@/generated/prisma/client";
 import { emitToConversation, emitToUsers, leaveConversationRoom } from "@/server/realtime/emitter";
+import { sectionDisplayName } from "@/features/clubs/rules";
 import { nextGroupAdmin } from "../group-rules";
 
 /**
- * Team channels: every team has exactly one TEAM conversation whose participants mirror
- * the team members (the coach is ADMIN). Members can't leave it, rename it or edit its
- * members: call these from the team actions (create team, join, leave, kick, accept join
- * request, role change). Deleting a team removes its channel through the DB cascade.
+ * Channels: every section (Team) has exactly one TEAM conversation whose participants mirror
+ * the section members (coaches are ADMIN), and every club has one CLUB conversation with every
+ * club member (OWNER / ADMIN are ADMIN). Members can't leave them, rename them or edit their
+ * members: call these from the club / section actions (see features/team/server/team-chat.ts).
+ * Deleting a section or a club removes its channel through the DB cascade.
  */
 
 const roleFor = (teamRole: TeamRole): ParticipantRole => (teamRole === "COACH" ? "ADMIN" : "MEMBER");
+const clubRoleFor = (clubRole: ClubRole): ParticipantRole => (clubRole === "MEMBER" ? "MEMBER" : "ADMIN");
 
 /** Tells users a conversation disappeared for them and drops their sockets from its room. */
 export function notifyConversationRemoved(conversationId: string, userIds: string[]) {
@@ -43,12 +46,20 @@ async function upsertTeamConversation(teamId: string, name: string) {
 export async function ensureTeamConversation(teamId: string): Promise<string> {
   const team = await prisma.team.findUnique({
     where: { id: teamId },
-    select: { name: true, members: { select: { userId: true, role: true } } },
+    select: { name: true, club: { select: { name: true } }, members: { select: { userId: true, role: true } } },
   });
-  if (!team) throw notFound("Club introuvable");
+  if (!team) throw notFound("Section introuvable");
 
-  const conversation = await upsertTeamConversation(teamId, team.name);
+  const conversation = await upsertTeamConversation(teamId, sectionDisplayName(team.club.name, team.name));
   const wanted = new Map(team.members.map((member) => [member.userId, roleFor(member.role)]));
+  return syncParticipants(conversation, wanted);
+}
+
+/** Makes the participants of a channel match `wanted` (userId -> role). */
+async function syncParticipants(
+  conversation: { id: string; participants: { userId: string; role: ParticipantRole }[] },
+  wanted: Map<string, ParticipantRole>,
+) {
   const current = new Map(conversation.participants.map((p) => [p.userId, p.role]));
 
   const toAdd = [...wanted].filter(([userId]) => !current.has(userId));
@@ -74,6 +85,45 @@ export async function ensureTeamConversation(teamId: string): Promise<string> {
   notifyConversationRemoved(conversation.id, toRemove);
   emitToUsers([...wanted.keys()], "chat:conversation_updated", { conversationId: conversation.id });
   return conversation.id;
+}
+
+/** "FC Test · Tout le club": tells the club channel apart from a section named like the club. */
+export const clubChannelName = (clubName: string) => `${clubName} · Tout le club`;
+
+async function upsertClubConversation(clubId: string, name: string) {
+  const upsert = () =>
+    prisma.conversation.upsert({
+      where: { clubId },
+      create: { type: "CLUB", clubId, name },
+      update: { name },
+      select: { id: true, participants: { select: { userId: true, role: true } } },
+    });
+  try {
+    return await upsert();
+  } catch {
+    return upsert(); // concurrent first calls (unique clubId)
+  }
+}
+
+/** Creates the club channel if needed and syncs its name and participants with the club members. */
+export async function ensureClubConversation(clubId: string): Promise<string> {
+  const club = await prisma.club.findUnique({
+    where: { id: clubId },
+    select: { name: true, members: { select: { userId: true, role: true } } },
+  });
+  if (!club) throw notFound("Club introuvable");
+
+  const conversation = await upsertClubConversation(clubId, clubChannelName(club.name));
+  return syncParticipants(conversation, new Map(club.members.map((m) => [m.userId, clubRoleFor(m.role)])));
+}
+
+/** Lazy backfill of the club channel (same idea as `ensureTeamChannelMembership`). */
+export async function ensureClubChannelMembership(userId: string, clubId: string) {
+  const participant = await prisma.conversationParticipant.findFirst({
+    where: { userId, conversation: { clubId } },
+    select: { id: true },
+  });
+  if (!participant) await ensureClubConversation(clubId);
 }
 
 /** Adds a new team member to the team channel (creates the channel if the team has none yet). */
@@ -119,17 +169,17 @@ export async function ensureTeamChannelMembership(userId: string, teamId: string
 }
 
 /**
- * A former member leaves the team's custom groups too (groups are created between teammates):
- * every GROUP they are in that still has a current member of the team. An admin hands over to the
- * longest-standing member; an empty group is deleted. Private conversations stay readable, but
- * sending requires a shared team again (see sendMessage).
+ * A former club member leaves the club's custom groups too (groups are created between members of
+ * the club): every GROUP they are in that still has a current member of the club. An admin hands
+ * over to the longest-standing member. Private conversations stay readable, but sending requires
+ * a shared club again (see sendMessage).
  */
-export async function removeFormerMemberFromTeamGroups(teamId: string, userId: string): Promise<void> {
+export async function removeFormerMemberFromClubGroups(clubId: string, userId: string): Promise<void> {
   const groups = await prisma.conversation.findMany({
     where: {
       type: "GROUP",
       participants: { some: { userId } },
-      AND: [{ participants: { some: { userId: { not: userId }, user: { memberships: { some: { teamId } } } } } }],
+      AND: [{ participants: { some: { userId: { not: userId }, user: { clubMembership: { clubId } } } } }],
     },
     select: { id: true, participants: { select: { userId: true, role: true, joinedAt: true } } },
   });

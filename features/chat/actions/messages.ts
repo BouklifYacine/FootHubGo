@@ -21,11 +21,11 @@ export const sendMessage = action(sendMessageSchema, async ({ conversationId, co
     });
     const otherIds = others.map((other) => other.userId);
     await assertNotBlocked(user.id, otherIds);
-    // Former teammates can read their history but no longer write to each other.
+    // Former club mates can read their history but no longer write to each other.
     const membership = await findMembership(user.id);
     const stillTeammates =
       membership !== null &&
-      (await prisma.teamMember.count({ where: { teamId: membership.teamId, userId: { in: otherIds } } })) ===
+      (await prisma.clubMember.count({ where: { clubId: membership.clubId, userId: { in: otherIds } } })) ===
         otherIds.length;
     if (!stillTeammates) throw forbidden("Vous ne faites plus partie du même club que ce joueur");
   }

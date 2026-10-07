@@ -1,19 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { leavesTeamWithoutCoach } from "./rules";
+import { clubLosingItsOwner } from "./rules";
 
-const team = [
-  { userId: "coach", role: "COACH" },
-  { userId: "p1", role: "PLAYER" },
+const owners = [
+  { userId: "owner1", clubName: "FC Un" },
+  { userId: "owner2", clubName: "AS Deux" },
 ];
 
-describe("leavesTeamWithoutCoach", () => {
-  test("deleting the only coach of a team with players is refused", () => {
-    expect(leavesTeamWithoutCoach(team, ["coach"])).toBe(true);
+describe("clubLosingItsOwner", () => {
+  test("deleting a club owner is refused (the first club concerned is named)", () => {
+    expect(clubLosingItsOwner(owners, ["p1", "owner2"])?.clubName).toBe("AS Deux");
   });
 
-  test("allowed when another coach stays, when the team empties, or for a player", () => {
-    expect(leavesTeamWithoutCoach([...team, { userId: "coach2", role: "COACH" }], ["coach"])).toBe(false);
-    expect(leavesTeamWithoutCoach(team, ["coach", "p1"])).toBe(false);
-    expect(leavesTeamWithoutCoach(team, ["p1"])).toBe(false);
+  test("deleting members, admins or coaches who own no club is allowed", () => {
+    expect(clubLosingItsOwner(owners, ["p1", "coach"])).toBeNull();
+    expect(clubLosingItsOwner([], ["owner1"])).toBeNull();
   });
 });

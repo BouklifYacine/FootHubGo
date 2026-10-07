@@ -81,7 +81,7 @@ function UserMenu({ name }: { name: string }) {
             <LayoutDashboard /> Mon club
           </Link>
         </DropdownMenuItem>
-        {profile?.plan === "pro" && process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL && (
+        {profile?.plan === "pro" && profile.managesBilling && process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL && (
           <DropdownMenuItem asChild>
             <a href={process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL}>
               <CreditCard /> Abonnement

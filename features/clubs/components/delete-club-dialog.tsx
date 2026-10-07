@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,19 +10,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
-import { deleteTeam } from "../actions";
+import { deleteClub } from "../actions";
+import { useRefreshAll } from "../hooks/use-refresh-all";
 
 type Props = { open: boolean; onOpenChange: (open: boolean) => void };
 
-export function DeleteTeamDialog({ open, onOpenChange }: Props) {
-  const router = useRouter();
-  const remove = useActionMutation(deleteTeam, {
-    invalidate: [queryKeys.me.all, queryKeys.home, queryKeys.teams.all],
+/** OWNER only: deletes the club, its sections and all their data, and cancels the subscription. */
+export function DeleteClubDialog({ open, onOpenChange }: Props) {
+  const refreshAll = useRefreshAll();
+  const remove = useActionMutation(deleteClub, {
     onSuccess: () => {
       onOpenChange(false);
-      router.push("/app");
+      refreshAll("/app");
     },
   });
 
@@ -33,8 +32,8 @@ export function DeleteTeamDialog({ open, onOpenChange }: Props) {
         <AlertDialogHeader>
           <AlertDialogTitle>Voulez-vous supprimer votre club ?</AlertDialogTitle>
           <AlertDialogDescription>
-            Le club et toutes ses données (événements, statistiques, messages) seront supprimés
-            définitivement. Aucune récupération ne sera possible.
+            Le club, toutes ses sections et leurs données (événements, statistiques, messages) seront
+            supprimés définitivement et l&apos;abonnement sera résilié. Aucune récupération ne sera possible.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

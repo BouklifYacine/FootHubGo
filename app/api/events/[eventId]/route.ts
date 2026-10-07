@@ -4,5 +4,5 @@ import { getEvent } from "@/features/events/server/queries";
 
 export const GET = route<{ eventId: string }>(async ({ params }) => {
   const { membership } = await requireMember();
-  return getEvent(params.eventId, membership.teamId);
+  return getEvent(params.eventId, membership);
 });

@@ -11,16 +11,21 @@ import { useAppForm } from "@/lib/form";
 
 const typeOptions = EVENT_TYPE_KEYS.map((type) => ({ value: type, label: EVENT_TYPES[type].label }));
 
+/** "CLUB" (whole club) or a section id. */
+export type ScopeOption = { value: string; label: string };
+
 type Props = {
   /** Event to edit; omitted to create one starting at `defaultStart`. */
   event?: EventListItem;
   defaultStart?: Date;
+  /** Club OWNER / ADMIN: who the new event is for (the first option is the default). */
+  scopeOptions?: ScopeOption[];
   onDone: () => void;
   onCancel: () => void;
 };
 
 /** Create / edit form of an event (same zod schema as the server actions). */
-export function EventForm({ event, defaultStart, onDone, onCancel }: Props) {
+export function EventForm({ event, defaultStart, scopeOptions, onDone, onCancel }: Props) {
   const createEvent = useCreateEvent(onDone);
   const updateEvent = useUpdateEvent(onDone);
 
@@ -35,16 +40,25 @@ export function EventForm({ event, defaultStart, onDone, onCancel }: Props) {
         opponent: event.opponent ?? "",
         description: event.description ?? "",
       }
-    : { repeat: false, title: "", type: "TRAINING", startDate: defaultStart ?? new Date(), location: "", opponent: "", description: "" };
+    : {
+        repeat: false,
+        title: "",
+        type: "TRAINING",
+        startDate: defaultStart ?? new Date(),
+        location: "",
+        opponent: "",
+        description: "",
+        scope: scopeOptions?.[0]?.value,
+      };
 
   const form = useAppForm({
     defaultValues,
     validators: { onSubmit: eventFormSchema },
     // Errors are already shown as toasts by useActionMutation
-    onSubmit: ({ value: { repeat, repeatUntil, ...value } }) =>
+    onSubmit: ({ value: { repeat, repeatUntil, scope, ...value } }) =>
       (event
         ? updateEvent.mutateAsync({ ...value, eventId: event.id })
-        : createEvent.mutateAsync({ ...value, repeatUntil: repeat ? repeatUntil : undefined })
+        : createEvent.mutateAsync({ ...value, scope, repeatUntil: repeat ? repeatUntil : undefined })
       ).catch(() => undefined),
   });
 
@@ -56,6 +70,11 @@ export function EventForm({ event, defaultStart, onDone, onCancel }: Props) {
         form.handleSubmit();
       }}
     >
+      {!event && scopeOptions && scopeOptions.length > 1 && (
+        <form.AppField name="scope">
+          {(field) => <field.SelectField label="Pour" options={scopeOptions} />}
+        </form.AppField>
+      )}
       <form.AppField name="title">
         {(field) => <field.TextField label="Titre" placeholder="Ex : Entraînement tactique" />}
       </form.AppField>

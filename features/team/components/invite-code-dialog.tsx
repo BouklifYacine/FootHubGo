@@ -20,11 +20,15 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   code: string | null;
+  /** A section of the club (club management page); omitted = the active section. */
+  teamId?: string;
+  sectionName?: string;
 };
 
-const invalidate = [queryKeys.me.team, queryKeys.home];
+const invalidate = [queryKeys.me.team, queryKeys.home, queryKeys.club.admin];
 
-export function InviteCodeDialog({ open, onOpenChange, code }: Props) {
+/** The invite code of ONE section: whoever types it joins that section (and the club). */
+export function InviteCodeDialog({ open, onOpenChange, code, teamId, sectionName }: Props) {
   const [copied, setCopied] = useState(false);
   const regenerate = useActionMutation(regenerateInviteCode, { invalidate });
   const remove = useActionMutation(removeInviteCode, {
@@ -49,11 +53,11 @@ export function InviteCodeDialog({ open, onOpenChange, code }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Code d&apos;invitation du club</DialogTitle>
+          <DialogTitle>Code d&apos;invitation{sectionName ? ` : ${sectionName}` : " de la section"}</DialogTitle>
           <DialogDescription>
             {code
-              ? "Partagez ce code pour inviter des joueurs dans votre club."
-              : "Générez un code d'invitation pour agrandir votre club !"}
+              ? "Partagez ce code : il fait rejoindre cette section (et le club)."
+              : "Générez un code d'invitation pour agrandir votre section !"}
           </DialogDescription>
         </DialogHeader>
 
@@ -72,7 +76,7 @@ export function InviteCodeDialog({ open, onOpenChange, code }: Props) {
           <div className="flex justify-center gap-2">
             <Button
               className="flex-1"
-              onClick={() => regenerate.mutate()}
+              onClick={() => regenerate.mutate({ teamId })}
               disabled={regenerate.isPending}
             >
               <RefreshCw className="mr-2 size-4" />
@@ -82,7 +86,7 @@ export function InviteCodeDialog({ open, onOpenChange, code }: Props) {
               <Button
                 variant="destructive"
                 size="icon"
-                onClick={() => remove.mutate()}
+                onClick={() => remove.mutate({ teamId })}
                 disabled={remove.isPending}
                 aria-label="Supprimer le code"
               >

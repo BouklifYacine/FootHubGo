@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { KeyRound, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { KeyRound, MoreVertical, Settings } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,67 +13,62 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { teamLevelLabels } from "@/lib/enum-labels";
+import { sectionCategoryLabels, teamLevelLabels } from "@/lib/enum-labels";
 import type { MyTeam } from "../hooks/use-my-team";
-import { DeleteTeamDialog } from "./delete-team-dialog";
 import { InitialsAvatar } from "./initials-avatar";
 import { InviteCodeDialog } from "./invite-code-dialog";
-import { TeamFormDialog } from "./team-form-dialog";
 import { formatInviteCode } from "../invite-code";
 
-type OpenDialog = "invite" | "edit" | "delete" | null;
-
-/** Top of the squad page: logo, name, counters and the coach's club menu. */
+/**
+ * Top of the squad page: club logo, "Club · Section", counters, and the section menu (invite code
+ * for the section's coaches and the club admins, link to the club management page for OWNER / ADMIN).
+ */
 export function TeamHeader({ data }: { data: MyTeam }) {
-  const [dialog, setDialog] = useState<OpenDialog>(null);
-  const { team, members, role } = data;
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const { team, members, canManage, club } = data;
   if (!team) return null;
 
-  const isCoach = role === "COACH";
-  const close = (open: boolean) => !open && setDialog(null);
+  const isClubAdmin = club?.isAdmin ?? false;
 
   return (
     <div className="relative flex flex-col items-center p-5">
-      {isCoach && (
+      {canManage && (
         <div className="absolute top-5 right-5">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" aria-label="Actions du club">
+              <Button variant="ghost" size="icon" aria-label="Actions de la section">
                 <MoreVertical className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Actions du club</DropdownMenuLabel>
+              <DropdownMenuLabel>Section {team.name}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setDialog("invite")}>
+              <DropdownMenuItem onClick={() => setInviteOpen(true)}>
                 <KeyRound className="mr-2 size-4" />
                 Gérer le code d&apos;invitation
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setDialog("edit")}>
-                <Pencil className="mr-2 size-4" />
-                Modifier le club
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setDialog("delete")}
-                className="text-red-600 focus:text-red-600"
-              >
-                <Trash2 className="mr-2 size-4" />
-                Supprimer le club
-              </DropdownMenuItem>
+              {isClubAdmin && (
+                <DropdownMenuItem asChild>
+                  <Link href="/app/club">
+                    <Settings className="mr-2 size-4" />
+                    Gérer le club
+                  </Link>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       )}
 
       <InitialsAvatar
-        name={team.name}
+        name={club?.name ?? team.name}
         src={team.logoUrl}
         className="size-[100px] text-2xl md:size-[140px]"
       />
       <Badge className="mt-2 rounded-lg px-3 py-1 text-sm font-medium tracking-tighter md:text-lg">
-        {team.name}
+        {team.displayName}
       </Badge>
+      <p className="mt-1 text-xs text-muted-foreground">{sectionCategoryLabels[team.category]}</p>
 
       <div className="mt-6 flex gap-10">
         <Counter label="Membres" value={members.length} />
@@ -89,21 +85,8 @@ export function TeamHeader({ data }: { data: MyTeam }) {
         </p>
       )}
 
-      {isCoach && (
-        <>
-          <InviteCodeDialog open={dialog === "invite"} onOpenChange={close} code={team.inviteCode} />
-          <TeamFormDialog
-            open={dialog === "edit"}
-            onOpenChange={close}
-            team={{
-              name: team.name,
-              description: team.description ?? "",
-              level: team.level,
-              visibility: team.visibility,
-            }}
-          />
-          <DeleteTeamDialog open={dialog === "delete"} onOpenChange={close} />
-        </>
+      {canManage && (
+        <InviteCodeDialog open={inviteOpen} onOpenChange={setInviteOpen} code={team.inviteCode} sectionName={team.name} />
       )}
     </div>
   );

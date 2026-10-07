@@ -4,12 +4,39 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
-import { requireCoach, requireMember } from "@/lib/auth/session";
+import { requireMember, type Membership } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
+import { canManageSection } from "@/features/clubs/rules";
 import { weeklyOccurrences } from "./recurrence";
 import { attendanceSchema, deleteEventSchema, eventSchema, moveEventSchema, updateEventSchema } from "./schemas";
 
-type EventData = Omit<z.output<typeof eventSchema>, "repeatUntil">;
+type EventData = Omit<z.output<typeof eventSchema>, "repeatUntil" | "scope">;
+
+/** Where events live: a section (`teamId`) or the whole club (`teamId: null`). */
+type EventScope = { clubId: string; teamId: string | null };
+
+/**
+ * Scope of a new event: the active section by default; "CLUB" (club-wide) or another section of the
+ * club for its coaches and the club OWNER / ADMIN. Never trusts the id from the client.
+ */
+async function resolveScope(membership: Membership, scope: string | undefined): Promise<EventScope> {
+  const teamId = scope === "CLUB" ? null : (scope ?? membership.teamId);
+  if (teamId && teamId !== membership.teamId) {
+    const section = await prisma.team.findFirst({ where: { id: teamId, clubId: membership.clubId }, select: { id: true } });
+    if (!section) throw notFound("Section introuvable");
+  }
+  if (!canManageSection(membership, teamId)) {
+    throw forbidden(
+      teamId === null
+        ? "Seuls le propriétaire et les administrateurs créent des événements pour tout le club"
+        : "Vous devez être entraîneur de la section",
+    );
+  }
+  return { clubId: membership.clubId, teamId };
+}
+
+/** Same section / club-wide slot: two events of the same scope can't start at the same time. */
+const scopeWhere = ({ clubId, teamId }: EventScope) => ({ clubId, teamId });
 
 /** Normalizes form values into DB columns (a training has no opponent). */
 function toEventColumns({ title, type, startDate, location, opponent, description }: EventData) {
@@ -23,35 +50,41 @@ function toEventColumns({ title, type, startDate, location, opponent, descriptio
   };
 }
 
-/** An event of the coach's team that can still be changed (not locked by match stats). */
-async function findEditableEvent(eventId: string, teamId: string) {
+/**
+ * An event visible in the caller's active section (its own or a club-wide one) that the caller
+ * manages (section coach, or OWNER / ADMIN for club-wide events) and that is not locked by match stats.
+ */
+async function findEditableEvent(eventId: string, membership: Membership) {
   const event = await prisma.event.findFirst({
-    where: { id: eventId, teamId },
-    select: { id: true, seriesId: true, startDate: true, teamStat: { select: { id: true } } },
+    where: { id: eventId, clubId: membership.clubId, OR: [{ teamId: membership.teamId }, { teamId: null }] },
+    select: { id: true, clubId: true, teamId: true, seriesId: true, startDate: true, teamStat: { select: { id: true } } },
   });
   if (!event) throw notFound("Événement introuvable");
+  if (!canManageSection(membership, event.teamId)) {
+    throw forbidden(event.teamId ? "Vous devez être entraîneur de la section" : "Réservé au propriétaire et aux administrateurs du club");
+  }
   if (event.teamStat) {
     throw new AppError("Cet événement a des statistiques enregistrées : il ne peut plus être modifié ni supprimé", 409);
   }
   return event;
 }
 
-async function assertNoEventAt(teamId: string, startDate: Date, ignoreEventId?: string) {
+async function assertNoEventAt(scope: EventScope, startDate: Date, ignoreEventId?: string) {
   const existing = await prisma.event.findFirst({
-    where: { teamId, startDate, id: ignoreEventId ? { not: ignoreEventId } : undefined },
+    where: { ...scopeWhere(scope), startDate, id: ignoreEventId ? { not: ignoreEventId } : undefined },
     select: { id: true },
   });
   if (existing) throw new AppError("Un événement existe déjà à cette date et heure", 409);
 }
 
 /** One event, or a weekly series of trainings; dates already taken by another event are skipped. */
-export const createEvent = action(eventSchema, async ({ repeatUntil, ...input }) => {
-  const { membership } = await requireCoach();
-  const teamId = membership.teamId;
+export const createEvent = action(eventSchema, async ({ repeatUntil, scope: requestedScope, ...input }) => {
+  const { membership } = await requireMember();
+  const scope = await resolveScope(membership, requestedScope);
   const dates = repeatUntil ? weeklyOccurrences(input.startDate, repeatUntil) : [input.startDate];
 
   const taken = await prisma.event.findMany({
-    where: { teamId, startDate: { in: dates } },
+    where: { ...scopeWhere(scope), startDate: { in: dates } },
     select: { startDate: true },
   });
   const takenTimes = new Set(taken.map((event) => event.startDate.getTime()));
@@ -60,7 +93,7 @@ export const createEvent = action(eventSchema, async ({ repeatUntil, ...input })
 
   const seriesId = dates.length > 1 ? randomUUID() : null;
   await prisma.event.createMany({
-    data: free.map((startDate) => ({ ...toEventColumns({ ...input, startDate }), teamId, seriesId })),
+    data: free.map((startDate) => ({ ...toEventColumns({ ...input, startDate }), ...scope, seriesId })),
   });
 
   if (dates.length === 1) return { message: "Événement créé" };
@@ -71,25 +104,25 @@ export const createEvent = action(eventSchema, async ({ repeatUntil, ...input })
 });
 
 export const updateEvent = action(updateEventSchema, async ({ eventId, ...input }) => {
-  const { membership } = await requireCoach();
-  const event = await findEditableEvent(eventId, membership.teamId);
-  await assertNoEventAt(membership.teamId, input.startDate, event.id);
+  const { membership } = await requireMember();
+  const event = await findEditableEvent(eventId, membership);
+  await assertNoEventAt(event, input.startDate, event.id);
   await prisma.event.update({ where: { id: event.id }, data: toEventColumns(input) });
   return { message: "Événement modifié" };
 });
 
 /** Drag & drop in the calendar: only the start date changes. */
 export const moveEvent = action(moveEventSchema, async ({ eventId, startDate }) => {
-  const { membership } = await requireCoach();
-  const event = await findEditableEvent(eventId, membership.teamId);
-  await assertNoEventAt(membership.teamId, startDate, event.id);
+  const { membership } = await requireMember();
+  const event = await findEditableEvent(eventId, membership);
+  await assertNoEventAt(event, startDate, event.id);
   await prisma.event.update({ where: { id: event.id }, data: { startDate } });
   return { message: "Événement déplacé" };
 });
 
 export const deleteEvent = action(deleteEventSchema, async ({ eventId, withFollowing }) => {
-  const { membership } = await requireCoach();
-  const event = await findEditableEvent(eventId, membership.teamId);
+  const { membership } = await requireMember();
+  const event = await findEditableEvent(eventId, membership);
 
   if (!withFollowing || !event.seriesId) {
     await prisma.event.delete({ where: { id: event.id } });
@@ -98,12 +131,12 @@ export const deleteEvent = action(deleteEventSchema, async ({ eventId, withFollo
 
   // This occurrence and the following ones; occurrences locked by stats stay.
   const { count } = await prisma.event.deleteMany({
-    where: { teamId: membership.teamId, seriesId: event.seriesId, startDate: { gte: event.startDate }, teamStat: null },
+    where: { ...scopeWhere(event), seriesId: event.seriesId, startDate: { gte: event.startDate }, teamStat: null },
   });
   return { message: `${count} entraînement${count > 1 ? "s" : ""} supprimé${count > 1 ? "s" : ""}` };
 });
 
-/** A player says whether they will attend an upcoming training. */
+/** A player says whether they will attend an upcoming training of their section (not a club-wide event). */
 export const setAttendance = action(attendanceSchema, async ({ eventId, status }) => {
   const { user, membership } = await requireMember();
   if (membership.role !== "PLAYER") throw forbidden("Seuls les joueurs peuvent indiquer leur présence");

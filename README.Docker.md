@@ -86,7 +86,7 @@ Les données d'un volume 16 ne sont pas lisibles par la 18. Deux options en loca
 - `BETTER_AUTH_SECRET` et `BETTER_AUTH_URL` : authentification.
 - `RESEND_API_KEY` et `RESEND_FROM_EMAIL` : emails transactionnels.
 - `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `AWS_ENDPOINT_URL_S3` et `S3_BUCKET_NAME` : stockage S3 compatible.
-- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` et `STRIPE_YEARLY_PRICE_ID` : Stripe.
+- `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_MONTHLY_PRICE_ID` et `STRIPE_YEARLY_PRICE_ID` : Stripe (abonnement du club).
 - `POSTGRES_USER`, `POSTGRES_PASSWORD` et `POSTGRES_DB` : base PostgreSQL du Compose local.
 - `TRUSTED_IP_HEADER` : en-tête du reverse proxy qui porte l'IP du client (voir plus haut).
 

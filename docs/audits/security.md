@@ -9,7 +9,7 @@ Every finding below comes from reading the code. Items marked **to verify** depe
 
 ---
 
-## 0. Status (branch `fix/security-and-launch-blockers`)
+## 0. Status (branch `fix/security-and-launch-blockers`, then lot 2 `feat/clubs-and-sections` for L6 / L13)
 
 Fixed = done in this branch. Partial = the main risk is fixed, the rest is listed. Deferred = not done, with the reason.
 
@@ -29,14 +29,14 @@ Fixed = done in this branch. Partial = the main risk is fixed, the rest is liste
 | L3 | Partial | `stripe_event` table: each event id is claimed before handling, retries are no-ops, a failure releases the claim. The Checkout email fallback only matches verified addresses. `event.created` ordering and `current_period_end` as end date: deferred (the plan gates nothing yet). |
 | L4 | Partial | Type detected from magic bytes (`lib/image-type.ts`), extension and Content-Type from the detected type, `ContentDisposition: inline`, cache headers, 10 uploads per hour. Re-encoding with `sharp` (EXIF/GPS strip, resize): deferred (new native dependency). |
 | L5 | Fixed | A former member is removed from the team's GROUP conversations (admin handed over to the longest-standing member) and can no longer send in a PRIVATE conversation without a shared current team (history stays readable). |
-| L6 | Deferred | Owner model: comes with clubs and sections (roadmap lot 2, roles OWNER / ADMIN). |
+| L6 | Fixed (lot 2) | Clubs have one OWNER (partial unique index) and ADMINs. Club deletion, club roles and ownership transfer: OWNER only; club info, sections, coach appointments, member removal: OWNER / ADMIN, and an ADMIN only acts on plain members (`features/clubs/rules.ts`, tested). A coach only manages their section (events, call-ups, positions, removing its players). |
 | L7 | Fixed | Leaderboard excludes PRIVATE teams, except the viewer's own. |
 | L8 | Accepted | Players keep seeing that a teammate is injured on match day (same rule as M1: status yes, details no). |
 | L9 | Fixed | Admin deletion refuses to leave a team without a coach (`leavesTeamWithoutCoach`, tested), deletes avatars, closes sockets, clears the name/photo in others' notifications. |
 | L10 | Partial | "Delete for everyone" erases `content`; account deletion clears `fromUserName` / `fromUserImage`. Deleting the Stripe customer: deferred (billing flow to be reworked for club subscriptions). |
 | L11 | Partial | `allowRequest` refuses a foreign `Origin`, `chat:join` limited to 30 per 10 s per socket. Cap on sockets per user: deferred. |
 | L12 | Fixed | Injury type ≤ 50, description ≤ 500 characters. |
-| L13 | Deferred | `@unique` on `TeamMember.userId` would block roadmap lot 2 (a user in several sections); the race is handled in that lot. |
+| L13 | Fixed (lot 2) | `club_member.userId` is unique (one club per user) and `MembreEquipe (userId, equipeId)` is unique; a section membership requires the club membership (composite FK). `createClub`, `joinTeamWithCode`, `reviewJoinRequest` and coach appointments insert inside a transaction and map the unique violation (P2002) to a clear message. The migration keeps the oldest membership of a user who was in two teams. |
 | L14 | Fixed | `loggableError()`: Prisma errors are logged by name and code only. |
 | L15 | Deferred | Per-participant deletion of private conversations: UX change, planned with the chat refactor. |
 | L16 | Partial | `defu` 6.1.7 and `mysql2` 3.24.5 through `overrides`. `braces` (no patched release) and `deepmerge-ts` (major upgrade inside Prisma) are dev/build only. |
@@ -131,6 +131,24 @@ OK means the caller is authenticated, every id from the client is scoped to the 
 | chat `sendMessage` | `requireUser`; `requireParticipant`; block check; 15 messages/min | OK (L5, L17 race) |
 | chat `deleteMessage` | `requireUser`; participant; "all" only by the sender | OK (L10) |
 | chat `markConversationRead` | `requireUser`; `requireParticipant` | OK |
+
+### Lot 2 (clubs and sections): new and changed actions
+
+| Action | Guard | Verdict |
+|---|---|---|
+| clubs `createClub` | `requireUser`; one club per user (unique index, P2002 mapped) | OK |
+| clubs `updateClub`, `createSection`, `updateSection`, `deleteSection` | `requireClubPermission` (OWNER / ADMIN); section looked up in the caller's club; only an empty section, never the last one | OK |
+| clubs `deleteClub` | OWNER only; Stripe subscription cancelled first | OK |
+| clubs `setClubRole`, `transferOwnership` | OWNER only (`clubRoleChangeError`, `transferOwnershipError`); conditional demote-then-promote in a transaction | OK |
+| clubs `setSectionMembership`, `removeClubMember` | OWNER / ADMIN on lower ranks (`sectionRoleChangeError`, `removeMemberError`); ids looked up in the caller's club | OK |
+| clubs `switchSection` | `requireMember`; the section must be one of the caller's | OK |
+| team `regenerateInviteCode`, `removeInviteCode` | `requireSectionManager(teamId?)` (section coach or OWNER / ADMIN, section of the caller's club) | OK |
+| team `removeMember`, `updateMemberRole` | `removeMemberError` / `sectionRoleChangeError` (L6) | OK |
+| events `createEvent`, `updateEvent`, `moveEvent`, `deleteEvent` | `canManageSection(membership, event.teamId)`: section coach or OWNER / ADMIN; club-wide events OWNER / ADMIN only | OK |
+| join-requests `reviewJoinRequest` | request in the caller's club and `canManageSection` on its section; claim then `addToSection` (P2002 mapped, claim released on failure) | OK |
+| billing `startClubCheckout` | OWNER only; club id in the Checkout metadata | OK |
+| GET `/api/club` | OWNER / ADMIN | OK |
+| GET `/api/club/join-requests` | manages at least one section; admins see the club's requests, coaches their sections' | OK |
 
 ### GET routes (24, plus better-auth)
 

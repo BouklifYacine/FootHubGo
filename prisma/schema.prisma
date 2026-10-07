@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -17,6 +18,7 @@ model User {
   emailVerified            Boolean
   image                    String?
   role                     UserRole                  @default(USER)
+  /// Legacy per-user plan / Stripe customer: billing now belongs to the club (Club.plan).
   plan                     Plan                      @default(free)
   clientId                 String?                   @unique
   resetToken               String?
@@ -29,6 +31,8 @@ model User {
   emailReminders           Boolean                   @default(true)
   callUps                  CallUp[]
   memberships              TeamMember[]
+  clubMembership           ClubMember?
+  /// Legacy: subscriptions bought before clubs existed, by users who own no club (see ARCHITECTURE.md).
   subscription             Subscription?
   accounts                 Account[]
   injuries                 Injury[]
@@ -54,15 +58,53 @@ model User {
   @@map("user")
 }
 
+/// A club: owns its sections, members (club roles), the club chat channel and the subscription.
+model Club {
+  id               String         @id @default(cuid())
+  name             String
+  description      String?
+  logoUrl          String?
+  visibility       ClubVisibility @default(PUBLIC)
+  createdAt        DateTime       @default(now())
+  /// Billing belongs to the club (paid by the OWNER).
+  plan             Plan           @default(free)
+  stripeCustomerId String?        @unique
+  sections         Team[]
+  members          ClubMember[]
+  events           Event[]
+  conversation     Conversation?
+  subscription     Subscription?
+
+  @@map("club")
+}
+
+/// Club role of a user (one club per user for now: `userId` is unique).
+model ClubMember {
+  id                 String       @id @default(cuid())
+  role               ClubRole     @default(MEMBER)
+  joinedAt           DateTime     @default(now())
+  clubId             String
+  userId             String       @unique
+  club               Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sectionMemberships TeamMember[]
+
+  @@unique([clubId, userId])
+  /// Exactly one OWNER per club.
+  @@unique([clubId], map: "club_member_one_owner_key", where: { role: "OWNER" })
+  @@map("club_member")
+}
+
+/// A SECTION of a club (e.g. "Seniors A"). The model keeps its historical name (`Team`, table `equipe`).
 model Team {
-  id           String         @id @default(cuid())
-  name         String         @map("nom")
-  description  String?
-  logoUrl      String?
-  createdAt    DateTime       @default(now()) @map("dateCreation")
-  inviteCode   String?        @unique @map("codeInvitation")
-  visibility   TeamVisibility @default(PUBLIC) @map("statut")
-  level        TeamLevel      @default(RECREATIONAL) @map("niveau")
+  id           String          @id @default(cuid())
+  name         String          @map("nom")
+  createdAt    DateTime        @default(now()) @map("dateCreation")
+  inviteCode   String?         @unique @map("codeInvitation")
+  level        TeamLevel       @default(RECREATIONAL) @map("niveau")
+  category     SectionCategory @default(SENIOR)
+  clubId       String
+  club         Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
   members      TeamMember[]
   injuries     Injury[]
   joinRequests JoinRequest[]
@@ -70,9 +112,11 @@ model Team {
   finances     Finance[]
   polls        Poll[]
   teamStats    TeamStat[]
-  favoritedBy  User[]         @relation("ClubsFavoris")
+  favoritedBy  User[]          @relation("ClubsFavoris")
   conversation Conversation?
 
+  @@unique([clubId, name])
+  @@index([clubId])
   @@map("equipe")
 }
 
@@ -84,10 +128,14 @@ model TeamMember {
   joinedAt   DateTime        @default(now())
   userId     String
   teamId     String          @map("equipeId")
+  /// Same club as the section: a section member is always a club member (composite FK).
+  clubId     String
   team       Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubMember ClubMember      @relation(fields: [clubId, userId], references: [clubId, userId], onDelete: Cascade)
 
   @@unique([userId, teamId])
+  @@index([clubId, userId])
   @@map("MembreEquipe")
 }
 
@@ -163,18 +211,22 @@ model Event {
   opponent       String?      @map("adversaire")
   locationData   Json?
   weatherData    Json?
-  teamId         String       @map("equipeId")
+  clubId         String
+  /// null = club-wide event (visible in every section, no call-ups / attendance / stats).
+  teamId         String?      @map("equipeId")
   /// Shared by the occurrences of a weekly repeated training (null for a single event).
   seriesId       String?
   /// Set when the reminder (notification + email, 24h before) has been sent: never sent twice.
   reminderSentAt DateTime?
   callUps        CallUp[]
-  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  club           Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  team           Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
   attendances    Attendance[]
   teamStat       TeamStat?
   playerStats    PlayerStat[]
 
   @@index([teamId])
+  @@index([clubId, startDate])
   @@index([seriesId])
   @@map("evenement")
 }
@@ -210,14 +262,17 @@ model PollResponse {
   @@map("reponse_sondage")
 }
 
+/// Belongs to a club (`clubId`); legacy rows of users who owned no club keep `userId` instead.
 model Subscription {
   id        String             @id @default(cuid())
-  userId    String             @unique
+  clubId    String?            @unique
+  userId    String?            @unique
   plan      Plan
   period    SubscriptionPeriod @map("periode")
   startDate DateTime           @default(now()) @map("datedebut")
   endDate   DateTime           @updatedAt @map("datefin")
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club      Club?              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user      User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("abonnement")
 }
@@ -355,9 +410,12 @@ model Conversation {
   updatedAt    DateTime                  @updatedAt
   creatorId    String?
   creator      User?                     @relation("GroupCreator", fields: [creatorId], references: [id])
-  // Set only for TEAM conversations: one channel per team, members are synced automatically.
+  // Set only for TEAM conversations: one channel per section, members are synced automatically.
   teamId       String?                   @unique
   team         Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // Set only for CLUB conversations: one channel per club (every club member).
+  clubId       String?                   @unique
+  club         Club?                     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   participants ConversationParticipant[]
   messages     Message[]
   user         User?                     @relation(fields: [userId], references: [id])
@@ -424,6 +482,7 @@ enum ConversationType {
   PRIVATE
   GROUP
   TEAM
+  CLUB
 }
 
 enum ParticipantRole {
@@ -522,7 +581,19 @@ enum Competition {
   @@map("competition")
 }
 
-enum TeamVisibility {
+enum ClubRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum SectionCategory {
+  SENIOR
+  VETERAN
+  LEISURE
+}
+
+enum ClubVisibility {
   PUBLIC
   PRIVATE    @map("PRIVE")
   INVITATION

@@ -19,6 +19,11 @@ import { AttendanceSelect } from "./attendance-select";
 
 type Props = { event: EventListItem; isCoach: boolean; listKey: QueryKey };
 
+/** Small badge marking a club-wide event (visible in every section, no call-ups / attendance). */
+export function ClubEventBadge() {
+  return <Badge variant="outline">Tout le club</Badge>;
+}
+
 export function EventCard({ event, isCoach, listKey }: Props) {
   const deleteEvent = useDeleteEvent();
   const isPast = new Date(event.startDate) < new Date();
@@ -37,7 +42,7 @@ export function EventCard({ event, isCoach, listKey }: Props) {
             <DropdownMenuItem asChild>
               <Link href={`/app/events/${event.id}`}>Voir le détail</Link>
             </DropdownMenuItem>
-            {isCoach && !event.hasStats && (
+            {event.canEdit && !event.hasStats && (
               <>
                 <DropdownMenuItem asChild>
                   <Link href="/app/calendar">Modifier dans le calendrier</Link>
@@ -65,12 +70,13 @@ export function EventCard({ event, isCoach, listKey }: Props) {
       </div>
 
       <div className="flex min-h-9 items-center justify-between">
-        {!isCoach && event.type === "TRAINING" ? (
+        {!isCoach && event.type === "TRAINING" && !event.isClubEvent ? (
           <AttendanceSelect eventId={event.id} value={event.myAttendance} disabled={isPast} listKey={listKey} />
         ) : (
           <span />
         )}
         <div className="flex items-center gap-2">
+          {event.isClubEvent && <ClubEventBadge />}
           {event.hasStats && <Lock className="size-4 text-muted-foreground" aria-label="Statistiques saisies" />}
           <Badge className={EVENT_TYPES[event.type].badgeClass}>{EVENT_TYPES[event.type].label}</Badge>
         </div>

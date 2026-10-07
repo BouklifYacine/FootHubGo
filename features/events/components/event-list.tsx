@@ -31,11 +31,12 @@ export function EventList() {
   const { data: events, isPending, error } = useEvents(filters);
   const { data: myTeam } = useMyTeam();
   const isCoach = myTeam?.role === "COACH";
+  const canManage = myTeam?.canManage ?? false;
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
-        {isCoach && (
+        {canManage && (
           <Button asChild>
             <Link href="/app/calendar">
               <CalendarDays /> Planning

@@ -1,26 +1,9 @@
 import { z } from "zod";
-import { PlayerPosition, TeamLevel, TeamVisibility } from "@/generated/prisma/browser";
+import { PlayerPosition } from "@/generated/prisma/browser";
 import { isInviteCodeFormat, normalizeInviteCode } from "./invite-code";
 
-/** Used to create AND edit a team (same rules on both forms). */
-export const teamSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(3, "Le nom du club doit faire au moins 3 caractères")
-    .max(30, "Le nom du club ne peut pas dépasser 30 caractères"),
-  description: z
-    .string()
-    .trim()
-    .max(300, "La description ne peut pas dépasser 300 caractères")
-    .refine((value) => value === "" || value.length >= 10, {
-      message: "La description doit faire au moins 10 caractères",
-    }),
-  level: z.enum(TeamLevel, { error: "Choisissez un niveau" }),
-  visibility: z.enum(TeamVisibility, { error: "Choisissez une visibilité" }),
-});
-
-export type TeamInput = z.infer<typeof teamSchema>;
+/** A section of the caller's club; omitted = the active section. Always checked on the server. */
+export const sectionIdSchema = z.object({ teamId: z.string().min(1).optional() });
 
 export const inviteCodeSchema = z.object({
   inviteCode: z

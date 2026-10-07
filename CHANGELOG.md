@@ -13,6 +13,22 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 
 ### Ajouté
 
+- **Clubs et sections** : un club regroupe des sections (Seniors, Vétérans, Loisir, par ex. « Seniors A »).
+  Rôles du club : propriétaire (un seul, il paie l'abonnement), administrateurs, membres ; rôles de section :
+  entraîneur ou joueur. On peut être dans plusieurs sections du même club (entraîneur dans l'une, joueur dans
+  l'autre). Un seul club par utilisateur pour l'instant.
+- **Sélecteur de section** en haut du menu (« Club · Section ») : la section active est mémorisée et toutes les
+  pages affichent ses données.
+- **Page « Club »** (propriétaire et administrateurs) : informations du club, sections (créer, renommer,
+  supprimer une section vide, code d'invitation), membres et rôles du club, nomination des entraîneurs par
+  section, transfert de propriété, abonnement du club.
+- **Événements « Tout le club »** créés par le propriétaire ou un administrateur : visibles dans toutes les
+  sections, sans convocation ni présence ; le rappel part à tous les membres du club.
+- **Salon de discussion du club** (tous les membres) en plus du salon de chaque section.
+- Annuaire des clubs avec leurs sections : la demande d'adhésion vise une section et est traitée par ses
+  entraîneurs ou par les administrateurs du club.
+- Tests unitaires : matrice des droits du club, section active, transfert de propriété, départ, exclusion.
+
 - **Préférences de notification** : section « Notifications » dans les paramètres pour couper les rappels
   d'événements par email (la notification dans l'application est toujours envoyée).
 - **Lien de désabonnement** dans les emails de rappel : un clic, sans être connecté, coupe ces emails
@@ -23,6 +39,19 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
   de l'IP, type d'image, en-têtes de sécurité, règles de groupe et d'administration.
 
 ### Modifié
+
+- **Migration des données** : chaque équipe devient un club (même nom, logo, description, visibilité) avec une
+  section « Seniors » portant son nom ; son plus ancien entraîneur devient propriétaire, les autres entraîneurs
+  administrateurs, les joueurs membres. Le salon de l'équipe devient celui de la section et un salon
+  « Tout le club » est créé. Les codes d'invitation existants restent valables (ils visent la section).
+- **Abonnement payé par le club** (propriétaire) : l'abonnement d'un propriétaire est rattaché à son club ;
+  celui d'un utilisateur sans club reste sur son compte. Pour supprimer son compte, le propriétaire doit
+  d'abord transférer la propriété du club ou le supprimer ; un autre membre est simplement retiré du club.
+- Le code d'invitation fait rejoindre une section précise (et le club) ; un membre peut rejoindre une autre
+  section de son club avec son code.
+- Quitter sa dernière section revient à quitter le club ; l'exclusion par un entraîneur retire le joueur de la
+  section (du club si c'était sa seule section).
+- Messages privés et groupes : entre membres du même club (toutes sections).
 
 - **Codes d'invitation** de 12 caractères (`ABCD-EFGH-JKMN`, sans caractères ambigus), saisis avec ou sans
   tirets. Les anciens codes à 6 chiffres sont remplacés par la migration : les coachs doivent partager le
@@ -47,6 +76,12 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 - Un message « supprimé pour tous » est réellement effacé en base.
 
 ### Sécurité
+
+- Seuls le propriétaire et les administrateurs gèrent le club (informations, sections, entraîneurs, membres) ;
+  seul le propriétaire supprime le club ou change les rôles du club : un co-entraîneur ne peut plus supprimer
+  le club ni rétrograder les autres entraîneurs (audit L6).
+- « Un club par utilisateur » et « une fois par section » sont garantis par la base (index uniques) : deux
+  adhésions simultanées ne créent plus de double appartenance (audit L13).
 
 - Limites de tentatives (en mémoire, une seule instance) : code d'invitation (5 par utilisateur et 20 par IP
   en 10 min), mot de passe actuel dans les paramètres (5 en 15 min puis déconnexion partout), connexion

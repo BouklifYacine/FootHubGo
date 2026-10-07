@@ -82,10 +82,15 @@ export const cancelCallUp = action(z.string().min(1), async (callUpId) => {
 export const replyToCallUp = action(replyCallUpSchema, async ({ callUpId, status }) => {
   const { user, membership } = await requireMember();
 
-  // The call-up must belong to the caller and to an event of their team
+  // The call-up must belong to the caller and to an event of one of their sections (not only the
+  // active one: "Mes convocations" lists them all)
   const callUp = await prisma.callUp.findFirst({
-    where: { id: callUpId, userId: user.id, event: { teamId: membership.teamId } },
-    select: { id: true, status: true, event: { select: { title: true, startDate: true } } },
+    where: {
+      id: callUpId,
+      userId: user.id,
+      event: { teamId: { in: membership.sections.map((section) => section.teamId) } },
+    },
+    select: { id: true, status: true, event: { select: { title: true, startDate: true, teamId: true } } },
   });
   if (!callUp) throw notFound("Convocation introuvable");
   if (callUp.status !== "PENDING") throw new AppError("Vous avez déjà répondu à cette convocation", 409);
@@ -100,7 +105,7 @@ export const replyToCallUp = action(replyCallUpSchema, async ({ callUpId, status
   if (count === 0) throw new AppError("Vous avez déjà répondu à cette convocation", 409);
 
   const coaches = await prisma.teamMember.findMany({
-    where: { teamId: membership.teamId, role: "COACH", userId: { not: user.id } },
+    where: { teamId: callUp.event.teamId ?? membership.teamId, role: "COACH", userId: { not: user.id } },
     select: { userId: true },
   });
   const verb = status === "CONFIRMED" ? "a confirmé sa présence pour" : "a refusé la convocation pour";

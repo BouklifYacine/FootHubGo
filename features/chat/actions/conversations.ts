@@ -24,7 +24,7 @@ export const createConversation = action(createConversationSchema, async (input)
   const otherIds = input.type === "PRIVATE" ? [input.userId] : [...new Set(input.userIds)];
   if (otherIds.includes(user.id)) throw new AppError("Vous ne pouvez pas vous ajouter vous-même");
 
-  await assertTeammates(membership.teamId, otherIds);
+  await assertTeammates(membership.clubId, otherIds);
   await assertNotBlocked(user.id, otherIds);
 
   if (input.type === "PRIVATE") {
@@ -84,7 +84,7 @@ export const deleteConversation = action(conversationIdSchema, async (conversati
   const participant = await requireParticipant(user.id, conversationId);
   const { type } = participant.conversation;
 
-  if (type === "TEAM") throw forbidden("Le salon de l'équipe ne peut pas être supprimé");
+  if (type === "TEAM" || type === "CLUB") throw forbidden("Les salons du club et des sections ne peuvent pas être supprimés");
   if (type === "GROUP" && participant.role !== "ADMIN") {
     throw forbidden("Seul l'administrateur peut supprimer le groupe");
   }
