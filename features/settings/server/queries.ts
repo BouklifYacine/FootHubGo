@@ -10,6 +10,7 @@ export async function getProfile(userId: string) {
       role: true,
       plan: true,
       image: true,
+      emailReminders: true,
       subscription: { select: { period: true, startDate: true, endDate: true } },
       accounts: { select: { providerId: true } },
     },

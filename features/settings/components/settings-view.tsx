@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Key, Mail, Trash2, User, UserCircle } from "lucide-react";
+import { Bell, Key, Mail, Trash2, User, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useProfile } from "../hooks/use-profile";
 import { EmailForm, NameForm, PasswordForm } from "./account-forms";
 import { DeleteAccountCard } from "./delete-account-card";
+import { NotificationsCard } from "./notifications-card";
 import { ProfileCard } from "./profile-card";
 
 const sections = [
@@ -16,6 +17,7 @@ const sections = [
   { id: "name", label: "Pseudo", icon: User },
   { id: "email", label: "Email", icon: Mail, passwordOnly: true },
   { id: "password", label: "Mot de passe", icon: Key, passwordOnly: true },
+  { id: "notifications", label: "Notifications", icon: Bell },
   { id: "delete", label: "Supprimer le compte", icon: Trash2, danger: true },
 ] as const;
 
@@ -55,6 +57,7 @@ export function SettingsView() {
         {active === "name" && <NameForm currentName={profile.name} hasPassword={profile.hasPassword} />}
         {active === "email" && profile.hasPassword && <EmailForm />}
         {active === "password" && profile.hasPassword && <PasswordForm />}
+        {active === "notifications" && <NotificationsCard emailReminders={profile.emailReminders} />}
         {active === "delete" && <DeleteAccountCard hasPassword={profile.hasPassword} />}
       </div>
     </div>

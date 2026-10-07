@@ -25,6 +25,8 @@ model User {
   updatedAt                DateTime
   isOnline                 Boolean                   @default(false)
   lastSeen                 DateTime?
+  /// Event reminder emails (the day before). Turned off from the settings or the unsubscribe link.
+  emailReminders           Boolean                   @default(true)
   callUps                  CallUp[]
   memberships              TeamMember[]
   subscription             Subscription?

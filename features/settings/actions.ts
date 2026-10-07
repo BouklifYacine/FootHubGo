@@ -28,6 +28,7 @@ import {
   AVATAR_MAX_BYTES,
   confirmEmailChangeSchema,
   deleteAccountSchema,
+  notificationPreferencesSchema,
   updateEmailSchema,
   updateNameSchema,
   updatePasswordSchema,
@@ -252,4 +253,10 @@ export const removeAvatar = action(z.void(), async () => {
   await prisma.user.update({ where: { id: user.id }, data: { image: null } });
   await deleteOwnAvatar(image, user.id);
   return { message: "Photo de profil supprimée" };
+});
+
+export const updateNotificationPreferences = action(notificationPreferencesSchema, async ({ emailReminders }) => {
+  const user = await requireUser();
+  await prisma.user.update({ where: { id: user.id }, data: { emailReminders } });
+  return { message: emailReminders ? "Rappels par email activés" : "Rappels par email désactivés" };
 });

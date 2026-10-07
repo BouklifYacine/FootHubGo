@@ -16,6 +16,8 @@ export const updatePasswordSchema = z.object({
   newPassword: passwordSchema,
 });
 
+export const notificationPreferencesSchema = z.object({ emailReminders: z.boolean() });
+
 export const deleteAccountSchema = z.object({ password: z.string() });
 
 export const AVATAR_MAX_BYTES = 2 * 1024 * 1024;

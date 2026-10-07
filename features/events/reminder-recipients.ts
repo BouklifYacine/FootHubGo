@@ -1,10 +1,11 @@
 import type { AttendanceStatus, CallUpStatus, EventType } from "@/generated/prisma/browser";
 
-type Recipient = { userId: string; name: string; email: string; action: string };
+type Player = { userId: string; name: string; email: string };
 
-type ReminderEvent = {
+type ReminderEvent<P extends Player> = {
   type: EventType;
-  players: { userId: string; name: string; email: string }[];
+  /** Extra fields (e.g. the email preference) are passed through to the recipients. */
+  players: P[];
   attendances: { userId: string; status: AttendanceStatus }[];
   callUps: { userId: string; status: CallUpStatus }[];
 };
@@ -14,7 +15,7 @@ type ReminderEvent = {
  * - match: called-up players who confirmed or have not answered yet;
  * - training: every player of the team except those who said they will be absent.
  */
-export function reminderRecipients(event: ReminderEvent): Recipient[] {
+export function reminderRecipients<P extends Player>(event: ReminderEvent<P>): (P & { action: string })[] {
   if (event.type === "TRAINING") {
     const absent = new Set(event.attendances.filter((a) => a.status === "ABSENT").map((a) => a.userId));
     return event.players
