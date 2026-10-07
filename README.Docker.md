@@ -37,6 +37,19 @@ docker compose down
 
 Au démarrage, le conteneur exécute `bun run db:deploy` avec le CLI Prisma local 7.10.0, puis démarre `server.ts` via `bun run start` (`tsx server.ts`). Le serveur personnalisé conserve Socket.IO; le build standalone de Next.js n’est pas utilisé.
 
+## PostgreSQL 18
+
+Les Compose utilisent `postgres:18-alpine` avec le volume `pg18_data` (l'image 18 se monte sur
+`/var/lib/postgresql`). L'ancien volume `db_data` (PostgreSQL 16) n'est plus utilisé : il n'est ni lu ni supprimé.
+
+Les données d'un volume 16 ne sont pas lisibles par la 18. Deux options en local :
+
+- **Repartir de zéro** (données de test) : `docker compose -f docker-compose.dev.yml up -d db`, puis
+  `bun run db:deploy` crée tout le schéma. Supprimer l'ancien volume quand vous n'en avez plus besoin :
+  `docker volume ls` puis `docker volume rm <projet>_db_data`.
+- **Garder les données** : avant de changer d'image, `pg_dump` depuis l'ancien conteneur 16, puis
+  restauration (`psql` ou `pg_restore`) dans le nouveau conteneur 18.
+
 ## Variables principales
 
 - `DATABASE_URL` : URL utilisée par l’application et par défaut par Prisma.

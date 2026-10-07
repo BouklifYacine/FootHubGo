@@ -19,7 +19,7 @@ jobs:
     # Throwaway PostgreSQL: proves every migration applies on an empty database.
     services:
       postgres:
-        image: postgres:17-alpine
+        image: postgres:18-alpine
         env:
           POSTGRES_USER: foothubgo
           POSTGRES_PASSWORD: foothubgo

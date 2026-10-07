@@ -10,7 +10,7 @@ FootHubGo aide les clubs de football amateur à gérer leurs équipes et leur ac
 | Formulaires et données | TanStack Form 1.33, TanStack Query 5, Zod 4 |
 | Serveur | Serveur personnalisé `server.ts` avec Next.js et Socket.IO 4 |
 | Authentification | Better Auth 1.7 |
-| Base de données | PostgreSQL, Prisma ORM et CLI 7.10 |
+| Base de données | PostgreSQL 18, Prisma ORM et CLI 7.10 |
 | Services | Stripe 23, Resend 6, stockage compatible AWS S3 |
 
 Les dépendances sont gérées avec Bun et le lockfile `bun.lock`. Node.js 22 ou supérieur est requis par certaines dépendances.

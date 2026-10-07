@@ -38,8 +38,16 @@ Première version stable : nouvelle architecture, corrections de sécurité et n
 - Paramètres du compte sur `/settings` (plus d'identifiant dans l'URL) ; changement d'email ou de mot de passe
   déconnecte toutes les sessions.
 - Suppression de compte : annule l'abonnement Stripe ; impossible tant que l'utilisateur est dans un club.
-- Webhook Stripe découpé par type d'événement ; l'image Docker se construit sans secrets.
+- Webhook Stripe découpé par type d'événement.
+- **PostgreSQL 18** (Docker Compose et CI) ; nouveau volume `pg18_data` (voir `README.Docker.md`).
 - Code réduit de 60 % (32 894 → ~13 000 lignes), duplication de 10,35 % à 0,4 %.
+
+### Corrigé
+
+- L'historique de migrations ne créait pas les tables du chat (créées autrefois avec `db push`) : une base neuve
+  ne pouvait pas être construite. Migration de rattrapage `20261007190000_chat_tables_catch_up` ; toute la chaîne
+  s'applique désormais sur une base vide (vérifié en CI).
+- L'image Docker de production ne se construisait pas sans les secrets.
 
 ### Sécurité
 
