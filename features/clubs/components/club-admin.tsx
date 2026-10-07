@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { formatNumericDate } from "@/lib/format";
 import { useState, type ReactNode } from "react";
 import {
@@ -14,16 +15,6 @@ import {
   Trash2,
   UserMinus,
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -225,6 +216,7 @@ function Sections({ data }: { data: ClubAdmin }) {
 function SectionCard({ section, sectionCount }: { section: ClubAdminSection; sectionCount: number }) {
   const [dialog, setDialog] = useState<"edit" | "code" | null>(null);
   const remove = useActionMutation(deleteSection, { invalidate });
+  const confirm = useConfirm();
   const deleteError = deleteSectionError({ memberCount: section.memberCount }, sectionCount);
   const close = (open: boolean) => !open && setDialog(null);
 
@@ -253,9 +245,16 @@ function SectionCard({ section, sectionCount }: { section: ClubAdminSection; sec
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
+              variant="destructive"
               disabled={deleteError !== null || remove.isPending}
-              onClick={() => confirm(`Supprimer la section ${section.name} ?`) && remove.mutate(section.id)}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: `Supprimer la section ${section.name} ?`,
+                  description: "Ses événements, convocations, statistiques et son salon de discussion seront supprimés.",
+                  confirmLabel: "Supprimer",
+                });
+                if (ok) remove.mutate(section.id);
+              }}
             >
               <Trash2 className="size-4" /> Supprimer
             </DropdownMenuItem>
@@ -294,10 +293,8 @@ function Members({ data }: { data: ClubAdmin }) {
   );
 }
 
-type Confirm = { title: string; text: string; run: () => void } | null;
-
 function MemberRow({ member, data }: { member: ClubAdminMember; data: ClubAdmin }) {
-  const [confirmation, setConfirmation] = useState<Confirm>(null);
+  const confirm = useConfirm();
   const refreshAll = useRefreshAll();
   const sectionName = new Map(data.sections.map((section) => [section.id, section.name]));
   const me = { userId: data.myUserId, clubRole: data.myRole };
@@ -395,13 +392,14 @@ function MemberRow({ member, data }: { member: ClubAdminMember; data: ClubAdmin 
             )}
             {canTransfer && (
               <DropdownMenuItem
-                onClick={() =>
-                  setConfirmation({
+                onClick={async () => {
+                  const ok = await confirm({
                     title: `Transférer le club à ${member.name} ?`,
-                    text: "Il devient propriétaire (et paie l'abonnement du club). Vous restez administrateur.",
-                    run: () => transfer.mutate(member.id),
-                  })
-                }
+                    description: "Il devient propriétaire (et paie l'abonnement du club). Tu restes administrateur.",
+                    confirmLabel: "Transférer",
+                  });
+                  if (ok) transfer.mutate(member.id);
+                }}
               >
                 <Crown className="size-4" /> Transférer la propriété
               </DropdownMenuItem>
@@ -410,14 +408,15 @@ function MemberRow({ member, data }: { member: ClubAdminMember; data: ClubAdmin 
               <>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() =>
-                    setConfirmation({
+                  variant="destructive"
+                  onClick={async () => {
+                    const ok = await confirm({
                       title: `Retirer ${member.name} du club ?`,
-                      text: "Il quitte toutes ses sections et les salons du club.",
-                      run: () => remove.mutate(member.id),
-                    })
-                  }
+                      description: "Il quitte toutes ses sections et les salons du club.",
+                      confirmLabel: "Retirer",
+                    });
+                    if (ok) remove.mutate(member.id);
+                  }}
                 >
                   <UserMinus className="size-4" /> Retirer du club
                 </DropdownMenuItem>
@@ -427,18 +426,6 @@ function MemberRow({ member, data }: { member: ClubAdminMember; data: ClubAdmin 
         </DropdownMenu>
       )}
 
-      <AlertDialog open={confirmation !== null} onOpenChange={(open) => !open && setConfirmation(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{confirmation?.title}</AlertDialogTitle>
-            <AlertDialogDescription>{confirmation?.text}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmation?.run()}>Confirmer</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </li>
   );
 }

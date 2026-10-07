@@ -4,6 +4,7 @@ import "./globals.css";
 import clsx from "clsx";
 import { headers } from "next/headers";
 import { QueryProvider } from "@/components/providers/query-provider";
+import { ConfirmProvider } from "@/components/app/confirm-dialog";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { RealtimeProvider } from "@/lib/realtime/realtime-provider";
@@ -39,7 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <QueryProvider>
           <RealtimeProvider userId={session?.user?.id}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-              {children}
+              <ConfirmProvider>{children}</ConfirmProvider>
               <Toaster position="top-center" richColors />
             </ThemeProvider>
           </RealtimeProvider>

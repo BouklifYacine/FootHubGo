@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EVENT_TYPES } from "@/features/events/event-types";
 import type { HomeData } from "../types";
-import { EmptyState } from "./empty-state";
+import { EmptyState } from "@/components/app/empty-state";
 
 const formatDate = (date: string) => new Date(date).toLocaleDateString("fr-FR");
 const formatTime = (date: string) =>
@@ -16,7 +16,8 @@ export function UpcomingMatches({ matches, teamName }: { matches: HomeData["upco
       <EmptyState
         icon={CalendarX}
         title="Aucun match à venir"
-        text="Les prochains matchs s'afficheront ici une fois programmés"
+        bare
+        description="Les prochains matchs s'afficheront ici une fois programmés"
       />
     );
   }

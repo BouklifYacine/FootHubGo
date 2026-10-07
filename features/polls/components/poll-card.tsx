@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { formatRelative } from "@/lib/format";
 import { Check, Lock, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,7 @@ export function PollCard({ poll, isCoach }: { poll: Poll; isCoach: boolean }) {
   const vote = useVote();
   const close = useClosePoll();
   const remove = useDeletePoll();
+  const confirm = useConfirm();
   const total = Math.max(1, poll.results.reduce((sum, r) => sum + r.count, 0));
 
   const choose = (option: string) => {
@@ -56,10 +58,28 @@ export function PollCard({ poll, isCoach }: { poll: Poll; isCoach: boolean }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {!poll.isClosed && <DropdownMenuItem onClick={() => close.mutate(poll.id)}>Clôturer</DropdownMenuItem>}
+                {!poll.isClosed && (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Clôturer ce sondage ?",
+                        description: "Plus personne ne pourra voter. Les résultats restent visibles.",
+                        confirmLabel: "Clôturer",
+                        destructive: false,
+                      });
+                      if (ok) close.mutate(poll.id);
+                    }}
+                  >
+                    Clôturer
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => confirm("Supprimer ce sondage ?") && remove.mutate(poll.id)}
+                  variant="destructive"
+                  onClick={async () => {
+                    if (await confirm({ title: "Supprimer ce sondage ?", description: "Les votes seront perdus.", confirmLabel: "Supprimer" })) {
+                      remove.mutate(poll.id);
+                    }
+                  }}
                 >
                   Supprimer
                 </DropdownMenuItem>

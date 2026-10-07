@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { playerPositionLabels } from "@/lib/enum-labels";
 import { InitialsAvatar } from "@/features/team/components/initials-avatar";
 import type { HomeData } from "../types";
-import { EmptyState } from "./empty-state";
+import { EmptyState } from "@/components/app/empty-state";
 
 /** Top scorers / top assists of the team, toggled with a switch. */
 export function Leaderboard({ topScorers, topAssists }: Pick<HomeData, "topScorers" | "topAssists">) {
@@ -19,7 +19,8 @@ export function Leaderboard({ topScorers, topAssists }: Pick<HomeData, "topScore
       <EmptyState
         icon={TrendingUp}
         title="Aucune statistique disponible"
-        text="Les classements apparaîtront après les premiers matchs"
+        bare
+        description="Les classements apparaîtront après les premiers matchs"
       />
     );
   }

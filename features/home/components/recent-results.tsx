@@ -4,7 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import type { MatchResult } from "@/generated/prisma/browser";
 import type { HomeData } from "../types";
-import { EmptyState } from "./empty-state";
+import { EmptyState } from "@/components/app/empty-state";
 
 const resultStyles: Record<MatchResult, { letter: string; className: string }> = {
   WIN: { letter: "V", className: "bg-emerald-400 hover:bg-emerald-600" },
@@ -26,7 +26,8 @@ export function RecentResults({ results, isPlayer }: { results: HomeData["recent
       <EmptyState
         icon={Activity}
         title="Aucun match joué"
-        text="Les 5 derniers matchs s'afficheront ici après les premières rencontres"
+        bare
+        description="Les 5 derniers matchs s'afficheront ici après les premières rencontres"
       />
     );
   }

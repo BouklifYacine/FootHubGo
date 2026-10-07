@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { useEffect, useState } from "react";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
   const block = useSetUserBlocked();
   const leave = useLeaveGroup();
   const remove = useDeleteConversation();
+  const confirm = useConfirm();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const other = c.type === "PRIVATE" ? c.participants.find((p) => p.id !== myId) : undefined;
   const canDelete = c.type === "PRIVATE" || (c.type === "GROUP" && c.myRole === "ADMIN");
@@ -83,8 +85,15 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
             )}
             {canDelete && (
               <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => confirm("Supprimer cette conversation ?") && remove.mutate(c.id, { onSuccess: onClose })}
+                variant="destructive"
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: "Supprimer cette conversation ?",
+                    description: "Les messages seront supprimés pour tous les participants.",
+                    confirmLabel: "Supprimer",
+                  });
+                  if (ok) remove.mutate(c.id, { onSuccess: onClose });
+                }}
               >
                 Supprimer
               </DropdownMenuItem>

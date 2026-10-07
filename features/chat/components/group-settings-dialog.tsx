@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { useState } from "react";
 import { Check, UserMinus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +29,7 @@ export function GroupSettingsDialog({ conversation: c, myId, open, onOpenChange 
   const rename = useActionMutation(renameGroup, { invalidate });
   const add = useActionMutation(addGroupMembers, { invalidate, onSuccess: () => setToAdd([]) });
   const remove = useActionMutation(removeGroupMember, { invalidate });
+  const confirm = useConfirm();
 
   const memberIds = new Set(c.participants.map((p) => p.id));
   const candidates = (team?.members ?? []).filter((m) => !memberIds.has(m.userId));
@@ -69,14 +71,18 @@ export function GroupSettingsDialog({ conversation: c, myId, open, onOpenChange 
               <ChatAvatar image={p.image} isOnline={p.isOnline} name={p.name} />
               <span className="flex-1 truncate text-sm font-medium">
                 {p.name}
-                {p.id === myId && " (vous)"}
+                {p.id === myId && " (toi)"}
               </span>
               {p.role === "ADMIN" && <Badge variant="secondary">Admin</Badge>}
               {isAdmin && p.id !== myId && (
                 <Button
                   aria-label={`Retirer ${p.name}`}
                   disabled={remove.isPending}
-                  onClick={() => confirm(`Retirer ${p.name} du groupe ?`) && remove.mutate({ conversationId: c.id, userId: p.id })}
+                  onClick={async () => {
+                    if (await confirm({ title: `Retirer ${p.name} du groupe ?`, confirmLabel: "Retirer" })) {
+                      remove.mutate({ conversationId: c.id, userId: p.id });
+                    }
+                  }}
                   size="icon"
                   variant="ghost"
                 >

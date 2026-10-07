@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Award, BarChart3, Clock, Star, Target, ThumbsDown, TrendingUp, type LucideIcon } from "lucide-react";
 import type { HomeData } from "../types";
-import { EmptyState } from "./empty-state";
+import { EmptyState } from "@/components/app/empty-state";
 
 type Stat = { icon: LucideIcon; label: string; value: string | number };
 
@@ -34,7 +34,8 @@ export function KeyStats({ teamStats, playerStats }: Pick<HomeData, "teamStats" 
       <EmptyState
         icon={BarChart3}
         title="Aucune statistique disponible"
-        text="Les statistiques apparaîtront après les premiers matchs joués"
+        bare
+        description="Les statistiques apparaîtront après les premiers matchs joués"
       />
     );
   }
