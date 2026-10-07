@@ -2,12 +2,13 @@
 
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Lock, MapPin, Pencil, Trash2, Users } from "lucide-react";
+import { Lock, MapPin, Pencil, Repeat, Send, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { EVENT_TYPES, isMatch } from "@/features/events/event-types";
 import { useDeleteEvent } from "@/features/events/hooks/use-event-actions";
 import type { EventListItem } from "@/features/events/types";
@@ -21,12 +22,19 @@ function Detail({ label, children, wide }: { label: string; children: ReactNode;
   );
 }
 
-type Props = { event: EventListItem; canEdit: boolean; onEdit: () => void; onDeleted: () => void };
+type Props = {
+  event: EventListItem;
+  canEdit: boolean;
+  onEdit: () => void;
+  onCallUps: () => void;
+  onDeleted: () => void;
+};
 
 /** Read-only view of an event, with the coach's actions. */
-export function EventDetails({ event, canEdit, onEdit, onDeleted }: Props) {
+export function EventDetails({ event, canEdit, onEdit, onCallUps, onDeleted }: Props) {
   const deleteEvent = useDeleteEvent(onDeleted);
   const locked = event.hasStats;
+  const remove = (withFollowing: boolean) => deleteEvent.mutate({ eventId: event.id, withFollowing });
 
   return (
     <>
@@ -34,7 +42,10 @@ export function EventDetails({ event, canEdit, onEdit, onDeleted }: Props) {
         <Detail label="Titre">{event.title}</Detail>
         <Detail label="Date">{format(event.startDate, "d MMMM yyyy 'à' HH:mm", { locale: fr })}</Detail>
         <Detail label="Type">
-          <Badge className={EVENT_TYPES[event.type].badgeClass}>{EVENT_TYPES[event.type].label}</Badge>
+          <span className="flex items-center gap-2">
+            <Badge className={EVENT_TYPES[event.type].badgeClass}>{EVENT_TYPES[event.type].label}</Badge>
+            {event.seriesId && <Repeat aria-label="Répété chaque semaine" className="size-4 text-muted-foreground" />}
+          </span>
         </Detail>
         {isMatch(event.type) && <Detail label="Adversaire">{event.opponent || "-"}</Detail>}
         <Detail label="Lieu" wide>
@@ -57,14 +68,33 @@ export function EventDetails({ event, canEdit, onEdit, onDeleted }: Props) {
             <Users /> {isMatch(event.type) ? "Voir les convocations" : "Voir les présences"}
           </Link>
         </Button>
+        {canEdit && isMatch(event.type) && (
+          <Button variant="outline" onClick={onCallUps}>
+            <Send /> Convoquer
+          </Button>
+        )}
         {canEdit && !locked && (
           <>
             <Button variant="outline" onClick={onEdit}>
               <Pencil /> Modifier
             </Button>
-            <Button variant="destructive" disabled={deleteEvent.isPending} onClick={() => deleteEvent.mutate(event.id)}>
-              <Trash2 /> Supprimer
-            </Button>
+            {event.seriesId ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="destructive" disabled={deleteEvent.isPending}>
+                    <Trash2 /> Supprimer
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => remove(false)}>Cet entraînement</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => remove(true)}>Celui-ci et les suivants</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="destructive" disabled={deleteEvent.isPending} onClick={() => remove(false)}>
+                <Trash2 /> Supprimer
+              </Button>
+            )}
           </>
         )}
       </DialogFooter>

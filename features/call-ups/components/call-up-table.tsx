@@ -12,7 +12,7 @@ import { callUpStatusLabels, playerPositionLabels } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { cn } from "@/lib/utils";
-import { cancelCallUp, sendCallUp } from "../actions";
+import { cancelCallUp, sendCallUps } from "../actions";
 import { useEventCallUps } from "../hooks/use-event-call-ups";
 import type { EventCallUpPlayer } from "../types";
 
@@ -41,7 +41,7 @@ function YesNo({ value, good = true }: { value: boolean; good?: boolean }) {
 export function CallUpTable({ eventId, isCoach }: { eventId: string; isCoach: boolean }) {
   const { data, isPending, error } = useEventCallUps(eventId);
   const invalidate = [queryKeys.events.callUps(eventId), queryKeys.me.callUps];
-  const send = useActionMutation(sendCallUp, { invalidate });
+  const send = useActionMutation(sendCallUps, { invalidate });
   const cancel = useActionMutation(cancelCallUp, { invalidate });
 
   if (isPending) return <p className="p-4 text-muted-foreground">Chargement des joueurs...</p>;
@@ -78,7 +78,7 @@ export function CallUpTable({ eventId, isCoach }: { eventId: string; isCoach: bo
               variant="outline"
               aria-label="Convoquer le joueur"
               disabled={player.isInjured || send.isPending}
-              onClick={() => send.mutate({ eventId, playerId: player.userId })}
+              onClick={() => send.mutate({ eventId, playerIds: [player.userId] })}
             >
               <Send />
             </Button>

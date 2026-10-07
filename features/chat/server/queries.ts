@@ -23,24 +23,25 @@ export async function getConversations(userId: string) {
     orderBy: { updatedAt: "desc" },
   });
 
-  const unreadCounts = await Promise.all(
-    conversations.map((conversation) => {
-      const me = conversation.participants.find((participant) => participant.userId === userId);
-      return prisma.message.count({
-        where: {
-          conversationId: conversation.id,
-          senderId: { not: userId },
-          deletedForAll: false,
-          deletions: { none: { userId } },
-          createdAt: { gt: me?.lastReadAt ?? me?.joinedAt },
-        },
-      });
-    }),
-  );
+  // One grouped query for every unread counter (messages from others since my last read)
+  const unread = await prisma.message.groupBy({
+    by: ["conversationId"],
+    _count: { _all: true },
+    where: {
+      senderId: { not: userId },
+      deletedForAll: false,
+      deletions: { none: { userId } },
+      OR: conversations.map((conversation) => {
+        const me = conversation.participants.find((participant) => participant.userId === userId);
+        return { conversationId: conversation.id, createdAt: { gt: me?.lastReadAt ?? me?.joinedAt } };
+      }),
+    },
+  });
+  const unreadById = new Map(unread.map((row) => [row.conversationId, row._count._all]));
 
   const blocks = await getBlockLists(userId);
-  return conversations.map((conversation, index) =>
-    toConversationDto(conversation, userId, { unreadCount: unreadCounts[index], blocks }),
+  return conversations.map((conversation) =>
+    toConversationDto(conversation, userId, { unreadCount: unreadById.get(conversation.id) ?? 0, blocks }),
   );
 }
 

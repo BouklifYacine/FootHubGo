@@ -6,14 +6,12 @@ import { useSession } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { ConversationSidebar } from "@/features/chat/components/conversation-sidebar";
 import { ConversationView } from "@/features/chat/components/conversation-view";
-import { useChatRealtime } from "@/features/chat/hooks/use-chat-realtime";
 import { useConversations } from "@/features/chat/hooks/use-conversations";
 
 const frame =
   "flex h-[calc(100vh-120px)] overflow-hidden rounded-2xl border bg-white shadow-lg dark:bg-zinc-950";
 
 export default function ChatPage() {
-  useChatRealtime();
   const { data: session } = useSession();
   const myId = session?.user.id;
   const { data: conversations = [], isLoading } = useConversations();

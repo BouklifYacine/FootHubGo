@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CallUpPicker } from "@/features/call-ups/components/call-up-picker";
 import type { EventListItem } from "@/features/events/types";
 import { EventDetails } from "./event-details";
 import { EventForm } from "./event-form";
@@ -10,16 +11,24 @@ export type EventDialogState = { mode: "create"; start: Date } | { mode: "view";
 
 type Props = { state: EventDialogState; canEdit: boolean; onClose: () => void };
 
-/** One dialog for the calendar: create, view, then edit an event. */
+type ViewStep = "details" | "edit" | "call-ups";
+
+/** One dialog for the calendar: create, view, then edit an event or call players up. */
 export function EventDialog({ state, canEdit, onClose }: Props) {
-  const [editing, setEditing] = useState(false);
+  const [step, setStep] = useState<ViewStep>("details");
   const close = () => {
-    setEditing(false);
+    setStep("details");
     onClose();
   };
+  const back = () => setStep("details");
 
-  const mode = state?.mode === "view" && editing ? "edit" : state?.mode;
-  const title = { create: "Créer un événement", edit: "Modifier l'événement", view: "Détails de l'événement" };
+  const mode = state?.mode === "view" && step !== "details" ? step : state?.mode;
+  const title = {
+    create: "Créer un événement",
+    edit: "Modifier l'événement",
+    "call-ups": "Convoquer des joueurs",
+    view: "Détails de l'événement",
+  };
 
   return (
     <Dialog open={state !== null} onOpenChange={(open) => !open && close()}>
@@ -30,12 +39,17 @@ export function EventDialog({ state, canEdit, onClose }: Props) {
         </DialogHeader>
 
         {state?.mode === "create" && <EventForm defaultStart={state.start} onDone={close} onCancel={close} />}
-        {state?.mode === "view" &&
-          (editing ? (
-            <EventForm event={state.event} onDone={close} onCancel={() => setEditing(false)} />
-          ) : (
-            <EventDetails event={state.event} canEdit={canEdit} onEdit={() => setEditing(true)} onDeleted={close} />
-          ))}
+        {state?.mode === "view" && step === "edit" && <EventForm event={state.event} onDone={close} onCancel={back} />}
+        {state?.mode === "view" && step === "call-ups" && <CallUpPicker eventId={state.event.id} onBack={back} />}
+        {state?.mode === "view" && step === "details" && (
+          <EventDetails
+            event={state.event}
+            canEdit={canEdit}
+            onEdit={() => setStep("edit")}
+            onCallUps={() => setStep("call-ups")}
+            onDeleted={close}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

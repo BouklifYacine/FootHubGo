@@ -162,6 +162,8 @@ model Event {
   locationData Json?
   weatherData  Json?
   teamId       String       @map("equipeId")
+  /// Shared by the occurrences of a weekly repeated training (null for a single event).
+  seriesId     String?
   callUps      CallUp[]
   team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
   attendances  Attendance[]
@@ -169,6 +171,7 @@ model Event {
   playerStats  PlayerStat[]
 
   @@index([teamId])
+  @@index([seriesId])
   @@map("evenement")
 }
 

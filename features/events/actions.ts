@@ -1,13 +1,15 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
 import { requireCoach, requireMember } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
-import { attendanceSchema, eventSchema, moveEventSchema, updateEventSchema } from "./schemas";
+import { weeklyOccurrences } from "./recurrence";
+import { attendanceSchema, deleteEventSchema, eventSchema, moveEventSchema, updateEventSchema } from "./schemas";
 
-type EventData = z.output<typeof eventSchema>;
+type EventData = Omit<z.output<typeof eventSchema>, "repeatUntil">;
 
 /** Normalizes form values into DB columns (a training has no opponent). */
 function toEventColumns({ title, type, startDate, location, opponent }: EventData) {
@@ -24,7 +26,7 @@ function toEventColumns({ title, type, startDate, location, opponent }: EventDat
 async function findEditableEvent(eventId: string, teamId: string) {
   const event = await prisma.event.findFirst({
     where: { id: eventId, teamId },
-    select: { id: true, teamStat: { select: { id: true } } },
+    select: { id: true, seriesId: true, startDate: true, teamStat: { select: { id: true } } },
   });
   if (!event) throw notFound("Événement introuvable");
   if (event.teamStat) {
@@ -41,11 +43,30 @@ async function assertNoEventAt(teamId: string, startDate: Date, ignoreEventId?: 
   if (existing) throw new AppError("Un événement existe déjà à cette date et heure", 409);
 }
 
-export const createEvent = action(eventSchema, async (input) => {
+/** One event, or a weekly series of trainings; dates already taken by another event are skipped. */
+export const createEvent = action(eventSchema, async ({ repeatUntil, ...input }) => {
   const { membership } = await requireCoach();
-  await assertNoEventAt(membership.teamId, input.startDate);
-  await prisma.event.create({ data: { ...toEventColumns(input), teamId: membership.teamId } });
-  return { message: "Événement créé" };
+  const teamId = membership.teamId;
+  const dates = repeatUntil ? weeklyOccurrences(input.startDate, repeatUntil) : [input.startDate];
+
+  const taken = await prisma.event.findMany({
+    where: { teamId, startDate: { in: dates } },
+    select: { startDate: true },
+  });
+  const takenTimes = new Set(taken.map((event) => event.startDate.getTime()));
+  const free = dates.filter((date) => !takenTimes.has(date.getTime()));
+  if (free.length === 0) throw new AppError("Un événement existe déjà à cette date et heure", 409);
+
+  const seriesId = dates.length > 1 ? randomUUID() : null;
+  await prisma.event.createMany({
+    data: free.map((startDate) => ({ ...toEventColumns({ ...input, startDate }), teamId, seriesId })),
+  });
+
+  if (dates.length === 1) return { message: "Événement créé" };
+  const skipped = dates.length - free.length;
+  return {
+    message: `${free.length} entraînements créés${skipped ? ` (${skipped} ignoré${skipped > 1 ? "s" : ""} : créneau déjà pris)` : ""}`,
+  };
 });
 
 export const updateEvent = action(updateEventSchema, async ({ eventId, ...input }) => {
@@ -65,11 +86,20 @@ export const moveEvent = action(moveEventSchema, async ({ eventId, startDate }) 
   return { message: "Événement déplacé" };
 });
 
-export const deleteEvent = action(z.string().min(1), async (eventId) => {
+export const deleteEvent = action(deleteEventSchema, async ({ eventId, withFollowing }) => {
   const { membership } = await requireCoach();
   const event = await findEditableEvent(eventId, membership.teamId);
-  await prisma.event.delete({ where: { id: event.id } });
-  return { message: "Événement supprimé" };
+
+  if (!withFollowing || !event.seriesId) {
+    await prisma.event.delete({ where: { id: event.id } });
+    return { message: "Événement supprimé" };
+  }
+
+  // This occurrence and the following ones; occurrences locked by stats stay.
+  const { count } = await prisma.event.deleteMany({
+    where: { teamId: membership.teamId, seriesId: event.seriesId, startDate: { gte: event.startDate }, teamStat: null },
+  });
+  return { message: `${count} entraînement${count > 1 ? "s" : ""} supprimé${count > 1 ? "s" : ""}` };
 });
 
 /** A player says whether they will attend an upcoming training. */

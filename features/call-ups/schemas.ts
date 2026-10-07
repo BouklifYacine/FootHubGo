@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const sendCallUpSchema = z.object({
+export const sendCallUpsSchema = z.object({
   eventId: z.string().min(1),
-  playerId: z.string().min(1),
+  playerIds: z.array(z.string().min(1)).min(1, "Sélectionnez au moins un joueur").max(60),
 });
 
 export const replyCallUpSchema = z.object({

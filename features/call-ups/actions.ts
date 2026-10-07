@@ -6,11 +6,12 @@ import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
 import { requireCoach, requireMember } from "@/lib/auth/session";
 import { AppError, notFound } from "@/lib/errors";
-import { notifyUser, notifyUsers } from "@/features/notifications/server/notify-user";
-import { replyCallUpSchema, sendCallUpSchema } from "./schemas";
+import { notifyUsers } from "@/features/notifications/server/notify-user";
+import { replyCallUpSchema, sendCallUpsSchema } from "./schemas";
 import { cancelCallUpError, injuriesOnDay, replyCallUpError, sendCallUpError } from "./server/rules";
 
-export const sendCallUp = action(sendCallUpSchema, async ({ eventId, playerId }) => {
+/** Calls up one or several players. Injured or already called-up players are skipped (and counted). */
+export const sendCallUps = action(sendCallUpsSchema, async ({ eventId, playerIds }) => {
   const { user, membership } = await requireCoach();
 
   const event = await prisma.event.findFirst({
@@ -22,10 +23,11 @@ export const sendCallUp = action(sendCallUpSchema, async ({ eventId, playerId })
   const timeError = sendCallUpError(event.startDate);
   if (timeError) throw new AppError(timeError);
 
-  const player = await prisma.teamMember.findFirst({
-    where: { userId: playerId, teamId: membership.teamId },
+  // Only players of the coach's team: ids from the client are never trusted as-is
+  const players = await prisma.teamMember.findMany({
+    where: { teamId: membership.teamId, role: "PLAYER", userId: { in: playerIds } },
     select: {
-      role: true,
+      userId: true,
       user: {
         select: {
           name: true,
@@ -35,21 +37,31 @@ export const sendCallUp = action(sendCallUpSchema, async ({ eventId, playerId })
       },
     },
   });
-  if (!player) throw notFound("Ce joueur ne fait pas partie de l'équipe");
-  if (player.role !== "PLAYER") throw new AppError("Seuls les joueurs peuvent être convoqués");
-  if (player.user.callUps.length > 0) throw new AppError("Ce joueur est déjà convoqué", 409);
-  if (player.user.injuries.length > 0) throw new AppError("Ce joueur est blessé le jour du match");
+  if (players.length === 0) throw notFound("Aucun joueur de l'équipe sélectionné");
 
-  await prisma.callUp.create({ data: { userId: playerId, eventId: event.id } });
-  await notifyUser({
-    userId: playerId,
-    type: "CALL_UP",
-    title: "Convocation",
-    message: `Tu es convoqué pour le match du ${format(event.startDate, "dd/MM/yyyy")}`,
-    fromUserName: user.name,
-    fromUserImage: user.image,
+  const toCall = players.filter(({ user }) => user.injuries.length === 0 && user.callUps.length === 0);
+  if (toCall.length === 0) {
+    throw new AppError(players.length === 1 ? "Ce joueur est blessé ou déjà convoqué" : "Ces joueurs sont blessés ou déjà convoqués");
+  }
+
+  await prisma.callUp.createMany({
+    data: toCall.map(({ userId }) => ({ userId, eventId: event.id })),
+    skipDuplicates: true,
   });
-  return { message: `Convocation envoyée à ${player.user.name}` };
+  await notifyUsers(
+    toCall.map(({ userId }) => userId),
+    {
+      type: "CALL_UP",
+      title: "Convocation",
+      message: `Tu es convoqué pour le match du ${format(event.startDate, "dd/MM/yyyy")}`,
+      fromUserName: user.name,
+      fromUserImage: user.image,
+    },
+  );
+
+  const skipped = new Set(playerIds).size - toCall.length;
+  const sent = toCall.length === 1 ? `Convocation envoyée à ${toCall[0].user.name}` : `${toCall.length} convocations envoyées`;
+  return { message: skipped > 0 ? `${sent} (${skipped} ignorée${skipped > 1 ? "s" : ""})` : sent };
 });
 
 export const cancelCallUp = action(z.string().min(1), async (callUpId) => {
