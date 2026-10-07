@@ -1,6 +1,9 @@
 import type Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/prisma";
+import { Prisma } from "@/generated/prisma/client";
 import { getStripe } from "@/lib/stripe";
+import { loggableError } from "@/lib/errors";
 import {
   handleCheckoutCompleted,
   handleSubscriptionDeleted,
@@ -23,6 +26,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Signature invalide" }, { status: 400 });
   }
 
+  // Idempotency: the event id is claimed first; a retried delivery of a handled event is a no-op.
+  try {
+    await prisma.stripeEvent.create({ data: { id: event.id, type: event.type } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    throw error;
+  }
+
   try {
     switch (event.type) {
       case "checkout.session.completed":
@@ -37,8 +50,9 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({ received: true });
   } catch (error) {
-    // 500 => Stripe retries the event later.
-    console.error(`[stripe] ${event.type}`, error);
+    // 500 => Stripe retries the event later: release the claim so the retry is handled.
+    console.error(`[stripe] ${event.type}`, loggableError(error));
+    await prisma.stripeEvent.delete({ where: { id: event.id } }).catch(() => undefined);
     return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
   }
 }

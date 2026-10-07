@@ -220,6 +220,15 @@ model Subscription {
   @@map("abonnement")
 }
 
+/// Stripe webhook events already handled: Stripe retries deliveries, each event is processed once.
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@map("stripe_event")
+}
+
 model Session {
   id        String   @id
   expiresAt DateTime

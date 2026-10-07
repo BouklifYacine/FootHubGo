@@ -37,12 +37,13 @@ export async function handleCheckoutCompleted(event: Stripe.CheckoutSessionCompl
     expand: ["line_items"],
   });
 
-  // Prefer the user id passed to the checkout (`client_reference_id`), fall back on the email.
-  const email = session.customer_details?.email;
+  // Prefer the user id passed to the checkout (`client_reference_id`). The email typed in Checkout
+  // is not proven: it only matches an account whose address has been verified.
+  const email = session.customer_details?.email?.toLowerCase();
   const user = session.client_reference_id
     ? await prisma.user.findUnique({ where: { id: session.client_reference_id } })
     : email
-      ? await prisma.user.findUnique({ where: { email } })
+      ? await prisma.user.findFirst({ where: { email, emailVerified: true } })
       : null;
   if (!user) {
     console.warn("[stripe] checkout without a matching user", session.id);
