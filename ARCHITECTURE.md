@@ -77,3 +77,18 @@ export const GET = route<{ eventId: string }>(async ({ params }) => {
 Socket.IO runs in the same process as Next (`server.ts`). The protocol (event names + payload types)
 is shared in `lib/realtime/protocol.ts`. Server code emits through `server/realtime/emitter.ts`;
 the client uses a single socket from `RealtimeProvider`.
+
+## Background jobs
+
+`server/jobs.ts` runs in the same process as the server (every 10 minutes): event reminders
+(`features/events/server/reminders.ts`). Jobs must be idempotent (claim the row with a conditional
+update before doing the work). `DISABLE_JOBS=1` turns them off on an instance.
+
+## Tests, CI and releases
+
+- Unit tests sit next to the code (`*.test.ts`, `bun test`) and target pure functions
+  (rules, recurrence, recipients). Keep business rules pure so they stay testable without a database.
+- `.github/workflows/ci.yml`: typecheck, lint, tests, migrations on an empty PostgreSQL, build — on every PR.
+- `.github/workflows/release.yml`: pushing a tag `vX.Y.Z` publishes the GitHub Release (notes from
+  `CHANGELOG.md`) and the Docker image `ghcr.io/bouklifyacine/foothubgo:X.Y.Z`.
+- Every PR updates the "Non publié" section of `CHANGELOG.md`.

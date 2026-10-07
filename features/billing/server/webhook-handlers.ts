@@ -2,7 +2,7 @@ import { createElement } from "react";
 import type Stripe from "stripe";
 import { prisma } from "@/prisma";
 import type { SubscriptionPeriod } from "@/generated/prisma/client";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { sendEmail } from "@/emails/send-email";
 import {
   SubscriptionCanceledEmail,
@@ -33,7 +33,7 @@ function findUserByCustomer(customerId: string | null) {
 }
 
 export async function handleCheckoutCompleted(event: Stripe.CheckoutSessionCompletedEvent) {
-  const session = await stripe.checkout.sessions.retrieve(event.data.object.id, {
+  const session = await getStripe().checkout.sessions.retrieve(event.data.object.id, {
     expand: ["line_items"],
   });
 

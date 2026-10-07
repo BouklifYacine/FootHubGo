@@ -53,6 +53,11 @@ export function EventDetails({ event, canEdit, onEdit, onCallUps, onDeleted }: P
             <MapPin className="size-4 text-muted-foreground" /> {event.location || "Non spécifié"}
           </span>
         </Detail>
+        {event.description && (
+          <Detail label="Description" wide>
+            <p className="whitespace-pre-line font-normal">{event.description}</p>
+          </Detail>
+        )}
       </div>
 
       {canEdit && locked && (

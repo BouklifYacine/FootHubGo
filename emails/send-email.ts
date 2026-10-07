@@ -1,7 +1,8 @@
 import type { ReactElement } from "react";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Created on first send: importing this file must not require the API key (build without secrets).
+let resend: Resend | undefined;
 const FROM = process.env.RESEND_FROM_EMAIL ?? "FootHubGo <yacine@footygogo.com>";
 
 /**
@@ -18,6 +19,7 @@ export async function sendEmail({
   email: ReactElement;
 }) {
   try {
+    resend ??= new Resend(process.env.RESEND_API_KEY);
     const { error } = await resend.emails.send({ from: FROM, to, subject, react: email });
     if (error) console.error("[email]", error);
     return !error;

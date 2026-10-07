@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   MessageCircle,
   UsersRound,
+  Vote,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -45,6 +46,7 @@ const appItems: NavItem[] = [
   { title: "Convocations", url: "/app/call-ups", icon: CalendarCheck, roles: ["PLAYER"] },
   { title: "Blessures", url: "/app/injuries", icon: Hospital, roles: ["COACH", "PLAYER"] },
   { title: "Calendrier", url: "/app/calendar", icon: CalendarDays, roles: ["COACH", "PLAYER"] },
+  { title: "Sondages", url: "/app/polls", icon: Vote, roles: ["COACH", "PLAYER"] },
   { title: "Messages", url: "/app/chat", icon: MessageCircle, roles: ["COACH", "PLAYER"] },
 ];
 

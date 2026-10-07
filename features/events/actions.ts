@@ -12,12 +12,13 @@ import { attendanceSchema, deleteEventSchema, eventSchema, moveEventSchema, upda
 type EventData = Omit<z.output<typeof eventSchema>, "repeatUntil">;
 
 /** Normalizes form values into DB columns (a training has no opponent). */
-function toEventColumns({ title, type, startDate, location, opponent }: EventData) {
+function toEventColumns({ title, type, startDate, location, opponent, description }: EventData) {
   return {
     title,
     type,
     startDate,
     location: location || null,
+    description: description || null,
     opponent: type === "TRAINING" ? null : opponent || null,
   };
 }

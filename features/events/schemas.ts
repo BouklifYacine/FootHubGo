@@ -12,6 +12,7 @@ const eventFields = z.object({
   // Optional: "" or missing means "no location"
   location: z.string().trim().max(100, "Le lieu ne peut pas dépasser 100 caractères").optional(),
   opponent: z.string().trim().max(50, "Le nom de l'adversaire est trop long").optional(),
+  description: z.string().trim().max(500, "La description ne peut pas dépasser 500 caractères").optional(),
 });
 
 /** A match (league / cup) needs an opponent; a training ignores it. */

@@ -33,8 +33,9 @@ export function EventForm({ event, defaultStart, onDone, onCancel }: Props) {
         startDate: new Date(event.startDate),
         location: event.location ?? "",
         opponent: event.opponent ?? "",
+        description: event.description ?? "",
       }
-    : { repeat: false, title: "", type: "TRAINING", startDate: defaultStart ?? new Date(), location: "", opponent: "" };
+    : { repeat: false, title: "", type: "TRAINING", startDate: defaultStart ?? new Date(), location: "", opponent: "", description: "" };
 
   const form = useAppForm({
     defaultValues,
@@ -74,6 +75,9 @@ export function EventForm({ event, defaultStart, onDone, onCancel }: Props) {
       <form.AppField name="startDate">{(field) => <field.DateField label="Date et heure" withTime />}</form.AppField>
       <form.AppField name="location">
         {(field) => <field.TextField label="Lieu" placeholder="Stade municipal" />}
+      </form.AppField>
+      <form.AppField name="description">
+        {(field) => <field.TextareaField label="Description" placeholder="Consignes, matériel, horaire du rendez-vous..." rows={3} />}
       </form.AppField>
       <form.Subscribe selector={(state) => state.values.type}>
         {(type) =>

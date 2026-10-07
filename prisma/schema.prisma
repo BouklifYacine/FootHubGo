@@ -151,24 +151,26 @@ model CallUp {
 }
 
 model Event {
-  id           String       @id @default(cuid())
-  title        String       @map("titre")
-  description  String?
-  location     String?      @map("lieu")
-  type         EventType    @default(TRAINING) @map("typeEvenement")
-  startDate    DateTime     @map("dateDebut")
-  createdAt    DateTime     @default(now()) @map("dateCreation")
-  opponent     String?      @map("adversaire")
-  locationData Json?
-  weatherData  Json?
-  teamId       String       @map("equipeId")
+  id             String       @id @default(cuid())
+  title          String       @map("titre")
+  description    String?
+  location       String?      @map("lieu")
+  type           EventType    @default(TRAINING) @map("typeEvenement")
+  startDate      DateTime     @map("dateDebut")
+  createdAt      DateTime     @default(now()) @map("dateCreation")
+  opponent       String?      @map("adversaire")
+  locationData   Json?
+  weatherData    Json?
+  teamId         String       @map("equipeId")
   /// Shared by the occurrences of a weekly repeated training (null for a single event).
-  seriesId     String?
-  callUps      CallUp[]
-  team         Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  attendances  Attendance[]
-  teamStat     TeamStat?
-  playerStats  PlayerStat[]
+  seriesId       String?
+  /// Set when the reminder (notification + email, 24h before) has been sent: never sent twice.
+  reminderSentAt DateTime?
+  callUps        CallUp[]
+  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  attendances    Attendance[]
+  teamStat       TeamStat?
+  playerStats    PlayerStat[]
 
   @@index([teamId])
   @@index([seriesId])
@@ -200,6 +202,9 @@ model PollResponse {
   poll      Poll     @relation(fields: [pollId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  /// One vote per option and per user (a single-choice poll also keeps one row per user, see vote()).
+  @@unique([pollId, userId, choice])
+  @@index([pollId])
   @@map("reponse_sondage")
 }
 
