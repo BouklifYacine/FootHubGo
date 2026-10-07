@@ -84,6 +84,13 @@ the client uses a single socket from `RealtimeProvider`.
 (`features/events/server/reminders.ts`). Jobs must be idempotent (claim the row with a conditional
 update before doing the work). `DISABLE_JOBS=1` turns them off on an instance.
 
+## Branches
+
+- `dev`: daily work. Every change goes to `dev` (directly or through a short-lived `feat/*` / `fix/*` branch
+  opened as a PR against `dev`). CI runs on every push and PR.
+- `main`: what is released. Only updated by a PR `dev` → `main` with a green CI, then tagged `vX.Y.Z`.
+- Delete a feature branch once merged.
+
 ## Tests, CI and releases
 
 - Unit tests sit next to the code (`*.test.ts`, `bun test`) and target pure functions
