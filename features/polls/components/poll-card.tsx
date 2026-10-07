@@ -1,7 +1,6 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { formatRelative } from "@/lib/format";
 import { Check, Lock, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,7 @@ export function PollCard({ poll, isCoach }: { poll: Poll; isCoach: boolean }) {
           <p className="text-xs text-muted-foreground">
             {poll.creatorName} · {poll.voterCount} votant{poll.voterCount > 1 ? "s" : ""}
             {poll.isMulti && " · plusieurs choix possibles"}
-            {poll.expiresAt && !poll.isClosed && ` · se termine ${formatDistanceToNow(poll.expiresAt, { addSuffix: true, locale: fr })}`}
+            {poll.expiresAt && !poll.isClosed && ` · se termine ${formatRelative(poll.expiresAt)}`}
           </p>
         </div>
         <div className="flex items-center gap-1">

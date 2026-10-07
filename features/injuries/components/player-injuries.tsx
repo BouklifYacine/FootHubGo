@@ -1,8 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/format";
 import { useState } from "react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Activity, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -37,7 +36,6 @@ import { injuryInvalidation, usePlayerInjuries } from "../hooks/use-injuries";
 import type { PlayerInjury } from "../types";
 import { InjuryFormDialog } from "./injury-form-dialog";
 
-const formatDate = (date: string) => format(date, "dd MMM yyyy", { locale: fr });
 
 /** The player's own injury history, as a timeline. */
 export function PlayerInjuries({ userId }: { userId: string }) {

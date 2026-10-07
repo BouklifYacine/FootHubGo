@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNumericDate } from "@/lib/format";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -63,7 +64,7 @@ export function UsersTable({
                 </div>
               </TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{new Date(user.createdAt).toLocaleDateString("fr-FR")}</TableCell>
+              <TableCell>{formatNumericDate(user.createdAt)}</TableCell>
               <TableCell>
                 <Badge variant={user.plan === "pro" ? "default" : "outline"}>
                   {user.plan === "pro" ? "Pro" : "Gratuit"}

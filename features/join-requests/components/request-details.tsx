@@ -1,4 +1,5 @@
 import { CheckCircle, Clock, XCircle } from "lucide-react";
+import { formatDateLong } from "@/lib/format";
 import { Separator } from "@/components/ui/separator";
 import {
   joinRequestStatusLabels,
@@ -46,11 +47,7 @@ export function RequestDetails({ request, motivationLabel }: { request: Request;
         <Detail label="Niveau" value={teamLevelLabels[request.level]} />
         <Detail
           label="Date"
-          value={new Date(request.createdAt).toLocaleDateString("fr-FR", {
-            day: "numeric",
-            month: "long",
-            year: "numeric",
-          })}
+          value={formatDateLong(request.createdAt)}
         />
       </div>
       <Separator />

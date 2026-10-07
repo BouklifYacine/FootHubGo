@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDate } from "@/lib/format";
 import { useState } from "react";
 import { Eye, Loader2, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,7 @@ function MyJoinRequestCard({ request }: { request: MyJoinRequest }) {
             <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-xs font-semibold tracking-wider text-zinc-500 uppercase dark:bg-zinc-800">
               {teamLevelLabels[request.team.level]}
             </span>
-            <span className="text-zinc-500">{new Date(request.createdAt).toLocaleDateString("fr-FR")}</span>
+            <span className="text-zinc-500">{formatDate(request.createdAt)}</span>
           </div>
         </div>
       </div>

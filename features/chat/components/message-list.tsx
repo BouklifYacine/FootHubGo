@@ -1,7 +1,7 @@
 "use client";
 
+import { formatTime } from "@/lib/format";
 import { useEffect, useRef } from "react";
-import { format } from "date-fns";
 import { Check, CheckCheck, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -53,7 +53,7 @@ export function MessageList({ conversationId, myId, showSenders, typingNames }: 
                 <p className="whitespace-pre-wrap break-words">{m.content}</p>
               )}
               <p className="mt-1 flex items-center justify-end gap-1 text-[10px] opacity-70">
-                {format(new Date(m.createdAt), "HH:mm")}
+                {formatTime(m.createdAt)}
                 {mine && !pending && (m.read ? <CheckCheck className="size-3" /> : <Check className="size-3" />)}
               </p>
             </div>

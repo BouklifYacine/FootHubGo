@@ -1,8 +1,7 @@
 "use client";
 
+import { formatDayLabel, formatTime } from "@/lib/format";
 import { useState } from "react";
-import { differenceInCalendarDays, format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -10,13 +9,10 @@ import type { ConversationDto } from "../types";
 import { ChatAvatar } from "./chat-avatar";
 import { NewConversationDialog } from "./new-conversation-dialog";
 
-function formatTime(iso: string) {
-  const date = new Date(iso);
-  const days = differenceInCalendarDays(new Date(), date);
-  if (days === 0) return format(date, "HH:mm");
-  if (days === 1) return "Hier";
-  if (days < 7) return format(date, "EEEE", { locale: fr });
-  return format(date, "dd/MM/yyyy");
+/** "15h00" today, "Hier", otherwise the short date. */
+function formatActivity(iso: string) {
+  const label = formatDayLabel(iso);
+  return label === "Aujourd'hui" ? formatTime(iso) : label;
 }
 
 const byActivity = (a: ConversationDto, b: ConversationDto) => b.updatedAt.localeCompare(a.updatedAt);
@@ -77,7 +73,7 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate text-sm font-semibold">{c.name}</span>
-                        <span className="shrink-0 text-xs text-muted-foreground">{formatTime(c.updatedAt)}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">{formatActivity(c.updatedAt)}</span>
                       </div>
                       <p className="truncate text-xs text-muted-foreground">
                         {c.lastMessage

@@ -1,7 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { formatDate } from "@/lib/format";
 import { Activity, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -93,7 +92,7 @@ export function TeamInjuriesTable({ teamId }: { teamId: string }) {
                         <span className="font-semibold text-sm">{player.activeInjury.type}</span>
                         <span className="text-xs text-muted-foreground">
                           <span className="font-medium">Retour prévu : </span>
-                          {format(player.activeInjury.endDate, "dd MMM yyyy", { locale: fr })}
+                          {formatDate(player.activeInjury.endDate)}
                         </span>
                       </div>
                     ) : (

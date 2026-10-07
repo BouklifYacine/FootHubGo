@@ -1,8 +1,7 @@
 "use client";
 
+import { formatRelative } from "@/lib/format";
 import { BellIcon } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -67,7 +66,7 @@ export function NotificationBell() {
                     {notification.message}
                   </button>
                   <div className="text-muted-foreground text-xs">
-                    {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true, locale: fr })}
+                    {formatRelative(notification.createdAt)}
                   </div>
                 </div>
                 {!notification.read && (

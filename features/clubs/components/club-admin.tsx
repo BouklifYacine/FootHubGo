@@ -1,7 +1,7 @@
 "use client";
 
+import { formatNumericDate } from "@/lib/format";
 import { useState, type ReactNode } from "react";
-import { format } from "date-fns";
 import {
   Crown,
   CreditCard,
@@ -168,7 +168,7 @@ function Billing({ data }: { data: ClubAdmin }) {
         {club.subscription && (
           <span className="text-muted-foreground">
             {subscriptionPeriodLabels[club.subscription.period]} · jusqu&apos;au{" "}
-            {format(club.subscription.endDate, "dd/MM/yyyy")}
+            {formatNumericDate(club.subscription.endDate)}
           </span>
         )}
       </div>

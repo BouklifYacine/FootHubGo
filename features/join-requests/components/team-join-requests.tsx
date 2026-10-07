@@ -1,5 +1,6 @@
 "use client";
 
+import { formatDate } from "@/lib/format";
 import { Check, Clock, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -58,7 +59,7 @@ function TeamJoinRequestCard({ request }: { request: TeamJoinRequest }) {
             </span>
             <span className="font-medium">Section : {request.team.name}</span>
             <span className="text-zinc-400">Niveau : {teamLevelLabels[request.level]}</span>
-            <span className="text-zinc-400">{new Date(request.createdAt).toLocaleDateString("fr-FR")}</span>
+            <span className="text-zinc-400">{formatDate(request.createdAt)}</span>
           </div>
         </div>
       </div>

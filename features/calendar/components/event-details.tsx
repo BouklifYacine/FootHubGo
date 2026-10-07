@@ -1,7 +1,6 @@
 "use client";
 
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { formatDateTime } from "@/lib/format";
 import { Lock, MapPin, Pencil, Repeat, Send, Trash2, Users } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -41,7 +40,7 @@ export function EventDetails({ event, onEdit, onCallUps, onDeleted }: Props) {
       <div className="grid grid-cols-2 gap-4">
         <Detail label="Titre">{event.title}</Detail>
         {event.isClubEvent && <Detail label="Pour">Tout le club</Detail>}
-        <Detail label="Date">{format(event.startDate, "d MMMM yyyy 'à' HH:mm", { locale: fr })}</Detail>
+        <Detail label="Date">{formatDateTime(event.startDate)}</Detail>
         <Detail label="Type">
           <span className="flex items-center gap-2">
             <Badge className={EVENT_TYPES[event.type].badgeClass}>{EVENT_TYPES[event.type].label}</Badge>

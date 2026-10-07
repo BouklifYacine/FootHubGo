@@ -1,11 +1,12 @@
 "use server";
 
-import { format } from "date-fns";
 import { z } from "zod";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
 import { requireCoach, requireMember } from "@/lib/auth/session";
 import { AppError, notFound } from "@/lib/errors";
+import { formatDateTime } from "@/lib/format";
+import { TEAM_TIME_ZONE } from "@/features/events/recurrence";
 import { notifyUsers } from "@/features/notifications/server/notify-user";
 import { replyCallUpSchema, sendCallUpsSchema } from "./schemas";
 import { cancelCallUpError, injuriesOnDay, replyCallUpError, sendCallUpError } from "./server/rules";
@@ -53,7 +54,7 @@ export const sendCallUps = action(sendCallUpsSchema, async ({ eventId, playerIds
     {
       type: "CALL_UP",
       title: "Convocation",
-      message: `Tu es convoqué pour le match du ${format(event.startDate, "dd/MM/yyyy")}`,
+      message: `Tu es convoqué pour le match du ${formatDateTime(event.startDate, { timeZone: TEAM_TIME_ZONE })}`,
       fromUserName: user.name,
       fromUserImage: user.image,
     },
