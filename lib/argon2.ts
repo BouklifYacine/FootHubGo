@@ -1,29 +1,13 @@
-// lib/argon2.ts
 import { hash, verify, type Options } from "@node-rs/argon2";
 
-const opts: Options = {
-  memoryCost: 19456,
-  timeCost: 2,
-  outputLen: 32,
-  parallelism: 1,
-};
+// OWASP recommended argon2id parameters.
+const options: Options = { memoryCost: 19456, timeCost: 2, outputLen: 32, parallelism: 1 };
 
-// Hashage générique
-export async function hashElement(element: string) {
-  return await hash(element, opts);
+/** Password hashing used by better-auth (see `auth.ts`) and for one-time codes. */
+export function hashPassword(password: string) {
+  return hash(password, options);
 }
 
-// ✅ Fonction pour better-auth - signature corrigée
-export async function HashPassword( password: string ) {
-  return await hash(password, opts);
-}
-
-// Vérification générique
-export async function VerifierElement(code: string, hash: string) {
-  return await verify(hash, code, opts);
-}
-
-// ✅ Fonction pour better-auth - signature corrigée
-export async function verifyPassword(data: { password: string; hash: string }) {
-  return await verify(data.hash, data.password, opts);
+export function verifyPassword({ password, hash: hashed }: { password: string; hash: string }) {
+  return verify(hashed, password, options);
 }

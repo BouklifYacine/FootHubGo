@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 // Pas de output: "standalone" : l'app tourne via le serveur custom (server.ts + Socket.IO).
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@node-rs/argon2"],
+  // Avatars are uploaded through a server action (max 2 Mo, checked in features/settings/actions.ts).
+  experimental: { serverActions: { bodySizeLimit: "3mb" } },
   async redirects() {
     return [
       {
@@ -10,6 +12,22 @@ const nextConfig: NextConfig = {
         destination: "/app/:path*",
         permanent: true,
       },
+      // Old French URLs (routes were renamed to English)
+      ...[
+        ["/connexion/motdepasseoublie/:path*", "/forgot-password/:path*"],
+        ["/connexion", "/sign-in"],
+        ["/inscription", "/sign-up"],
+        ["/parametres/:path*", "/settings"],
+        // Settings always use the session user: the old per-user URL is dropped.
+        ["/settings/:id", "/settings"],
+        ["/app/blessures", "/app/injuries"],
+        ["/app/calendrier", "/app/calendar"],
+        ["/app/convocations", "/app/call-ups"],
+        ["/app/effectif", "/app/squad"],
+        ["/app/evenements/:path*", "/app/events/:path*"],
+        ["/app/statistiques", "/app/stats"],
+        ["/app/transfert", "/app/transfers"],
+      ].map(([source, destination]) => ({ source, destination, permanent: true })),
     ];
   },
   images: {

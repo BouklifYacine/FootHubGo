@@ -1,12 +1,7 @@
-import { AdminMiddlewareClient } from "../(middleware)/AdminMiddlewareClient";
-import Componentspage from "../../features/dashboard/components/componentspage";
+import { AdminDashboard } from "@/features/admin/components/admin-dashboard";
+import { requireAdminPage } from "@/features/auth/server/page-guards";
 
-export default async function Page() {
-  await AdminMiddlewareClient();
-
-  return (
-    <div className="flex flex-col md:flex-row justify-center gap-4">
-      <Componentspage />
-    </div>
-  );
+export default async function AdminPage() {
+  await requireAdminPage();
+  return <AdminDashboard />;
 }

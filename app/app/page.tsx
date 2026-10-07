@@ -1,12 +1,6 @@
-import ComposantPrincipalAccueil from "@/features/accueil/components/ComposantPrincipalAccueil";
-import { MiddlewareUtilisateurNonConnecte } from "../(middleware)/MiddlewareUtilisateurNonConnecte";
+import { HomeDashboard } from "@/features/home/components/home-dashboard";
 
-export default async function Dashboardfoothub() {
-  await MiddlewareUtilisateurNonConnecte();
-
-  return (
-   <div>
-    <ComposantPrincipalAccueil></ComposantPrincipalAccueil>
-   </div>
-  );
+/** Signed-in check is done by app/app/layout.tsx. */
+export default function HomePage() {
+  return <HomeDashboard />;
 }
