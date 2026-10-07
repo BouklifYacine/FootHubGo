@@ -1,150 +1,80 @@
 "use client";
 
-import { ArrowRight, CircleCheck } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
-
+import { ArrowRight, CircleCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 
-interface PricingFeature {
-  text: string;
-}
+/**
+ * Club subscription, billed monthly or yearly (the two Stripe prices: STRIPE_MONTHLY_PRICE_ID /
+ * STRIPE_YEARLY_PRICE_ID). Keep these amounts in sync with the prices configured in Stripe.
+ */
+const PRICES = {
+  monthly: { amount: "9,90 €", period: "par mois", note: "Sans engagement, résiliable à tout moment" },
+  yearly: { amount: "99 €", period: "par an", note: "Soit 8,25 € par mois : 2 mois offerts" },
+};
 
-interface PricingPlan {
-  id: string;
-  name: string;
-  description: string;
-  monthlyPrice: string;
-  yearlyPrice: string;
-  features: PricingFeature[];
-  button: {
-    text: string;
-    url: string;
-  };
-}
+const included = [
+  "Tout l'effectif : joueurs et entraîneurs, sans limite",
+  "Calendrier des entraînements et des matchs",
+  "Convocations, présences et rappels automatiques la veille",
+  "Statistiques des joueurs et de l'équipe",
+  "Suivi des blessures (détails visibles du coach uniquement)",
+  "Chat d'équipe en temps réel et sondages",
+];
 
-interface PricingProps {
-  heading?: string;
-  description?: string;
-  plans?: PricingPlan[];
-}
-
-export function Pricing({
-  heading = "Pricing",
-  description = "Check out our affordable pricing plans",
-  plans = [
-    {
-      id: "plus",
-      name: "Plus",
-      description: "For personal use",
-      monthlyPrice: "$19",
-      yearlyPrice: "$15",
-      features: [
-        { text: "Up to 5 team members" },
-        { text: "Basic components library" },
-        { text: "Community support" },
-        { text: "1GB storage space" },
-      ],
-      button: {
-        text: "Purchase",
-        url: "https://www.shadcnblocks.com",
-      },
-    },
-    {
-      id: "pro",
-      name: "Pro",
-      description: "For professionals",
-      monthlyPrice: "$49",
-      yearlyPrice: "$35",
-      features: [
-        { text: "Unlimited team members" },
-        { text: "Advanced components" },
-        { text: "Priority support" },
-        { text: "Unlimited storage" },
-      ],
-      button: {
-        text: "Purchase",
-        url: "https://www.shadcnblocks.com",
-      },
-    },
-  ],
-}: PricingProps) {
+export function Pricing() {
   const [isYearly, setIsYearly] = useState(false);
+  const price = isYearly ? PRICES.yearly : PRICES.monthly;
+
   return (
-    <section className="py-32">
-      <div className="container mx-auto">
+    <section className="py-20 md:py-32">
+      <div className="container mx-auto px-4">
         <div className="mx-auto flex max-w-5xl flex-col items-center gap-6 text-center">
-          <h2 className="text-pretty text-4xl font-bold lg:text-6xl">
-            {heading}
-          </h2>
-          <p className="text-muted-foreground lg:text-xl">{description}</p>
-          <div className="flex items-center gap-3 text-lg">
-            Monthly
-            <Switch
-              checked={isYearly}
-              onCheckedChange={() => setIsYearly(!isYearly)}
-            />
-            Yearly
-          </div>
-          <div className="flex flex-col items-stretch gap-6 md:flex-row">
-            {plans.map((plan) => (
-              <Card
-                key={plan.id}
-                className="flex w-80 flex-col justify-between text-left"
-              >
-                <CardHeader>
-                  <CardTitle>
-                    <p>{plan.name}</p>
-                  </CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {plan.description}
-                  </p>
-                  <span className="text-4xl font-bold">
-                    {isYearly ? plan.yearlyPrice : plan.monthlyPrice}
-                  </span>
-                  <p className="text-muted-foreground">
-                    Billed{" "}
-                    {isYearly
-                      ? `$${Number(plan.yearlyPrice.slice(1)) * 12}`
-                      : `$${Number(plan.monthlyPrice.slice(1)) * 12}`}{" "}
-                    annually
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <Separator className="mb-6" />
-                  {plan.id === "pro" && (
-                    <p className="mb-3 font-semibold">
-                      Everything in Plus, and:
-                    </p>
-                  )}
-                  <ul className="space-y-4">
-                    {plan.features.map((feature, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <CircleCheck className="size-4" />
-                        <span>{feature.text}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-                <CardFooter className="mt-auto">
-                  <Button asChild className="w-full">
-                    <a href={plan.button.url} target="_blank">
-                      {plan.button.text}
-                      <ArrowRight className="ml-2 size-4" />
-                    </a>
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          <h2 className="text-4xl font-bold text-pretty lg:text-6xl">Tarifs</h2>
+          <p className="max-w-2xl text-muted-foreground lg:text-xl">
+            Un abonnement par club, payé par le club. Les joueurs n&apos;ont rien à payer.
+          </p>
+          <label className="flex items-center gap-3 text-lg">
+            Mensuel
+            <Switch checked={isYearly} onCheckedChange={setIsYearly} aria-label="Facturation annuelle" />
+            Annuel
+          </label>
+
+          <Card className="flex w-full max-w-md flex-col justify-between text-left">
+            <CardHeader>
+              <CardTitle>Abonnement Club</CardTitle>
+              <p className="text-sm text-muted-foreground">Pour une équipe de football amateur</p>
+              <p className="mt-2">
+                <span className="text-4xl font-bold">{price.amount}</span>{" "}
+                <span className="text-muted-foreground">{price.period}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">{price.note}</p>
+            </CardHeader>
+            <CardContent>
+              <Separator className="mb-6" />
+              <ul className="space-y-4">
+                {included.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2">
+                    <CircleCheck className="mt-0.5 size-4 shrink-0 text-green-600" aria-hidden />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+            <CardFooter className="mt-auto">
+              <Button asChild className="w-full">
+                <Link href="/sign-up">
+                  Créer mon club
+                  <ArrowRight className="ml-2 size-4" />
+                </Link>
+              </Button>
+            </CardFooter>
+          </Card>
+          <p className="text-sm text-muted-foreground">Paiement sécurisé par Stripe.</p>
         </div>
       </div>
     </section>

@@ -1,5 +1,5 @@
 import { SiteHeader } from "@/components/site-header";
-import { ClubLogosCarousel } from "@/components/landing/club-logos-carousel";
+import { Audience } from "@/components/landing/audience";
 import { Faq } from "@/components/landing/faq";
 import { FeaturesBento } from "@/components/landing/features-bento";
 import { Hero } from "@/components/landing/hero";
@@ -11,7 +11,7 @@ export default function HomePage() {
     <>
       <SiteHeader />
       <Hero />
-      <ClubLogosCarousel />
+      <Audience />
       <section id="fonctionnalites" className="scroll-mt-20">
         <FeaturesBento />
       </section>

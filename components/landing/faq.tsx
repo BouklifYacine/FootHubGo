@@ -9,7 +9,7 @@ const questions = [
   {
     question: "Comment commencer avec FootHubGo ?",
     answer:
-      "Créez un compte, puis créez votre club : vous devenez automatiquement entraîneur. Partagez ensuite le code d'invitation à 6 chiffres à vos joueurs pour qu'ils rejoignent l'équipe.",
+      "Créez un compte, puis créez votre club : vous devenez automatiquement entraîneur. Partagez ensuite le code d'invitation du club (12 caractères) à vos joueurs pour qu'ils rejoignent l'équipe.",
   },
   {
     question: "Quelles fonctionnalités sont disponibles ?",
@@ -22,9 +22,14 @@ const questions = [
       "Non, FootHubGo fonctionne directement dans le navigateur, sur ordinateur comme sur mobile.",
   },
   {
+    question: "Qui paie l'abonnement ?",
+    answer:
+      "Le club : un seul abonnement, au mois ou à l'année, pour tout l'effectif. Les joueurs n'ont rien à payer. L'abonnement se résilie à tout moment et reste actif jusqu'à la fin de la période payée.",
+  },
+  {
     question: "De nouvelles fonctionnalités sont-elles prévues ?",
     answer:
-      "Oui : gestion multi-équipes, cotisations en ligne, comptes parents pour les catégories jeunes et compositions tactiques sont au programme.",
+      "Oui : sections (seniors, vétérans, loisir) dans un même club, temps de jeu, homme du match, covoiturage pour les matchs à l'extérieur et notifications sur téléphone sont au programme.",
   },
 ];
 
