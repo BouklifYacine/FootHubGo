@@ -5,9 +5,9 @@ Toutes les évolutions notables de FootHubGo sont listées ici.
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/). Versions : [Semantic Versioning](https://semver.org/lang/fr/)
 (`MAJEUR.MINEUR.CORRECTIF` : MAJEUR = changement incompatible, MINEUR = nouvelle fonctionnalité, CORRECTIF = correction).
 
-Publier une version : déplacer le contenu de « Non publié » sous un nouveau titre `## [X.Y.Z] - AAAA-MM-JJ`,
-mettre la même version dans `package.json`, fusionner dans `main`, puis pousser le tag `vX.Y.Z`.
-Le workflow `Release` crée alors la release GitHub avec ces notes et publie l'image Docker.
+Publier une version : sur `dev`, déplacer le contenu de « Non publié » sous un nouveau titre
+`## [X.Y.Z] - AAAA-MM-JJ` et mettre la même version dans `package.json`, puis fusionner `dev` dans `main`.
+Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces notes et l'image Docker.
 
 ## [Non publié]
 
