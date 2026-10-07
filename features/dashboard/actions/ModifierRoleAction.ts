@@ -24,7 +24,7 @@ export async function ModifierRole(
   });
 
   revalidatePath("/dashboard");
-  revalidatePath(`/parametres/${id}`);
+  revalidatePath(`/settings/${id}`);
 
   return {
     success: true,

@@ -118,7 +118,7 @@ function StatsPrincipal({ Role, statsJoueurData, StatsEquipeData }: Props) {
       {/* Header */}
       <div className="flex justify-end mb-4 lg:mb-6">
         <Link
-          href="/app/statistiques"
+          href="/app/stats"
           className="text-sm md:text-base lg:text-lg hover:underline font-semibold tracking-tight transition-all"
         >
           Stats club →

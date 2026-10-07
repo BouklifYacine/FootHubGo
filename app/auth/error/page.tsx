@@ -1,22 +1,36 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthLayout } from "@/features/auth/components/auth-layout";
 
-import { Suspense } from "react";
-import { ErrorContent } from "./errorcomponent";
+// better-auth redirects here (`onAPIError.errorURL` in auth.ts) with `?error=<code>`.
+const messages: Record<string, string> = {
+  account_not_linked:
+    "Un compte existe déjà avec cet email. Connectez-vous avec la méthode utilisée lors de votre inscription.",
+  unable_to_create_user: "Impossible de créer votre compte. Réessayez plus tard.",
+};
 
-export const dynamic = 'force-dynamic'; 
-
-export default function ErrorPage() {
+export default async function AuthErrorPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
+  const { error } = await searchParams;
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-        <h1 className="text-2xl font-bold text-red-600 mb-4">
-          Erreur de connexion
-        </h1>
-        <Suspense fallback={<p>Chargement du message erreur...</p>}>
-          <ErrorContent />
-        </Suspense>
-      </div>
-    </div>
+    <AuthLayout>
+      <Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl text-destructive">Erreur de connexion</CardTitle>
+          <CardDescription>
+            {(error && messages[error]) || "Une erreur est survenue lors de la connexion."}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button asChild className="w-full">
+            <Link href="/sign-in">Retour à la connexion</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    </AuthLayout>
   );
 }
-
-

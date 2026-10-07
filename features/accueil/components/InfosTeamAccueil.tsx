@@ -21,7 +21,7 @@ function InfosTeamAccueil({ clubData, Role }: Props) {
           Infos Club
         </p>
         <Link
-          href={"/app/effectif"}
+          href={"/app/squad"}
           className=" text-md md:text-lg font-bold  tracking-tighter hover:underline "
         >
           Effectif complet

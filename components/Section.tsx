@@ -70,7 +70,7 @@ const Section = () => {
           </p>
 
           <div className="flex justify-center items-center pb-2 pt-3">
-            <Link href={"/connexion"}>
+            <Link href={"/sign-in"}>
            
               <GlowEffectButton texte="Créer mon club"></GlowEffectButton>
             </Link>

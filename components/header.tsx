@@ -192,7 +192,7 @@ const Header = () => {
                       <DropdownMenuItem>
                         <Settings className="mr-2 h-4 w-4 cursor-pointer" />
                         <Link
-                          href={`/parametres/${session.user?.id}`}
+                          href={`/settings/${session.user?.id}`}
                           className="cursor-pointer"
                         >
                           Paramètres

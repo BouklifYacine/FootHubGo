@@ -80,7 +80,7 @@ export async function changerEmail(donnees: TypeEmail) {
         })
       ])
   
-      revalidatePath('/parametres')
+      revalidatePath('/settings')
       return { success: true }
     } catch (error) {
       return { error: (error as Error).message }

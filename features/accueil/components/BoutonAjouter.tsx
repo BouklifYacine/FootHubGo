@@ -71,7 +71,7 @@ function BoutonAjouter({ texte }: Props) {
         onSuccess: () => {
           form.reset();
           setOpen(false);
-          router.push("/app/effectif");
+          router.push("/app/squad");
         },
       });
     },

@@ -1,0 +1,50 @@
+/*
+ * FullCalendar "breezy" theme wired to the shadcn design tokens (app/globals.css),
+ * so the calendar follows the app colors and dark mode (.dark) automatically.
+ * This replaces the theme's palette stylesheet.
+ */
+.event-calendar {
+  /* primary */
+  --fc-breezy-primary: hsl(var(--primary));
+  --fc-breezy-primary-over: hsl(var(--primary) / 0.9);
+  --fc-breezy-primary-foreground: hsl(var(--primary-foreground));
+
+  /* secondary */
+  --fc-breezy-secondary: hsl(var(--background));
+  --fc-breezy-secondary-over: hsl(var(--accent));
+  --fc-breezy-secondary-border: hsl(var(--border));
+  --fc-breezy-secondary-foreground: hsl(var(--foreground));
+  --fc-breezy-secondary-icon: hsl(var(--muted-foreground));
+  --fc-breezy-secondary-icon-over: hsl(var(--foreground));
+
+  /* calendar content */
+  --fc-breezy-event: hsl(var(--primary));
+  --fc-breezy-event-contrast: hsl(var(--primary-foreground));
+  --fc-breezy-background-event: hsl(var(--primary));
+  --fc-breezy-highlight: hsl(var(--primary) / 0.08);
+  --fc-breezy-now: hsl(var(--destructive));
+  --fc-breezy-selected: hsl(var(--accent));
+
+  /* popover ("+N more") */
+  --fc-breezy-popover: hsl(var(--popover));
+  --fc-breezy-popover-border: hsl(var(--border));
+
+  /* neutral backgrounds */
+  --fc-breezy-background: hsl(var(--background));
+  --fc-breezy-faint: hsl(var(--muted) / 0.4);
+  --fc-breezy-muted: hsl(var(--muted) / 0.7);
+  --fc-breezy-strong: hsl(var(--muted));
+  --fc-breezy-stronger: hsl(var(--accent));
+  --fc-breezy-strongest: hsl(var(--border));
+
+  /* neutral foregrounds */
+  --fc-breezy-foreground: hsl(var(--foreground));
+  --fc-breezy-faint-foreground: hsl(var(--muted-foreground) / 0.7);
+  --fc-breezy-muted-foreground: hsl(var(--muted-foreground));
+  --fc-breezy-strong-foreground: hsl(var(--foreground));
+
+  /* neutral borders */
+  --fc-breezy-border: hsl(var(--border));
+  --fc-breezy-muted-border: hsl(var(--border) / 0.5);
+  --fc-breezy-strong-border: hsl(var(--border));
+}

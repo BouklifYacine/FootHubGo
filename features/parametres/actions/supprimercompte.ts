@@ -85,7 +85,7 @@ export async function supprimerCompte(codeVerification?: string) {
       await authClient.signOut({
         fetchOptions: {
           onSuccess: () => {
-          redirect("/connexion")
+          redirect("/sign-in")
           },
         },
       });

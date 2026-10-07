@@ -118,7 +118,7 @@ export default function MenuDeroulant({
             <DropdownMenuItem>
               <Settings className="mr-2 h-4 w-4" />
               <Link
-                href={`/parametres`}
+                href={`/settings`}
                 className="cursor-pointer"
               >
                 Paramètres

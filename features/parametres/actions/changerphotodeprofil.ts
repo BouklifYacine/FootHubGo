@@ -74,7 +74,7 @@ export async function serverUploadProfilePicture(formData: {
       }
     }
 
-    revalidatePath(`/parametres/${session.user.id}`);
+    revalidatePath(`/settings/${session.user.id}`);
 
     return {
       presignedurl,
@@ -124,7 +124,7 @@ export async function serverDeleteProfilePicture() {
       data: { image: null },
     });
 
-    revalidatePath(`/parametres/${session.user.id}`);
+    revalidatePath(`/settings/${session.user.id}`);
 
     return { success: true };
   } catch (error) {

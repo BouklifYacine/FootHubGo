@@ -73,7 +73,7 @@ export async function changerPseudo(donnees: TypePseudo) {
         })
       }
   
-      revalidatePath(`/parametres/${utilisateur.id}`)
+      revalidatePath(`/settings/${utilisateur.id}`)
       return { success: true }
     } catch (error) {
       return { error: (error as Error).message }

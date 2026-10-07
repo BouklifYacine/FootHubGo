@@ -79,7 +79,7 @@ export async function changerMotDePasse(donnees: TypeMotDePasse) {
         })
       })
   
-      revalidatePath(`/parametres/${utilisateur.id}`)
+      revalidatePath(`/settings/${utilisateur.id}`)
       return { success: true }
     } catch (error) {
       return { error: (error as Error).message }

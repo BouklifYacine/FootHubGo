@@ -50,7 +50,7 @@ export function RejoindreClubModal({ texte }: Props) {
         form.reset();
         setOtpValue("");
         setOpen(false);
-        router.push("/app/effectif");
+        router.push("/app/squad");
       }
     },
   });

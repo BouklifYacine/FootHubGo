@@ -4,7 +4,7 @@ import { Button } from "../ui/button";
 export function BoutonConnexion() {
   return (
     <>
-      <Link href="/connexion">
+      <Link href="/sign-in">
         <Button
           variant="ghost"
           className=" border-blue-500 border flex items-center gap-2 cursor-pointer"

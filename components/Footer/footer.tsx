@@ -35,8 +35,8 @@ const defaultSections = [
   {
     title: "Compte",
     links: [
-      { name: "Connexion", href: "/connexion" },
-      { name: "Inscription", href: "/inscription" },
+      { name: "Connexion", href: "/sign-in" },
+      { name: "Inscription", href: "/sign-up" },
     ],
   },
   {
