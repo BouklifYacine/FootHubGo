@@ -14,8 +14,7 @@ import { Label } from "@/components/ui/label";
 import BoutonConnexionProviders from "@/components/Boutons/BoutonConnexionProviders";
 import { SchemaConnexion } from "../schemas/SchemaConnexion";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { connexionAction } from "../actions/ConnexionAction";
@@ -28,14 +27,6 @@ export function ConnexionFormulaire({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<Schema>({
-    resolver: zodResolver(SchemaConnexion),
-  });
-
   const router = useRouter();
   const [erreurIdentifiant, setErreurIdentifiant] = useState("");
 
@@ -45,7 +36,7 @@ export function ConnexionFormulaire({
       console.log(data);
 
       if (result.success) {
-        router.push("/dashboardfoothub");
+        router.push("/app");
         router.refresh();
       } else {
         setErreurIdentifiant(result.error || "Une erreur est survenue");
@@ -55,6 +46,20 @@ export function ConnexionFormulaire({
       setErreurIdentifiant("Une erreur est survenue lors de la connexion");
     }
   };
+
+  const form = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+    } as Schema,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: SchemaConnexion },
+    onSubmit: async ({ value }) => {
+      await onSubmit(SchemaConnexion.parse(value));
+    },
+  });
+  const isSubmitting = useStore(form.store, (state) => state.isSubmitting);
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -65,7 +70,13 @@ export function ConnexionFormulaire({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+          >
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
                 <BoutonConnexionProviders></BoutonConnexionProviders>
@@ -76,40 +87,54 @@ export function ConnexionFormulaire({
                 </span>
               </div>
               <div className="grid gap-6">
-                <div className="grid gap-3">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    {...register("email")}
-                    id="email"
-                    type="email"
-                    placeholder="footy@example.com"
-                  />
-                  {errors.email && (
-                    <p className="text-red-500 text-sm">
-                      {errors.email.message}
-                    </p>
+                <form.Field name="email">
+                  {(field) => (
+                    <div className="grid gap-3">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        name={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        id="email"
+                        type="email"
+                        placeholder="footy@example.com"
+                      />
+                      {field.state.meta.errors.length > 0 && (
+                        <p className="text-red-500 text-sm">
+                          {field.state.meta.errors[0]?.message}
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
-                <div className="grid gap-3">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Mot de passe</Label>
-                    <Link href={"connexion/motdepasseoublie"}  className="ml-auto text-sm underline-offset-4 hover:underline">
-                     Mot de passe oublié?
-                    </Link>
-                  
-                  </div>
-                  <Input
-                    {...register("password")}
-                    id="password"
-                    type="password"
-                    placeholder="Mot de passe"
-                  />
-                  {errors.password && (
-                    <p className="text-red-500 text-sm">
-                      {errors.password.message}
-                    </p>
+                </form.Field>
+                <form.Field name="password">
+                  {(field) => (
+                    <div className="grid gap-3">
+                      <div className="flex items-center">
+                        <Label htmlFor="password">Mot de passe</Label>
+                        <Link href={"connexion/motdepasseoublie"}  className="ml-auto text-sm underline-offset-4 hover:underline">
+                         Mot de passe oublié?
+                        </Link>
+
+                      </div>
+                      <Input
+                        name={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        id="password"
+                        type="password"
+                        placeholder="Mot de passe"
+                      />
+                      {field.state.meta.errors.length > 0 && (
+                        <p className="text-red-500 text-sm">
+                          {field.state.meta.errors[0]?.message}
+                        </p>
+                      )}
+                    </div>
                   )}
-                </div>
+                </form.Field>
 
                 {isSubmitting ? (
                   <BoutonDisabled
@@ -131,7 +156,7 @@ export function ConnexionFormulaire({
               </div>
               <div className="text-center text-sm">
                 Vous n&apos;avez pas de compte?{" "}
-               
+
                 <Link href={"/inscription"} className="underline underline-offset-4">
                   Inscrivez vous
                 </Link>

@@ -1,9 +1,10 @@
+import type { PosteJoueur } from "@/generated/prisma/browser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ModifierPosteAction } from "../actions/ModifierPosteAction";
 import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
-export type PosteType = "GARDIEN" | "DEFENSEUR" | "MILIEU" | "ATTAQUANT";
+export type PosteType = PosteJoueur;
 
 interface ModifierPosteparam {
   id: string;

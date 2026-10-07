@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import ky from "ky";
-import { Blessure } from "@prisma/client";
+import { Blessure } from "@/generated/prisma/browser";
 
 type PlayerWithStats = {
   id: string;

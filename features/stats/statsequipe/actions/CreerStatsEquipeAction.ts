@@ -6,7 +6,7 @@ import {
   SchemaAjouterStatsEquipe,
 } from "@/features/stats/statsequipe/schema/AjouterStatsEquipeSchema";
 import { prisma } from "@/prisma";
-import dayjs from "dayjs";
+import { addHours, isBefore } from "date-fns";
 import { headers } from "next/headers";
 
 export async function CreerStatsEquipeAction(data: SchemaAjouterStatsEquipe,idEvenement: string) {
@@ -87,9 +87,9 @@ export async function CreerStatsEquipeAction(data: SchemaAjouterStatsEquipe,idEv
     };
   }
 
-  const debut = dayjs(evenement.dateDebut);
-  const limite = debut.add(3, "hour");
-  if (dayjs().isBefore(limite)) {
+  const debut = evenement.dateDebut;
+  const limite = addHours(debut, 3);
+  if (isBefore(new Date(), limite)) {
     return {
       success: false,
       message:

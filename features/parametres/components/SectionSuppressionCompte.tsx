@@ -83,24 +83,33 @@ export function SectionSuppression({ userId }: { userId: string }) {
           <div className="space-y-4">
             {!hasProvider && etape === "verification" && (
               <form
-                onSubmit={formVerification.handleSubmit((data) =>
-                  verifierMotDePasseMutation.mutate(data.motdepasse)
-                )}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  formVerification.handleSubmit();
+                }}
                 className="space-y-4"
               >
-                <div className="space-y-2">
-                  <Label htmlFor="motdepasse">Mot de passe actuel</Label>
-                  <InputPassword
-                    {...formVerification.register("motdepasse")}
-                  />
-                  {formVerification.formState.errors.motdepasse && (
-                    <Alert variant="destructive">
-                      <AlertDescription>
-                        {formVerification.formState.errors.motdepasse.message?.toString()}
-                      </AlertDescription>
-                    </Alert>
+                <formVerification.Field name="motdepasse">
+                  {(field) => (
+                    <div className="space-y-2">
+                      <Label htmlFor="motdepasse">Mot de passe actuel</Label>
+                      <InputPassword
+                        name={field.name}
+                        value={field.state.value}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                      />
+                      {field.state.meta.errors.length > 0 && (
+                        <Alert variant="destructive">
+                          <AlertDescription>
+                            {field.state.meta.errors[0]?.message}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
                   )}
-                </div>
+                </formVerification.Field>
                 <div className="flex gap-2">
                   <Button
                     type="submit"
@@ -122,21 +131,30 @@ export function SectionSuppression({ userId }: { userId: string }) {
               <div className="space-y-4">
                 {!hasProvider ? (
                   <form
-                    onSubmit={formConfirmation.handleSubmit(() =>
-                      handleSuppression()
-                    )}
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      formConfirmation.handleSubmit();
+                    }}
                     className="space-y-4"
                   >
-                    <div className="space-y-2">
-                      <Label htmlFor="codeVerification">
-                        Code de vérification
-                      </Label>
-                      <Input
-                        id="codeVerification"
-                        {...formConfirmation.register("codeVerification")}
-                        placeholder="Entrez le code reçu par email"
-                      />
-                    </div>
+                    <formConfirmation.Field name="codeVerification">
+                      {(field) => (
+                        <div className="space-y-2">
+                          <Label htmlFor="codeVerification">
+                            Code de vérification
+                          </Label>
+                          <Input
+                            id="codeVerification"
+                            name={field.name}
+                            value={field.state.value}
+                            onBlur={field.handleBlur}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            placeholder="Entrez le code reçu par email"
+                          />
+                        </div>
+                      )}
+                    </formConfirmation.Field>
                     <div className="flex gap-2">
                       <Button
                         type="submit"

@@ -3,7 +3,7 @@ import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import clsx from "clsx";
 import QueryProvider from "./(providers)/QueryProvider";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
 import { NotificationListener } from "@/components/NotificationListener";
 import { auth } from "@/auth";
@@ -15,9 +15,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Foothubgo",
+  title: "FootHubGo",
   description:
-    "Avec Foothubgo gérez votre club de football amateur de manière professionnelle",
+    "Avec FootHubGo, gérez votre club de football amateur de manière professionnelle",
 };
 
 export default async function RootLayout({
@@ -39,8 +39,8 @@ export default async function RootLayout({
             disableTransitionOnChange
           >
             {children}
+            <Toaster position="top-center" richColors />
           </ThemeProvider>
-          <Toaster position="top-center" />
         </QueryProvider>
       </body>
     </html>

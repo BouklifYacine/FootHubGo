@@ -1,7 +1,6 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
-import { parse } from "cookie";
 import { auth } from "@/auth";
 
 const dev = process.env.NODE_ENV !== "production";
@@ -19,18 +18,11 @@ app.prepare().then(() => {
 
   io.use(async (socket, next) => {
     try {
-      const cookies = parse(socket.handshake.headers.cookie || "");
-      const sessionToken = cookies["better-auth.session_token"];
-
-      if (!sessionToken) {
-        console.log("❌ Connexion refusée: pas de session token");
-        return next(new Error("Authentication required"));
-      }
-
+      // getSession valide le cookie de session (nom différent en HTTPS : __Secure-…)
       const session = await auth.api.getSession({
-        headers: {
+        headers: new Headers({
           cookie: socket.handshake.headers.cookie || "",
-        },
+        }),
       });
 
       if (!session?.user) {
@@ -41,9 +33,7 @@ app.prepare().then(() => {
       socket.data.userId = session.user.id;
       socket.data.userName = session.user.name;
 
-      socket.join(`user:${session.user.id}`);
-      // Plus besoin de emit("register") côté client !
-      // C'est fait côté serveur de façon sécurisée
+      // Room personnelle (notifications), rejointe côté serveur de façon sécurisée
       socket.join(`user:${session.user.id}`);
 
       console.log(
@@ -117,5 +107,5 @@ app.prepare().then(() => {
       });
   };
 
-  startServer(3000);
+  startServer(Number(process.env.PORT) || 3000);
 });

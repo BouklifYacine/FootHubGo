@@ -30,7 +30,7 @@ interface Logos3Props {
 }
 
 const CarouselComposant = ({
-  heading = "Ces clubs font confiance a Foothubgo",
+  heading = "Ces clubs font confiance a FootHubGo",
   logos = [
     {
       id: "logo-1",

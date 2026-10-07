@@ -1,4 +1,4 @@
-import { StatutClub } from "@prisma/client";
+import { StatutClub } from "@/generated/prisma/browser";
 import { z } from "zod";
 
 export const niveau = [

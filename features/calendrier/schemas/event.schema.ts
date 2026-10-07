@@ -7,7 +7,7 @@ export const EventSchema = z
       .min(3, "Le titre doit faire au moins 3 caractères")
       .max(35, "Le titre ne peut pas dépasser 35 caractères"),
     dateDebut: z.coerce
-      .date()
+      .date<Date>()
       .refine((d) => !isNaN(d.getTime()), "Date invalide"),
     typeEvenement: z.enum(["ENTRAINEMENT", "CHAMPIONNAT", "COUPE"]),
     lieu: z
@@ -26,7 +26,7 @@ export const EventSchema = z
       // L'adversaire est obligatoire pour les matchs.
       if (!evt.adversaire || evt.adversaire.length < 3) {
         ctx.addIssue({
-          code: z.ZodIssueCode.custom,
+          code: "custom",
           message:
             "Le nom de l'adversaire est obligatoire et doit faire au moins 3 caractères pour un match.",
           path: ["adversaire"],

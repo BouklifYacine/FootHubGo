@@ -3,7 +3,7 @@ import Logo from "@/public/Logo_Manchester_City_2016.svg";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
-import { $Enums } from "@prisma/client";
+import { $Enums } from "@/generated/prisma/browser";
 import Link from "next/link";
 
 interface Props {
@@ -21,7 +21,7 @@ function InfosTeamAccueil({ clubData, Role }: Props) {
           Infos Club
         </p>
         <Link
-          href={"/dashboardfoothub/effectif"}
+          href={"/app/effectif"}
           className=" text-md md:text-lg font-bold  tracking-tighter hover:underline "
         >
           Effectif complet

@@ -9,12 +9,11 @@ import {
   TimelineTitle,
 } from "@/components/ui/timeline";
 
-import { Blessure } from "@prisma/client";
-import dayjs from "dayjs";
-import "dayjs/locale/fr";
+import { Blessure } from "@/generated/prisma/browser";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { InjuryActionsMenu } from "./InjuryActionsMenu";
 
-dayjs.locale("fr");
 
 export default function TimelineComponent({
   injuries,
@@ -37,7 +36,7 @@ export default function TimelineComponent({
           <TimelineHeader>
             <TimelineSeparator />
             <TimelineDate className="sm:group-data-[orientation=vertical]/timeline:absolute sm:group-data-[orientation=vertical]/timeline:-left-32 sm:group-data-[orientation=vertical]/timeline:w-20 sm:group-data-[orientation=vertical]/timeline:text-right">
-              {dayjs(injury.startDate).format("DD MMM YYYY")}
+              {format(injury.startDate, "dd MMM yyyy", { locale: fr })}
             </TimelineDate>
             <div className="flex items-center justify-between w-full">
               <TimelineTitle className="sm:-mt-0.5 text-base">
@@ -49,7 +48,7 @@ export default function TimelineComponent({
           </TimelineHeader>
           <TimelineContent>
             <div className="text-sm font-medium mb-1">
-              Retour : {dayjs(injury.endDate).format("DD MMM YYYY")}
+              Retour : {format(injury.endDate, "dd MMM yyyy", { locale: fr })}
             </div>
             {injury.description && (
               <div className="opacity-45">{injury.description}</div>

@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 
 export async function GET(
   request: NextRequest, 
-  { params }: { params: { id: string; idevenement: string } }
+  { params }: { params: Promise<{ id: string; idevenement: string }> }
 ) {
   const { id, idevenement } = await params; 
 

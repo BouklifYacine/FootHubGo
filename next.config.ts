@@ -1,9 +1,17 @@
 import type { NextConfig } from "next";
 
-// console.log("BUILD – DATABASE_URL:", process.env.DATABASE_URL);
-
+// Pas de output: "standalone" : l'app tourne via le serveur custom (server.ts + Socket.IO).
 const nextConfig: NextConfig = {
   serverExternalPackages: ["@node-rs/argon2"],
+  async redirects() {
+    return [
+      {
+        source: "/dashboardfoothub/:path*",
+        destination: "/app/:path*",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },
@@ -20,8 +28,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 't3.storage.dev' },
       { protocol: 'https', hostname: 'fly.storage.tigris.dev' }
     ],
-  },
-  output: "standalone"
+  }
 };
 
 export default nextConfig;

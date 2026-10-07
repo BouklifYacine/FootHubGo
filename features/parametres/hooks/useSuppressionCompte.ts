@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { useMutation } from "@tanstack/react-query";
-import { zodResolver } from "@hookform/resolvers/zod";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { schemaVerificationMotDePasse } from "../schemas/schema";
 import { DeconnexionClient } from "@/lib/FonctionDeconnexionClient";
 import { useProfil } from "./useProfil";
 import { verifierMotDePasse } from "../actions/verifiermotdepasseaction";
 import { supprimerCompte } from "../actions/supprimercompte";
+import { definirErreurChamp } from "../lib/definirErreurChamp";
 
 export type DeleteAccountSteps = "verification" | "confirmation";
 
@@ -20,15 +20,29 @@ export function useSuppressionCompte(userId: string) {
 
   // Formulaires
   const formVerification = useForm({
-    resolver: zodResolver(schemaVerificationMotDePasse),
+    defaultValues: {
+      motdepasse: "",
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: schemaVerificationMotDePasse },
+    onSubmit: ({ value }) => {
+      verifierMotDePasseMutation.mutate(value.motdepasse);
+    },
   });
 
-  const formConfirmation = useForm({});
+  const formConfirmation = useForm({
+    defaultValues: {
+      codeVerification: "",
+    },
+    onSubmit: async () => {
+      await handleSuppression();
+    },
+  });
 
   const {data : utilisateur , isLoading} = useProfil(userId)
 
   const hasProvider =  utilisateur?.providerId[0] !== "credential";
-  
+
 
   const verifierMotDePasseMutation = useMutation({
     mutationFn: async (motdepasse: string) => {
@@ -45,7 +59,7 @@ export function useSuppressionCompte(userId: string) {
     },
     onError: (error: Error) => {
       toast.error(error.message);
-      formVerification.setError("motdepasse", { message: error.message });
+      definirErreurChamp(formVerification, "motdepasse", error.message);
     },
   });
 
@@ -79,7 +93,7 @@ export function useSuppressionCompte(userId: string) {
     if (hasProvider) {
       await supprimerCompteMutation.mutateAsync(undefined);
     } else {
-      const data = formConfirmation.getValues();
+      const data = formConfirmation.state.values;
       await supprimerCompteMutation.mutateAsync(data.codeVerification);
     }
   };

@@ -1,32 +1,40 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { schemaVerificationMotDePasse, schemaMotDePasse } from '../schemas/schema'
-import toast from 'react-hot-toast'
+import { toast } from "sonner";
 import { TypeMotDePasse } from '../schemas/schema'
 import { DeconnexionClient } from '@/lib/FonctionDeconnexionClient'
 import { verifierMotDePasse } from '../actions/verifiermotdepasseaction'
 import { changerMotDePasse } from '../actions/changermotdepasse'
+import { definirErreurChamp } from '../lib/definirErreurChamp'
 
 export function useMotDePasse() {
   const [etape, setEtape] = useState<'verification' | 'changement'>('verification')
   const [enEdition, setEnEdition] = useState(false)
 
   const formVerification = useForm({
-    resolver: zodResolver(schemaVerificationMotDePasse),
     defaultValues: {
       motdepasse: ''
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: schemaVerificationMotDePasse },
+    onSubmit: ({ value }) => {
+      verifierMotDePasseMutation.mutate(value.motdepasse)
     }
   })
 
-  const formChangement = useForm<TypeMotDePasse>({
-    resolver: zodResolver(schemaMotDePasse),
+  const formChangement = useForm({
     defaultValues: {
       motdepasse: '',
       codeverification: ''
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: schemaMotDePasse },
+    onSubmit: ({ value }) => {
+      changerMotDePasseMutation.mutate(value)
     }
   })
 
@@ -43,7 +51,7 @@ export function useMotDePasse() {
     },
     onError: (error: Error) => {
       toast.error(error.message)
-      formVerification.setError('motdepasse', { message: error.message })
+      definirErreurChamp(formVerification, 'motdepasse', error.message)
     }
   })
 
@@ -60,9 +68,9 @@ export function useMotDePasse() {
     onError: (error: Error) => {
       toast.error(error.message)
       if (error.message.includes('Code')) {
-        formChangement.setError('codeverification', { message: error.message })
+        definirErreurChamp(formChangement, 'codeverification', error.message)
       } else {
-        formChangement.setError('motdepasse', { message: error.message })
+        definirErreurChamp(formChangement, 'motdepasse', error.message)
       }
     }
   })

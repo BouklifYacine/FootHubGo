@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { SupprimerClubAction } from "../actions/Supprimerclub";
 import { useRouter } from "next/navigation";
 
@@ -17,7 +17,7 @@ export function useSupprimerClub() {
     },
 
     onSuccess: (data) => {
-      router.push("/dashboardfoothub");
+      router.push("/app");
       toast.success(data.message);
     },
     onError: (error) => {

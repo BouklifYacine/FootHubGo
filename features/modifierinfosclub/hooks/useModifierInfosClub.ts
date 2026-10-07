@@ -1,6 +1,6 @@
 import { SchemaModifierInfosClub } from "@/features/modifierinfosclub/schemas/SchemaModifierInfosClub";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { ModifierInfosClubAction } from "../actions/modifierinfosclubaction";
 import z from "zod";
 

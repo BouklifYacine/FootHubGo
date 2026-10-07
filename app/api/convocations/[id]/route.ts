@@ -2,9 +2,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import dayjs from "dayjs";
+import { differenceInHours, isAfter } from "date-fns";
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }
 ) {
   const {id : convocationId} = await params;
 
@@ -59,10 +59,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     );
   }
 
-  const now = dayjs();
-  const eventDate = dayjs(convocation.evenement.dateDebut);
+  const now = new Date();
+  const eventDate = convocation.evenement.dateDebut;
 
-  if (now.isAfter(eventDate)) {
+  if (isAfter(now, eventDate)) {
     return NextResponse.json(
       {
         message:
@@ -72,7 +72,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     );
   }
 
-  const diffHours = eventDate.diff(now, "hour", true);
+  const diffHours = differenceInHours(eventDate, now);
   if (diffHours < 6) {
     return NextResponse.json(
       {

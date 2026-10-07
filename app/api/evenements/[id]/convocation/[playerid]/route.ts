@@ -2,10 +2,10 @@ import { auth } from "@/auth";
 import { prisma } from "@/prisma";
 import { headers } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import dayjs from "dayjs";
+import { addDays, differenceInHours, format, isAfter, isBefore, subDays } from "date-fns";
 import { notifyUser } from "@/features/notifications/notifyUser";
 
-export async function POST(request: NextRequest,{ params }: { params: { id: string; playerid: string } }) {
+export async function POST(request: NextRequest,{ params }: { params: Promise<{ id: string; playerid: string }> }) {
   const { id: evenementid, playerid: playerId } = await params;
 
   const session = await auth.api.getSession({ headers: await headers() });
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
 
   if (
     InjuredPlayer && InjuredPlayer.startDate && InjuredPlayer.endDate &&
-    dayjs(InjuredPlayer.startDate).isBefore(dayjs(Event.dateDebut).add(1, "day")) && dayjs(InjuredPlayer.endDate).isAfter(dayjs(Event.dateDebut).subtract(1, "day"))
+    isBefore(InjuredPlayer.startDate, addDays(Event.dateDebut, 1)) && isAfter(InjuredPlayer.endDate, subDays(Event.dateDebut, 1))
   ) {
     return NextResponse.json(
       { message: "Ce joueur est blessé pendant l'événement et ne peut être convoqué" },
@@ -154,14 +154,14 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
     );
   }
 
-  if (dayjs().isAfter(dayjs(Event.dateDebut))) {
+  if (isAfter(new Date(), Event.dateDebut)) {
     return NextResponse.json(
       { message: "L'événement est déjà passé, impossible d'envoyer une convocation" },
       { status: 400 }
     );
   }
 
-  const diffHours = dayjs(Event.dateDebut).diff(dayjs(), "hour", true);
+  const diffHours = differenceInHours(Event.dateDebut, new Date());
   if (diffHours < 24) {
     return NextResponse.json(
       { message: "La convocation doit être envoyée au moins 24h avant le match" },
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest,{ params }: { params: { id: stri
 
  await notifyUser({
    userId: playerId,
-   message: `Tu es convoqué pour le match du ${dayjs(Event.dateDebut).format("DD/MM/YYYY")}`,
+   message: `Tu es convoqué pour le match du ${format(Event.dateDebut, "dd/MM/yyyy")}`,
    fromUserName: session.user.name,
    fromUserImage: session.user.image || "",
    type: "CONVOCATION_MATCH",

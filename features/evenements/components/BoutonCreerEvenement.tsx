@@ -12,7 +12,7 @@ export function BoutonCreerEvenement() {
   const estEntraineur = data?.role === "ENTRAINEUR";
 
   const handleClick = () => {
-    router.push("/dashboardfoothub/calendrier");
+    router.push("/app/calendrier");
   };
 
   if (!estEntraineur) return;

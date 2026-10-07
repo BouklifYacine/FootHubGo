@@ -1,5 +1,5 @@
 import React from "react";
-import { $Enums } from "@prisma/client";
+import { $Enums } from "@/generated/prisma/browser";
 import { StatistiqueJoueur } from "@/features/stats/statsjoueur/interface-types/interfacetype";
 import { StatistiqueEquipeID } from "@/features/stats/statsequipe/interface/InterfaceStatsEquipe";
 import Link from "next/link";
@@ -118,7 +118,7 @@ function StatsPrincipal({ Role, statsJoueurData, StatsEquipeData }: Props) {
       {/* Header */}
       <div className="flex justify-end mb-4 lg:mb-6">
         <Link
-          href="/dashboardfoothub/statistiques"
+          href="/app/statistiques"
           className="text-sm md:text-base lg:text-lg hover:underline font-semibold tracking-tight transition-all"
         >
           Stats club →

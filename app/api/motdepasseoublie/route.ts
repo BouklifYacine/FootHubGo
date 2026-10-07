@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     });
 
     await resend.emails.send({
-      from: 'yacine@footygogo.com',
+      from: process.env.RESEND_FROM_EMAIL ?? "FootHubGo <yacine@footygogo.com>",
       to: email,
       subject: 'Changement de mot de passe',
       react: React.createElement(CodeConfirmation, { resetCode , pseudo : user.email || "" }),

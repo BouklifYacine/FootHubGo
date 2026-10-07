@@ -6,16 +6,16 @@ const enumsCompetition = ["CHAMPIONNAT", "COUPE"] as const;
 export const AjouterStatsEquipeSchema = z
   .object({
     resultatMatch: z.enum(enumsResultat),
-    cleanSheet: z.coerce.boolean(),
+    cleanSheet: z.coerce.boolean<boolean>(),
     butsMarques: z.coerce
-      .number()
+      .number<string | number>()
       .min(0, "Rentrez le nombre de buts")
       .max(99, "Maximum 99 buts"),
     butsEncaisses: z.coerce
-      .number()
+      .number<string | number>()
       .min(0, "Rentrez le nombre de buts")
       .max(99, "Maximum 99 buts"),
-    domicile: z.coerce.boolean(),
+    domicile: z.coerce.boolean<boolean>(),
     
     // ✅ CORRECTION : Transforme les champs vides en undefined
     tirsTotal: z
@@ -56,7 +56,7 @@ export const AjouterStatsEquipeSchema = z
 
     if (resultatMatch === "VICTOIRE" && butsEncaisses >= butsMarques) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Résultat incorrect en cas de victoire",
         path: ["butsEncaisses"],
       });
@@ -64,7 +64,7 @@ export const AjouterStatsEquipeSchema = z
 
     if (resultatMatch === "NUL" && butsMarques !== butsEncaisses) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Si match nul, les buts doivent être égaux",
         path: ["butsEncaisses"],
       });
@@ -72,7 +72,7 @@ export const AjouterStatsEquipeSchema = z
 
     if (resultatMatch === "DEFAITE" && butsMarques >= butsEncaisses) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Stats de buts marqués et encaissé incorrect en cas de défaite",
         path: ["butsMarques"],
       });
@@ -80,7 +80,7 @@ export const AjouterStatsEquipeSchema = z
 
     if (cleanSheet && butsEncaisses > 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Pas de buts encaissés en clean sheet",
         path: ["cleanSheet"],
       });
@@ -88,7 +88,7 @@ export const AjouterStatsEquipeSchema = z
 
     if (!cleanSheet && butsEncaisses === 0) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Cochez le champ Clean Sheet",
         path: ["cleanSheet"],
       });
@@ -96,7 +96,7 @@ export const AjouterStatsEquipeSchema = z
 
     if (tirsTotal !== undefined && butsMarques > tirsTotal) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Vous ne pouvez pas avoir plus de buts que de tirs totaux",
         path: ["butsMarques"],
       });
@@ -104,7 +104,7 @@ export const AjouterStatsEquipeSchema = z
 
     if (tirsTotal !== undefined && tirsCadres !== undefined && tirsCadres > tirsTotal) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Tirs cadrés ne peuvent pas dépasser tirs totaux",
         path: ["tirsCadres"],
       });

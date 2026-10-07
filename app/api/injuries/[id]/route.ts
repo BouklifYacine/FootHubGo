@@ -1,4 +1,4 @@
-import dayjs from "dayjs";
+import { addDays, isAfter, isBefore, startOfDay } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 import { GetSessionId } from "@/lib/SessionId/GetSessionId";
 import { FindUserIsPlayer } from "@/features/injuries/repository/FindUserHasClub";
@@ -36,15 +36,15 @@ export async function PATCH(
       );
     }
 
-    const today = dayjs().startOf("day");
-    if (dayjs(endDate).isBefore(today)) {
+    const today = startOfDay(new Date());
+    if (isBefore(endDate, today)) {
       return NextResponse.json(
         { error: "La date de fin ne peut pas être antérieure à aujourd'hui." },
         { status: 400 }
       );
     }
 
-    if (dayjs(endDate).isBefore(today.add(3, "day"))) {
+    if (isBefore(endDate, addDays(today, 3))) {
       return NextResponse.json(
         { error: "Une blessure doit durer au minimum 3 jours." },
         { status: 400 }
@@ -114,9 +114,9 @@ export async function DELETE(
       );
     }
 
-    const now = dayjs();
+    const now = new Date();
 
-    if (now.isAfter(dayjs(injury.endDate))) {
+    if (isAfter(now, injury.endDate)) {
       return NextResponse.json(
         { error: "Impossible de supprimer une blessure déjà terminée" },
         { status: 400 }

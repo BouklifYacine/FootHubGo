@@ -6,13 +6,14 @@ import {
   TeamListInterfaceAPI,
   CallUpResponse,
 } from "../interfaces/CallUpInterface";
-import toast from "react-hot-toast";
-import { AxiosError } from "axios";
+import { toast } from "sonner";
+import { HTTPError } from "ky";
+import { getHttpErrorMessage } from "@/lib/http-error";
 
 export function useCallUpPlayer() {
   const queryClient = useQueryClient();
 
-  return useMutation<CallUpResponse,AxiosError<ErrorResponse>,CallUpPlayerParams,{ previousData: TeamListInterfaceAPI | undefined }
+  return useMutation<CallUpResponse,HTTPError<ErrorResponse>,CallUpPlayerParams,{ previousData: TeamListInterfaceAPI | undefined }
   >({
     mutationFn: ({ eventId, playerId }: CallUpPlayerParams) =>
       convocationService.callUpPlayer(eventId, playerId),
@@ -30,7 +31,7 @@ export function useCallUpPlayer() {
         queryClient.setQueryData(["TeamList", teamId, eventId], context.previousData);
       }
 
-      toast.error(error.response?.data?.message || "Erreur lors de la convocation");
+      toast.error(getHttpErrorMessage(error, "Erreur lors de la convocation"));
     },
 
     onSuccess: (data) => {

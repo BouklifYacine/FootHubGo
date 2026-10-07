@@ -2,44 +2,51 @@
 
 import React, { useState } from "react";
 import { Mail } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { z } from "zod";
-import axios from "axios";
+import ky, { isHTTPError, isKyError } from "ky";
 import { useRouter } from "next/navigation";
 import { EmailSchema } from "@/features/codemotdepasseoublie/schemas/SchemaMotDepasse";
 
 type Schema = z.infer<typeof EmailSchema>;
 
 const AuthForm = () => {
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<Schema>({
-    resolver: zodResolver(EmailSchema),
-  });
-
   const router = useRouter();
   const [code, setCode] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
+  const form = useForm({
+    defaultValues: {
+      email: "",
+    } as Schema,
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: EmailSchema },
+    onSubmit: async ({ value }) => {
+      await onSubmit(EmailSchema.parse(value));
+    },
+  });
+  const isSubmitting = useStore(form.store, (state) => state.isSubmitting);
+
   const onSubmit = async (data: Schema) => {
   try {
     console.log("Données envoyées:", data);
-    const response = await axios.post("/api/motdepasseoublie", data);
+    const response = await ky
+      .post("/api/motdepasseoublie", { json: data })
+      .json<{ message: string }>();
     console.log("Réponse API:", response);
 
-    reset();
-    setCode(response.data.message);
+    form.reset();
+    setCode(response.message);
     setErrorMessage("");
     router.push("/connexion/motdepasseoublie/code");
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Axios error:", error.response?.data || error.message);
+    if (isKyError(error)) {
+      const data = isHTTPError(error)
+        ? (error.data as { message?: string } | string | undefined)
+        : undefined;
+      console.error("Ky error:", data || error.message);
       setErrorMessage(
-        error.response?.data?.message || "Une erreur est survenue"
+        (typeof data === "object" && data?.message) || "Une erreur est survenue"
       );
     } else {
       console.error("Erreur inconnue:", error);
@@ -56,29 +63,43 @@ const AuthForm = () => {
           Mot de passe oublié ?
         </h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">
-              Email
-            </label>
-            <div className="relative">
-              <Mail
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                size={20}
-              />
-              <input
-                {...register("email")}
-                type="email"
-                className="w-full pl-10 text-black pr-3 py-2 rounded-md border border-gray-300 focus:ring-2  focus:border-transparent"
-                placeholder="Rentrez votre email"
-              />
-            </div>
-            {errors.email && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.email.message}
-              </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-4"
+        >
+          <form.Field name="email">
+            {(field) => (
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={20}
+                  />
+                  <input
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    type="email"
+                    className="w-full pl-10 text-black pr-3 py-2 rounded-md border border-gray-300 focus:ring-2  focus:border-transparent"
+                    placeholder="Rentrez votre email"
+                  />
+                </div>
+                {field.state.meta.errors.length > 0 && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {field.state.meta.errors[0]?.message}
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+          </form.Field>
 
           {errorMessage && (
             <p className="text-red-500 text-sm">{errorMessage}</p>

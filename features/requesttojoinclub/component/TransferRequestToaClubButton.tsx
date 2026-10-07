@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import { Handshake, Loader2, Trophy, Quote, UserCircle } from "lucide-react";
-import { PosteJoueur, NiveauClub } from "@prisma/client";
+import { PosteJoueur, NiveauClub } from "@/generated/prisma/browser";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

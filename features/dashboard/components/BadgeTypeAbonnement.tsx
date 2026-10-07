@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import React from 'react'
 
 interface BadgeTypeAbonnementProps {
-    abonnement: 'mois' | 'année';
+    abonnement: 'mois' | 'annee';
 }
 
 const BadgeTypeAbonnement = ({abonnement} : BadgeTypeAbonnementProps) => {

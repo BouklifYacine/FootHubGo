@@ -1,8 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
+import { getHttpErrorMessage } from "@/lib/http-error";
 import { CreateInjuryTypeAPI } from "../types/CreateInjuries.types";
 import { InjuryService } from "../services/InjuryService";
-import { Blessure } from "@prisma/client";
+import { Blessure } from "@/generated/prisma/browser";
 import { HTTPError } from "ky"; // Important : on importe le type d'erreur de Ky
 
 export function useCreateInjury(id: string) {
@@ -33,8 +34,7 @@ export function useCreateInjury(id: string) {
 
       let errorMessage = "Erreur lors de la création de la blessure";
       if (error instanceof HTTPError) {
-         const errorData = await error.response.json<{ message: string }>();
-          errorMessage = errorData.message;
+        errorMessage = getHttpErrorMessage(error, errorMessage);
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }

@@ -1,7 +1,7 @@
 export type Role = "Admin" | "utilisateur";
 
 interface Abonnement {
-  periode: "mois" | "année";
+  periode: "mois" | "annee";
   datedebut: Date;
   datefin: Date;
 }

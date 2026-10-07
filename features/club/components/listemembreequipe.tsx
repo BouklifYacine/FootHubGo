@@ -6,7 +6,7 @@ import { useSupprimerJoueurClub } from "@/features/supprimerjoueurclub/hooks/use
 import { useModifierRoleClub } from "@/features/modifierrole/hook/useModifierRoleClub";
 import { useQuitterClub } from "@/features/quitterclub/hook/useQuitterClub";
 import { TableauEffectif } from "./Tableaueffectif";
-import { useModifierPosteClub } from "@/features/modifierposte/hook/useModifierPoste";
+import { useModifierPosteClub, type PosteType } from "@/features/modifierposte/hook/useModifierPoste";
 import { useRouter } from "next/navigation"; 
 
 function Listemembreequipe() {
@@ -32,14 +32,14 @@ function Listemembreequipe() {
         modifierRole({ id: userId, data: { role: role as "ENTRAINEUR" | "JOUEUR" } })
       }
       onModifierPoste={(userId: string, poste) => 
-        modifierPoste({ id: userId, data: { poste: poste as "GARDIEN" | "DEFENSEUR" | "MILIEU" | "ATTAQUANT" } })
+        modifierPoste({ id: userId, data: { poste: poste as PosteType } })
       }
       onSupprimer={(membreId: string) => supprimer(membreId)}
       onQuitter={() => 
         quitterClub(undefined, {
           onSuccess: (data) => {
             if (data.success) {
-              router.push("/dashboardfoothub");
+              router.push("/app");
             }
           }
         })

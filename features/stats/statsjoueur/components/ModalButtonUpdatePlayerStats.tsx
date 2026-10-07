@@ -21,8 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -38,45 +37,47 @@ interface Props {
   joueur: StatsJoueur;
 }
 
+// Équivalent de `valueAsNumber` : champ vide => NaN (rejeté par le schéma)
+const numberInputValue = (value: number | undefined) =>
+  value === undefined || Number.isNaN(value) ? "" : value;
+
 export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
   const [open, setOpen] = useState(false);
   const { mutate, isPending } = useModifierStatsJoueur();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    watch,
-  } = useForm<TypeModifierStatsJoueurSchema>({
-    resolver: zodResolver(ModifierStatsJoueurSchema),
-    defaultValues: {
-      poste: joueur.poste || "GARDIEN",
-      buts: joueur.buts,
-      passesdecisive: joueur.passesdecisive,
-      minutesJouees: joueur.minutesJouees,
-      note: joueur.note,
-      titulaire: joueur.titulaire,
+  const defaultValues: TypeModifierStatsJoueurSchema = {
+    poste: joueur.poste || "GARDIEN",
+    buts: joueur.buts,
+    passesdecisive: joueur.passesdecisive,
+    minutesJouees: joueur.minutesJouees,
+    note: joueur.note,
+    titulaire: joueur.titulaire,
+  };
+
+  const form = useForm({
+    defaultValues,
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: ModifierStatsJoueurSchema,
+    },
+    onSubmit: ({ value }) => {
+      const data = ModifierStatsJoueurSchema.parse(value);
+      mutate(
+        {
+          eventId: eventid,
+          joueurid: joueur.idUtilisateur,
+          statistiqueid: joueur.id,
+          data,
+        },
+        {
+          onSuccess: () => {
+            setOpen(false);
+            form.reset();
+          },
+        }
+      );
     },
   });
-
-  const onSubmit = (data: TypeModifierStatsJoueurSchema) => {
-    mutate(
-      {
-        eventId: eventid,
-        joueurid: joueur.idUtilisateur,
-        statistiqueid: joueur.id,
-        data,
-      },
-      {
-        onSuccess: () => {
-          setOpen(false);
-          reset();
-        },
-      }
-    );
-  };
 
   return (
     <Dialog
@@ -84,7 +85,7 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
       onOpenChange={(isOpen) => {
         setOpen(isOpen);
         if (isOpen) {
-          reset({
+          form.reset({
             poste: joueur.poste,
             buts: joueur.buts,
             passesdecisive: joueur.passesdecisive,
@@ -114,107 +115,149 @@ export function ModalButtonEditPlayerStats({ eventid, joueur }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="poste">Poste *</Label>
-            <Select
-              value={watch("poste")}
-              onValueChange={(v) =>
-                setValue("poste", v as TypeModifierStatsJoueurSchema["poste"])
-              }
-            >
-              <SelectTrigger
-                id="poste"
-                className={errors.poste ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Sélectionnez un poste" />
-              </SelectTrigger>
-              <SelectContent>
-                {enumsPoste.map((poste) => (
-                  <SelectItem key={poste} value={poste}>
-                    {poste}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.poste && (
-              <p className="text-red-500 text-sm">{errors.poste.message}</p>
-            )}
-          </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-4"
+        >
+          <form.Field name="poste">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="poste">Poste *</Label>
+                  <Select
+                    value={field.state.value}
+                    onValueChange={(v) =>
+                      field.handleChange(
+                        v as TypeModifierStatsJoueurSchema["poste"]
+                      )
+                    }
+                  >
+                    <SelectTrigger
+                      id="poste"
+                      className={error ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Sélectionnez un poste" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {enumsPoste.map((poste) => (
+                        <SelectItem key={poste} value={poste}>
+                          {poste}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
- 
-          <div>
-            <Label htmlFor="buts">Buts*</Label>
-            <Input
-              id="buts"
-              type="number"
-              {...register("buts", { valueAsNumber: true })}
-              className={errors.buts ? "border-red-500" : ""}
-            />
-            {errors.buts && (
-              <p className="text-red-500 text-sm">{errors.buts.message}</p>
-            )}
-          </div>
+          <form.Field name="buts">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="buts">Buts*</Label>
+                  <Input
+                    id="buts"
+                    type="number"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
- 
-          <div>
-            <Label htmlFor="passesdecisive">Passes décisives*</Label>
-            <Input
-              id="passesdecisive"
-              type="number"
-              {...register("passesdecisive", { valueAsNumber: true })}
-              className={errors.passesdecisive ? "border-red-500" : ""}
-            />
-            {errors.passesdecisive && (
-              <p className="text-red-500 text-sm">
-                {errors.passesdecisive.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="passesdecisive">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="passesdecisive">Passes décisives*</Label>
+                  <Input
+                    id="passesdecisive"
+                    type="number"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
+          <form.Field name="minutesJouees">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="minutesJouees">Minutes jouées*</Label>
+                  <Input
+                    id="minutesJouees"
+                    type="number"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
-          <div>
-            <Label htmlFor="minutesJouees">Minutes jouées*</Label>
-            <Input
-              id="minutesJouees"
-              type="number"
-              {...register("minutesJouees", { valueAsNumber: true })}
-              className={errors.minutesJouees ? "border-red-500" : ""}
-            />
-            {errors.minutesJouees && (
-              <p className="text-red-500 text-sm">
-                {errors.minutesJouees.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="note">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="note">Note*</Label>
+                  <Input
+                    id="note"
+                    type="number"
+                    step="0.1"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
-
-          <div>
-            <Label htmlFor="note">Note*</Label>
-            <Input
-              id="note"
-              type="number"
-              step="0.1"
-              {...register("note", { valueAsNumber: true })}
-              className={errors.note ? "border-red-500" : ""}
-            />
-            {errors.note && (
-              <p className="text-red-500 text-sm">{errors.note.message}</p>
-            )}
-          </div>
-
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="titulaire"
-              checked={watch("titulaire")}
-              onCheckedChange={(checked) => setValue("titulaire", !!checked)}
-            />
-            <Label htmlFor="titulaire">Titulaire</Label>
-            {errors.titulaire && (
-              <p className="text-red-500 text-sm">{errors.titulaire.message}</p>
-            )}
-          </div>
+          <form.Field name="titulaire">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="titulaire"
+                    checked={field.state.value}
+                    onCheckedChange={(checked) => field.handleChange(!!checked)}
+                  />
+                  <Label htmlFor="titulaire">Titulaire</Label>
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <DialogClose asChild>

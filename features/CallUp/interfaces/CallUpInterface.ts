@@ -1,4 +1,4 @@
-import { $Enums } from "@prisma/client";
+import { $Enums } from "@/generated/prisma/browser";
 
 export interface TeamListInterfaceAPI {
   RolePlayer: $Enums.RoleEquipe;

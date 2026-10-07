@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { schemaPseudo, schemaVerificationMotDePasse } from "../schemas/schema";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { verifierMotDePasse } from "../actions/verifiermotdepasseaction";
 import { changerPseudo } from "../actions/changerpseudo";
+import { definirErreurChamp } from "../lib/definirErreurChamp";
 
 interface PropsRequeteUtilisateur {
   message: string;
@@ -17,7 +17,7 @@ type EtapeModification = "verification" | "changement";
 
 export function useSectionPseudo(id: string) {
   const router = useRouter();
-  const queryClient = useQueryClient(); 
+  const queryClient = useQueryClient();
 
   const [estEnEdition, setEstEnEdition] = useState(false);
   const [etapeActuelle, setEtapeActuelle] =
@@ -37,17 +37,25 @@ export function useSectionPseudo(id: string) {
   const necessiteVerificationMotDePasse = estCompteCredential;
 
   const formulaireVerification = useForm({
-    resolver: zodResolver(schemaVerificationMotDePasse),
     defaultValues: {
       motdepasse: "",
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: schemaVerificationMotDePasse },
+    onSubmit: ({ value }) => {
+      mutationVerifierMotDePasse.mutate(value.motdepasse);
     },
   });
 
   const formulaireChangement = useForm({
-    resolver: zodResolver(schemaPseudo),
     defaultValues: {
       pseudo: "",
       codeverification: "",
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: schemaPseudo },
+    onSubmit: ({ value }) => {
+      mutationChangerPseudo.mutate(value);
     },
   });
 
@@ -64,9 +72,7 @@ export function useSectionPseudo(id: string) {
     },
     onError: (erreur: Error) => {
       toast.error(erreur.message);
-      formulaireVerification.setError("motdepasse", {
-        message: erreur.message,
-      });
+      definirErreurChamp(formulaireVerification, "motdepasse", erreur.message);
     },
   });
 
@@ -90,11 +96,13 @@ export function useSectionPseudo(id: string) {
     },
     onError: (erreur: Error) => {
       if (erreur.message.includes("Code")) {
-        formulaireChangement.setError("codeverification", {
-          message: erreur.message,
-        });
+        definirErreurChamp(
+          formulaireChangement,
+          "codeverification",
+          erreur.message
+        );
       } else {
-        formulaireChangement.setError("pseudo", { message: erreur.message });
+        definirErreurChamp(formulaireChangement, "pseudo", erreur.message);
       }
       toast.error(erreur.message);
     },
@@ -107,17 +115,6 @@ export function useSectionPseudo(id: string) {
     setEtapeActuelle("verification");
     formulaireVerification.reset();
     formulaireChangement.reset();
-  };
-
-  const soumettreVerification = (donnees: { motdepasse: string }) => {
-    mutationVerifierMotDePasse.mutate(donnees.motdepasse);
-  };
-
-  const soumettreChangement = (donnees: {
-    pseudo: string;
-    codeverification: string;
-  }) => {
-    mutationChangerPseudo.mutate(donnees);
   };
 
   return {
@@ -133,7 +130,5 @@ export function useSectionPseudo(id: string) {
 
     commencerEdition,
     annulerModification,
-    soumettreVerification,
-    soumettreChangement,
   };
 }

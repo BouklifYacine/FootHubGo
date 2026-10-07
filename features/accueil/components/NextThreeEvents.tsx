@@ -1,14 +1,11 @@
 import React from "react";
-import dayjs from "dayjs";
-import "dayjs/locale/fr";
+import { format } from "date-fns";
 import Image from "next/image";
 import { Calendar, MapPin, Timer, CalendarX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ApiAccueil } from "../interfaces/InterfaceApiAccueil";
 import LogoCity from "@/public/Logo_Manchester_City_2016.svg";
 import { ColorBadgeEvent } from "@/lib/ColorBadgeEvent";
-
-dayjs.locale("fr");
 
 interface Props {
   data: ApiAccueil | undefined;
@@ -72,14 +69,14 @@ function NextThreeEvents({ data }: Props) {
               <div className="flex items-center gap-1.5">
                 <Calendar className="w-4 h-4" />
                 <p className="text-xs lg:text-sm font-medium">
-                  {dayjs(m.dateDebut).format("DD/MM/YYYY")}
+                  {format(m.dateDebut, "dd/MM/yyyy")}
                 </p>
               </div>
               
               <div className="flex items-center gap-1.5">
                 <Timer className="w-4 h-4" />
                 <p className="text-xs lg:text-sm font-medium">
-                  {dayjs(m.dateDebut).format("HH:mm")}
+                  {format(m.dateDebut, "HH:mm")}
                 </p>
               </div>
             </div>

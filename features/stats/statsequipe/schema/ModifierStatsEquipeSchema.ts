@@ -6,7 +6,7 @@ const enumsCompetition = ["CHAMPIONNAT", "COUPE"] as const;
 export const ModifierStatsEquipeSchema = z
   .object({
     resultatMatch: z.enum(enumsResultat).optional(),
-    cleanSheet: z.coerce.boolean().optional(),
+    cleanSheet: z.coerce.boolean<boolean>().optional(),
     butsMarques: z
       .number()
       .min(0, "Rentrez le nombre de buts")
@@ -17,7 +17,7 @@ export const ModifierStatsEquipeSchema = z
       .min(0, "Rentrez le nombre de buts")
       .max(99, "Maximum 99 buts")
       .optional(),
-    domicile: z.coerce.boolean(),
+    domicile: z.coerce.boolean<boolean>(),
     tirsTotal: z
       .number()
       .min(0, "Rentrez le nombre de tirs")
@@ -48,7 +48,7 @@ export const ModifierStatsEquipeSchema = z
       butsEncaisses >= butsMarques
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message: "Résultat incorrect en cas de victoire",
         path: ["butsEncaisses"],
       });
@@ -62,7 +62,7 @@ export const ModifierStatsEquipeSchema = z
       butsMarques !== butsEncaisses
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "Si match nul, le nombre de buts encaissés et marqués doivent être égaux",
         path: ["butsEncaisses"],
@@ -77,7 +77,7 @@ export const ModifierStatsEquipeSchema = z
       butsMarques >= butsEncaisses
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "Vous ne pouvez pas avoir plus de buts marqués que encaissés en cas de défaite",
         path: ["butsMarques"],
@@ -91,7 +91,7 @@ export const ModifierStatsEquipeSchema = z
       butsEncaisses > 0
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "Vous ne pouvez pas avoir de buts encaissés en cas de clean sheet",
         path: ["butsEncaisses"],
@@ -105,7 +105,7 @@ export const ModifierStatsEquipeSchema = z
       tirsCadres > tirsTotal
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: "custom",
         message:
           "Vous ne pouvez pas avoir plus de tirs cadrés que de tirs totaux",
         path: ["tirsCadres"],

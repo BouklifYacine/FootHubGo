@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ImagePlus, Trash2, Upload } from "lucide-react";
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useProfilePictureMutations } from "../hooks/useProfilePicture";
 
 interface ProfilePictureUploadProps {

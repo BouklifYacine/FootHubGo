@@ -21,8 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import {
   SchemaCreationClub,
@@ -32,9 +31,23 @@ import { useCreationClub } from "@/features/creationclub/hooks/useCreationClub";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatNiveauClub } from "@/lib/formatEnums";
-import { StatutClub } from "@prisma/client";
+import { StatutClub } from "@/generated/prisma/browser";
 
 type FormData = z.infer<typeof SchemaCreationClub>;
+
+type FormValues = {
+  nom: string;
+  description?: string;
+  NiveauClub: FormData["NiveauClub"] | undefined;
+  statut: FormData["statut"] | undefined;
+};
+
+const defaultValues: FormValues = {
+  nom: "",
+  description: "",
+  NiveauClub: undefined,
+  statut: undefined,
+};
 
 interface Props {
   texte: string;
@@ -45,26 +58,24 @@ function BoutonAjouter({ texte }: Props) {
   const [open, setOpen] = useState(false);
 
   const { mutate, isPending } = useCreationClub();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    watch,
-  } = useForm<FormData>({
-    resolver: zodResolver(SchemaCreationClub),
-  });
 
-  function onSubmit(data: FormData) {
-    mutate(data, {
-      onSuccess: () => {
-        reset();
-        setOpen(false);
-        router.push("/dashboardfoothub/effectif");
-      },
-    });
-  }
+  const form = useForm({
+    defaultValues,
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: SchemaCreationClub,
+    },
+    onSubmit: ({ value }) => {
+      const data = SchemaCreationClub.parse(value);
+      mutate(data, {
+        onSuccess: () => {
+          form.reset();
+          setOpen(false);
+          router.push("/app/effectif");
+        },
+      });
+    },
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -90,100 +101,127 @@ function BoutonAjouter({ texte }: Props) {
             Les élements avec un * sont obligatoire
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="nom">Nom du club *</Label>
-            <Input
-              id="nom"
-              {...register("nom")}
-              placeholder="Nom du club"
-              className={errors.nom ? "border-red-500" : ""}
-            />
-            {errors.nom && (
-              <p className="text-red-500 text-sm mt-1">{errors.nom.message}</p>
-            )}
-          </div>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-4"
+        >
+          <form.Field name="nom">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="nom">Nom du club *</Label>
+                  <Input
+                    id="nom"
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Nom du club"
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
-          <div>
-            <Label htmlFor="NiveauClub">Niveau du club *</Label>
-            <Select
-              onValueChange={(value) =>
-                setValue("NiveauClub", value as FormData["NiveauClub"])
-              }
-              value={watch("NiveauClub")}
-            >
-              <SelectTrigger
-                id="NiveauClub"
-                className={errors.NiveauClub ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Choisir un niveau" />
-              </SelectTrigger>
-              <SelectContent>
-                {niveau.map((n) => (
-                  <SelectItem key={n} value={n}>
-                    {formatNiveauClub(n)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.NiveauClub && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.NiveauClub.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="NiveauClub">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="NiveauClub">Niveau du club *</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      field.handleChange(value as FormData["NiveauClub"])
+                    }
+                    value={field.state.value}
+                  >
+                    <SelectTrigger
+                      id="NiveauClub"
+                      className={error ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Choisir un niveau" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {niveau.map((n) => (
+                        <SelectItem key={n} value={n}>
+                          {formatNiveauClub(n)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
-          <div>
-            <Label htmlFor="statut">Statut du club *</Label>
-            <Select
-              onValueChange={(value) =>
-                setValue("statut", value as FormData["statut"])
-              }
-              value={watch("statut")}
-            >
-              <SelectTrigger
-                id="statut"
-                className={errors.statut ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Choisir un statut de club" />
-              </SelectTrigger>
-              <SelectContent defaultValue={StatutClub.PUBLIC}>
+          <form.Field name="statut">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="statut">Statut du club *</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      field.handleChange(value as FormData["statut"])
+                    }
+                    value={field.state.value}
+                  >
+                    <SelectTrigger
+                      id="statut"
+                      className={error ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Choisir un statut de club" />
+                    </SelectTrigger>
+                    <SelectContent defaultValue={StatutClub.PUBLIC}>
 
-                  <SelectItem
-                  value={StatutClub.PUBLIC}
-                >{StatutClub.PUBLIC}</SelectItem>
+                        <SelectItem
+                        value={StatutClub.PUBLIC}
+                      >{StatutClub.PUBLIC}</SelectItem>
 
-                <SelectItem
-                  value={StatutClub.INVITATION}
-                > {StatutClub.INVITATION} </SelectItem>
+                      <SelectItem
+                        value={StatutClub.INVITATION}
+                      > {StatutClub.INVITATION} </SelectItem>
 
-                <SelectItem
-                  value={StatutClub.PRIVE}
-                > {StatutClub.PRIVE} </SelectItem>
+                      <SelectItem
+                        value={StatutClub.PRIVE}
+                      > {StatutClub.PRIVE} </SelectItem>
 
-              </SelectContent>
-            </Select>
-            {errors.statut && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.statut?.message}
-              </p>
-            )}
-          </div>
+                    </SelectContent>
+                  </Select>
+                  {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Input
-              id="description"
-              {...register("description")}
-              placeholder="Description"
-              className={errors.description ? "border-red-500" : ""}
-            />
-            {errors.description && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.description.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="description">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Input
+                    id="description"
+                    name={field.name}
+                    value={field.state.value ?? ""}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Description"
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+                </div>
+              );
+            }}
+          </form.Field>
 
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <DialogClose asChild>

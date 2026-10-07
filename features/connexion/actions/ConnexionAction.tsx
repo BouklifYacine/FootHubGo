@@ -13,7 +13,7 @@ export async function connexionAction(data: Schema) {
     if (!validation.success) {
       return {
         success: false,
-        error: validation.error.errors[0].message,
+        error: validation.error.issues[0].message,
       };
     }
 

@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import Stripe from "stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/prisma";
-import { Plan, PlanAbonnement } from "@prisma/client";
+import { Plan, PlanAbonnement } from "@/generated/prisma/browser";
 import { createElement } from "react";
 import { sendEmail } from "@/emails/email";
 import {
@@ -115,7 +115,7 @@ async function handleCheckoutComplete(event: Stripe.Event) {
   if (item?.price?.type === "recurring") {
     const endDate = new Date();
     const isYearly = item.price.id === process.env.STRIPE_YEARLY_PRICE_ID;
-    const periode = isYearly ? PlanAbonnement.année : PlanAbonnement.mois;
+    const periode = isYearly ? PlanAbonnement.annee : PlanAbonnement.mois;
 
     if (isYearly) {
       endDate.setFullYear(endDate.getFullYear() + 1);
@@ -185,7 +185,7 @@ async function handleSubscriptionUpdated(event: Stripe.Event) {
 
     if (isSubscriptionCanceled) {
       const endDate = new Date(
-        (subscription.cancel_at || subscription.current_period_end) * 1000
+        (subscription.cancel_at ?? subscriptionItem.current_period_end) * 1000
       );
 
       await prisma.abonnement.update({
@@ -211,7 +211,7 @@ async function handleSubscriptionUpdated(event: Stripe.Event) {
     }
 
     const isYearly = priceId === process.env.STRIPE_YEARLY_PRICE_ID;
-    const periode = isYearly ? PlanAbonnement.année : PlanAbonnement.mois;
+    const periode = isYearly ? PlanAbonnement.annee : PlanAbonnement.mois;
 
     const endDate = new Date();
     if (isYearly) {
@@ -251,7 +251,7 @@ async function handleSubscriptionUpdated(event: Stripe.Event) {
           name: user.name || user.email,
           plan: isYearly ? "Pro Annuel" : "Pro Mensuel",
           oldPlan:
-            oldPlanData.periode === PlanAbonnement.année
+            oldPlanData.periode === PlanAbonnement.annee
               ? "Pro Annuel"
               : "Pro Mensuel",
         });

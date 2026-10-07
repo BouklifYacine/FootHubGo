@@ -6,32 +6,30 @@ export const schemaVerificationMotDePasse = z.object({
 })
 
 export const schemaEmail = z.object({
-  nouvelEmail: z
-    .string({ message: "Vous devez mettre un email" })
-    .email({ message: "Vous devez mettre un email valide" }),
+  nouvelEmail: z.email({ error: "Vous devez mettre un email valide" }),
     codeverification: z
-    .string({ message: "Vous devez mettre un code" })
-    .length(6, { message: "Le code doit contenir exactement 6 caractères" })
+    .string({ error: "Vous devez mettre un code" })
+    .length(6, { error: "Le code doit contenir exactement 6 caractères" })
 })
 
 export const schemaMotDePasse = z.object({
   motdepasse: z
     .string()
-    .min(6, { message: "Le mot de passe doit contenir au moins 6 caractères" })
-    .max(35, { message: "Le mot de passe doit avoir au maximum 35 caractères" }),
+    .min(6, { error: "Le mot de passe doit contenir au moins 6 caractères" })
+    .max(35, { error: "Le mot de passe doit avoir au maximum 35 caractères" }),
   codeverification: z
     .string()
-    .length(6, { message: "Le code doit contenir exactement 6 caractères" })
+    .length(6, { error: "Le code doit contenir exactement 6 caractères" })
 })
 
 export const schemaPseudo = z.object({
   pseudo: z
     .string()
-    .min(6, { message: "Votre pseudo doit avoir au moins 6 caractères" })
-    .max(35, { message: "Votre pseudo doit avoir au maximum 35 caractères" }),
+    .min(6, { error: "Votre pseudo doit avoir au moins 6 caractères" })
+    .max(35, { error: "Votre pseudo doit avoir au maximum 35 caractères" }),
   codeverification: z
     .string()
-    .length(6, { message: "Le code doit contenir exactement 6 caractères" })
+    .length(6, { error: "Le code doit contenir exactement 6 caractères" })
 })
 
 export type TypeVerificationMotDePasse = z.infer<typeof schemaVerificationMotDePasse>

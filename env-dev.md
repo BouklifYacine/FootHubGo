@@ -2,8 +2,8 @@
 # Copiez ce fichier vers .env et remplissez vos valeurs
 
 # === BASE DE DONNÉES ===
-DATABASE_URL="postgresql://postgres:password@localhost:5432/nextjs_boilerplate_dev"
-DIRECT_URL="postgresql://postgres:password@localhost:5432/nextjs_boilerplate_dev"
+DATABASE_URL="postgresql://postgres:password@localhost:5432/foothubgo_dev"
+DIRECT_URL="postgresql://postgres:password@localhost:5432/foothubgo_dev"
 
 # === AUTHENTIFICATION (Better Auth) ===
 BETTER_AUTH_SECRET="dev-secret-key-change-in-production"
@@ -43,9 +43,9 @@ AWS_ACCESS_KEY_ID=""
 AWS_SECRET_ACCESS_KEY=""
 AWS_REGION="auto"
 AWS_ENDPOINT_URL_S3="https://fly.storage.tigris.dev"
-S3_BUCKET_NAME="nextjs-boilerplate-dev"
+S3_BUCKET_NAME="foothubgo-dev"
 
 # === DOCKER (Base de données locale) ===
 POSTGRES_PASSWORD="password"
 POSTGRES_USER="postgres"
-POSTGRES_DB="nextjs_boilerplate_dev"
+POSTGRES_DB="foothubgo_dev"

@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     const validation = ResetPasswordSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json(
-        { message: validation.error.errors[0].message },
+        { message: validation.error.issues[0].message },
         { status: 400 }
       );
     }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     ]);
 
  await resend.emails.send({
-      from: 'yacine@footygogo.com',
+      from: process.env.RESEND_FROM_EMAIL ?? "FootHubGo <yacine@footygogo.com>",
       to: email,
       subject: 'Mot de passe mis à jour',
       react: React.createElement(

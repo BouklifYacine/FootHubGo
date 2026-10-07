@@ -154,9 +154,9 @@ export const EventGap = 8; // More space between events
 
 The calendar is used in:
 
-- `app/dashboardfoothub/calendrier/page.tsx`
+- `app/app/calendrier/page.tsx`
 
-Just navigate to `/dashboardfoothub/calendrier` in your app to see your changes!
+Just navigate to `/app/calendrier` in your app to see your changes!
 
 ## Tips
 

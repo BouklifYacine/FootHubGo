@@ -3,7 +3,6 @@
 import { prisma } from "@/prisma";
 import { S3 } from "@/lib/s3Client";
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { v4 as uuidv4 } from "uuid";
 import { uploadRequestSchema } from "@/features/upload/schemas/SchemaUpload";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { auth } from "@/auth";
@@ -35,11 +34,11 @@ export async function serverUploadProfilePicture(formData: {
     // Validation du body
     const validation = uploadRequestSchema.safeParse(formData);
     if (!validation.success) {
-      throw new Error(validation.error.errors[0].message);
+      throw new Error(validation.error.issues[0].message);
     }
 
     const { contentType, size, fileName } = validation.data;
-    const uniqueKey = `${uuidv4()}-${fileName}`;
+    const uniqueKey = `${crypto.randomUUID()}-${fileName}`;
 
     // Récupérer l'ancienne image pour suppression éventuelle
     const user = await prisma.user.findUnique({

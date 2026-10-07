@@ -17,6 +17,7 @@ function BoutonCopier({ value }: BoutonCopierProps) {
   const [copied, setCopied] = useState<boolean>(false);
 
   const handleCopy = async () => {
+    if (!value) return;
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);

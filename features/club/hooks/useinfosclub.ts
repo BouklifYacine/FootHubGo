@@ -1,4 +1,4 @@
-import { Equipe, MembreEquipe, User, Blessure } from "@prisma/client";
+import { Equipe, MembreEquipe, User, Blessure } from "@/generated/prisma/browser";
 import { useQuery } from "@tanstack/react-query";
 
 export type BlessureInfo = Pick<

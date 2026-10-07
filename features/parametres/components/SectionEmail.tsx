@@ -36,38 +36,47 @@ export function SectionEmail() {
         </div>
 
         {enEdition && etape === 'motdepasse' && (
-          <form 
-            onSubmit={formMotDePasse.handleSubmit((data) => 
-              verifierMotDePasseMutation.mutate(data.motdepasse)
-            )} 
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              formMotDePasse.handleSubmit()
+            }}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label htmlFor="motdepasse">Mot de passe actuel</Label>
-              <InputPassword
-                {...formMotDePasse.register('motdepasse')}
-              />
-              {formMotDePasse.formState.errors.motdepasse && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {formMotDePasse.formState.errors.motdepasse.message}
-                  </AlertDescription>
-                </Alert>
+            <formMotDePasse.Field name="motdepasse">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="motdepasse">Mot de passe actuel</Label>
+                  <InputPassword
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {field.state.meta.errors[0]?.message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               )}
-            </div>
+            </formMotDePasse.Field>
             <div className="flex space-x-2">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={verifierMotDePasseMutation.isPending}
               >
-                {verifierMotDePasseMutation.isPending 
-                  ? "Vérification..." 
+                {verifierMotDePasseMutation.isPending
+                  ? "Vérification..."
                   : "Continuer"
                 }
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={reinitialiser}
               >
                 Annuler
@@ -77,54 +86,70 @@ export function SectionEmail() {
         )}
 
         {enEdition && etape === 'email' && (
-          <form 
-            onSubmit={formEmail.handleSubmit((data) => 
-              changerEmailMutation.mutate(data)
-            )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              formEmail.handleSubmit()
+            }}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label htmlFor="nouvelEmail">Nouvel email</Label>
-              <Input
-                id="nouvelEmail"
-                type="email"
-                {...formEmail.register('nouvelEmail')}
-              />
-              {formEmail.formState.errors.nouvelEmail && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {formEmail.formState.errors.nouvelEmail.message}
-                  </AlertDescription>
-                </Alert>
+            <formEmail.Field name="nouvelEmail">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="nouvelEmail">Nouvel email</Label>
+                  <Input
+                    id="nouvelEmail"
+                    type="email"
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {field.state.meta.errors[0]?.message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="codeVerification">Code de vérification</Label>
-              <Input
-                id="codeVerification"
-                {...formEmail.register('codeverification')}
-              />
-              {formEmail.formState.errors.codeverification && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {formEmail.formState.errors.codeverification.message}
-                  </AlertDescription>
-                </Alert>
+            </formEmail.Field>
+            <formEmail.Field name="codeverification">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="codeVerification">Code de vérification</Label>
+                  <Input
+                    id="codeVerification"
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {field.state.meta.errors[0]?.message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               )}
-            </div>
+            </formEmail.Field>
             <div className="flex space-x-2">
-              <Button 
+              <Button
                 type="submit"
                 disabled={changerEmailMutation.isPending}
               >
-                {changerEmailMutation.isPending 
-                  ? "Modification en cours..." 
+                {changerEmailMutation.isPending
+                  ? "Modification en cours..."
                   : "Changer l'email"
                 }
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={reinitialiser}
               >
                 Annuler

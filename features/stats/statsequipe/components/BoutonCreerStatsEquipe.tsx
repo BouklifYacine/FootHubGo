@@ -21,20 +21,23 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Plus } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { z } from "zod";
 import { useState } from "react";
 import { useCreerStatsEquipe } from "@/features/stats/statsequipe/hooks/useCreerStatsEquipe";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { AjouterStatsEquipeSchema } from "@/features/stats/statsequipe/schema/AjouterStatsEquipeSchema";
-import { $Enums } from "@prisma/client";
+import { $Enums } from "@/generated/prisma/browser";
 
 const enumsResultat = ["VICTOIRE", "DEFAITE", "NUL"] as const;
 const enumsCompetition = ["CHAMPIONNAT", "COUPE"] as const;
 
 type FormData = z.infer<typeof AjouterStatsEquipeSchema>;
+type FormInput = z.input<typeof AjouterStatsEquipeSchema>;
+type FormValues = Omit<FormInput, "competition"> & {
+  competition: FormInput["competition"] | undefined;
+};
 
 interface Props {
   eventid: string;
@@ -49,36 +52,37 @@ function BoutonCreerStatsEquipe({ eventid, typeEvenement }: Props) {
   if (value === "CHAMPIONNAT" || value === "COUPE") {
     return value;
   }
-  return undefined; 
+  return undefined;
 }
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    watch,
-  } = useForm<FormData>({
-    resolver: zodResolver(AjouterStatsEquipeSchema),
-    defaultValues: {
-      butsMarques: 0,
-      butsEncaisses: 0,
-      resultatMatch: "VICTOIRE",
-      cleanSheet: false,
-      domicile: true,
-      competition: normalizeCompetition(typeEvenement),
+  const defaultValues: FormValues = {
+    butsMarques: 0,
+    butsEncaisses: 0,
+    resultatMatch: "VICTOIRE",
+    cleanSheet: false,
+    domicile: true,
+    tirsTotal: undefined,
+    tirsCadres: undefined,
+    competition: normalizeCompetition(typeEvenement),
+  };
+
+  const form = useForm({
+    defaultValues,
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: AjouterStatsEquipeSchema,
+    },
+    onSubmit: ({ value }) => {
+      // Parse pour obtenir les valeurs coercées / transformées (nombres)
+      const data = AjouterStatsEquipeSchema.parse(value);
+      mutate(data, {
+        onSuccess: () => {
+          setOpen(false);
+          form.reset();
+        },
+      });
     },
   });
-
-  const onSubmit = (data: FormData) => {
-    mutate(data, {
-      onSuccess: () => {
-        setOpen(false);
-        reset();
-      },
-    });
-  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -103,164 +107,225 @@ function BoutonCreerStatsEquipe({ eventid, typeEvenement }: Props) {
             Remplissez les informations sur la performance de votre équipe
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-4"
+        >
           {/* Résultat du match */}
-          <div>
-            <Label htmlFor="resultatMatch">Résultat du match *</Label>
-            <Select
-              onValueChange={(value) =>
-                setValue("resultatMatch", value as FormData["resultatMatch"])
-              }
-              value={watch("resultatMatch")}
-            >
-              <SelectTrigger
-                id="resultatMatch"
-                className={errors.resultatMatch ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Sélectionnez un résultat" />
-              </SelectTrigger>
-              <SelectContent>
-                {enumsResultat.map((resultat) => (
-                  <SelectItem key={resultat} value={resultat}>
-                    {resultat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.resultatMatch && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.resultatMatch.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="resultatMatch">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="resultatMatch">Résultat du match *</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      field.handleChange(value as FormData["resultatMatch"])
+                    }
+                    value={field.state.value}
+                  >
+                    <SelectTrigger
+                      id="resultatMatch"
+                      className={error ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Sélectionnez un résultat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {enumsResultat.map((resultat) => (
+                        <SelectItem key={resultat} value={resultat}>
+                          {resultat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           {/* Buts marqués */}
-          <div>
-            <Label htmlFor="butsMarques">Buts marqués *</Label>
-            <Input
-              id="butsMarques"
-              type="number"
-              {...register("butsMarques")}
-              placeholder="Nombre de buts marqués"
-              className={errors.butsMarques ? "border-red-500" : ""}
-            />
-            {errors.butsMarques && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.butsMarques.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="butsMarques">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="butsMarques">Buts marqués *</Label>
+                  <Input
+                    id="butsMarques"
+                    type="number"
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Nombre de buts marqués"
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           {/* Buts encaissés */}
-          <div>
-            <Label htmlFor="butsEncaisses">Buts encaissés *</Label>
-            <Input
-              id="butsEncaisses"
-              type="number"
-              {...register("butsEncaisses")}
-              placeholder="Nombre de buts encaissés"
-              className={errors.butsEncaisses ? "border-red-500" : ""}
-            />
-            {errors.butsEncaisses && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.butsEncaisses.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="butsEncaisses">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="butsEncaisses">Buts encaissés *</Label>
+                  <Input
+                    id="butsEncaisses"
+                    type="number"
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Nombre de buts encaissés"
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           {/* Clean sheet */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="cleanSheet"
-              {...register("cleanSheet")}
-              onCheckedChange={(checked) => setValue("cleanSheet", !!checked)}
-              checked={watch("cleanSheet")}
-            />
-            <Label htmlFor="cleanSheet">Clean sheet</Label>
-            {errors.cleanSheet && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.cleanSheet.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="cleanSheet">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="cleanSheet"
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                    onCheckedChange={(checked) => field.handleChange(!!checked)}
+                    checked={field.state.value}
+                  />
+                  <Label htmlFor="cleanSheet">Clean sheet</Label>
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           {/* Domicile */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="domicile"
-              {...register("domicile")}
-              onCheckedChange={(checked) => setValue("domicile", !!checked)}
-              checked={watch("domicile")}
-            />
-            <Label htmlFor="domicile">Match à domicile</Label>
-            {errors.domicile && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.domicile.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="domicile">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="domicile"
+                    name={field.name}
+                    onBlur={field.handleBlur}
+                    onCheckedChange={(checked) => field.handleChange(!!checked)}
+                    checked={field.state.value}
+                  />
+                  <Label htmlFor="domicile">Match à domicile</Label>
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           {/* Tirs totaux */}
-          <div>
-            <Label htmlFor="tirsTotal">Tirs totaux</Label>
-            <Input
-              id="tirsTotal"
-              {...register("tirsTotal")}
-              placeholder="Nombre total de tirs"
-              className={errors.tirsTotal ? "border-red-500" : ""}
-            />
-            {errors.tirsTotal && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.tirsTotal.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="tirsTotal">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="tirsTotal">Tirs totaux</Label>
+                  <Input
+                    id="tirsTotal"
+                    name={field.name}
+                    value={field.state.value ?? ""}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Nombre total de tirs"
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           {/* Tirs cadrés */}
-          <div>
-            <Label htmlFor="tirsCadres">Tirs cadrés</Label>
-            <Input
-              id="tirsCadres"
-              {...register("tirsCadres")}
-              placeholder="Nombre de tirs cadrés"
-              className={errors.tirsCadres ? "border-red-500" : ""}
-            />
-            {errors.tirsCadres && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.tirsCadres.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="tirsCadres">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="tirsCadres">Tirs cadrés</Label>
+                  <Input
+                    id="tirsCadres"
+                    name={field.name}
+                    value={field.state.value ?? ""}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Nombre de tirs cadrés"
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           {/* Compétition */}
-          <div>
-            <Label htmlFor="competition">Compétition *</Label>
-            <Select disabled
-              onValueChange={(value) =>
-                setValue("competition", value as FormData["competition"])
-              }
-              value={watch("competition")}
-            >
-              <SelectTrigger
-                id="competition"
-                className={errors.competition ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Sélectionnez une compétition" />
-              </SelectTrigger>
-              <SelectContent>
-                {enumsCompetition.map((competition) => (
-                  <SelectItem key={competition} value={competition}>
-                    {competition}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.competition && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.competition.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="competition">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="competition">Compétition *</Label>
+                  <Select disabled
+                    onValueChange={(value) =>
+                      field.handleChange(value as FormData["competition"])
+                    }
+                    value={field.state.value}
+                  >
+                    <SelectTrigger
+                      id="competition"
+                      className={error ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Sélectionnez une compétition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {enumsCompetition.map((competition) => (
+                        <SelectItem key={competition} value={competition}>
+                          {competition}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <DialogClose asChild>

@@ -6,7 +6,8 @@ import {
   CoachApplicationsApi,
   ReviewDecision,
 } from "..";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
+import { getHttpErrorMessage } from "@/lib/http-error";
 
 type ReviewParams = {
   teamId: string;
@@ -59,12 +60,7 @@ export const useReviewApplication = () => {
         );
       }
 
-      try {
-        const errorData = (await error.response.json()) as { message: string };
-        toast.error(errorData.message);
-      } catch {
-        toast.error("Une erreur est survenue.");
-      }
+      toast.error(getHttpErrorMessage(error, "Une erreur est survenue."));
     },
 
     onSettled: async (_data, _error, { teamId }) => {

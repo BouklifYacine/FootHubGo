@@ -5,7 +5,8 @@ import { Users } from "lucide-react";
 import AvatarSimple from "@/components/Avatar/AvatarSimple";
 import { cn } from "@/lib/utils";
 import { Conversation, Participant } from "../types/chat.types";
-import dayjs from "dayjs";
+import { differenceInDays, format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface ConversationItemProps {
   conversation: Conversation;
@@ -15,17 +16,17 @@ interface ConversationItemProps {
 }
 
 function formatTimestamp(date: string) {
-  const now = dayjs();
-  const messageDate = dayjs(date);
+  const messageDate = new Date(date);
+  const daysAgo = differenceInDays(new Date(), messageDate);
 
-  if (now.diff(messageDate, "day") === 0) {
-    return messageDate.format("HH:mm");
-  } else if (now.diff(messageDate, "day") === 1) {
+  if (daysAgo === 0) {
+    return format(messageDate, "HH:mm");
+  } else if (daysAgo === 1) {
     return "Hier";
-  } else if (now.diff(messageDate, "day") < 7) {
-    return messageDate.format("dddd");
+  } else if (daysAgo < 7) {
+    return format(messageDate, "EEEE", { locale: fr });
   } else {
-    return messageDate.format("DD/MM/YYYY");
+    return format(messageDate, "dd/MM/yyyy");
   }
 }
 

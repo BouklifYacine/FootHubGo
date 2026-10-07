@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CallUpResponseByPlayerServiceApi, CallUpResponseParams } from "../interfaces/CallUpResponseByPlayerInterface";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
+import { getHttpErrorMessage } from "@/lib/http-error";
 import { HTTPError } from "ky";
 import { CallUpResponseByPlayerService } from "../services/CallUpResponseByPlayer.service";
 import { getCallUpApiResponse } from "../interfaces/getCallUpPlayerInterface";
@@ -31,17 +32,7 @@ export function useCallUpResponseByPlayer() {
     queryClient.setQueryData(["useGetCallUp"], context.previousData);
   }
 
-  let message = "";
-  if (error instanceof HTTPError) {
-    try {
-      const data = await error.response.json<{ message: string }>();
-      message = data.message;
-    } catch {
-      message = `${error.response.status}`;
-    }
-  }
-  
-  toast.error(message || "Une erreur est survenue");
+  toast.error(getHttpErrorMessage(error, "Une erreur est survenue"));
 },
 
     onSuccess: (data) => {

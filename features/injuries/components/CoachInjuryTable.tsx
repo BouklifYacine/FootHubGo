@@ -13,10 +13,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, AlertCircle, CheckCircle2 } from "lucide-react";
-import dayjs from "dayjs";
-import "dayjs/locale/fr";
-
-dayjs.locale("fr");
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export const CoachInjuryTable = ({ clubId }: { clubId: string }) => {
   const { data: players, isLoading } = useClubInjuries(clubId);
@@ -122,9 +120,9 @@ export const CoachInjuryTable = ({ clubId }: { clubId: string }) => {
                         </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <span className="font-medium">Retour prévu:</span>
-                          {dayjs(player.activeInjury.endDate).format(
-                            "DD MMM YYYY"
-                          )}
+                          {format(player.activeInjury.endDate, "dd MMM yyyy", {
+                            locale: fr,
+                          })}
                         </span>
                       </div>
                     ) : (

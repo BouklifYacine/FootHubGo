@@ -6,7 +6,7 @@ import {
   schemaAjouterStatsJoueurSchema,
 } from "@/features/stats/statsjoueur/schema/AjouterStatsJoueurSchema";
 import { prisma } from "@/prisma";
-import dayjs from "dayjs";
+import { addHours, isBefore } from "date-fns";
 import { headers } from "next/headers";
 
 export async function AjouterStatsJoueurAction(
@@ -99,8 +99,8 @@ export async function AjouterStatsJoueurAction(
       };
     }
 
-    const debut = dayjs(evenement.dateDebut);
-    if (dayjs().isBefore(debut.add(3, "hour"))) {
+    const debut = evenement.dateDebut;
+    if (isBefore(new Date(), addHours(debut, 3))) {
       return {
         success: false,
         message:

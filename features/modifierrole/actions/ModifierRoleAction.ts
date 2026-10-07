@@ -27,7 +27,7 @@ export async function ModifierRoleAction(id: string, data: schema) {
     if (!validation.success) {
       return {
         success: false,
-        message: validation.error.errors[0].message,
+        message: validation.error.issues[0].message,
       };
     }
 

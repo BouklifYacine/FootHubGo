@@ -1,6 +1,6 @@
-# Guide Docker pour NextJs-Projet-Boilerplate
+# Guide Docker pour FootHubGo
 
-Ce guide explique comment utiliser Docker pour développer et déployer l'application NextJs-Projet-Boilerplate.
+Ce guide explique comment utiliser Docker pour développer et déployer l'application FootHubGo.
 
 ## Prérequis
 
@@ -83,7 +83,7 @@ docker exec -it devgo-prod npx prisma migrate deploy
 ### Image de développement (1.78GB)
 
 - Nom du conteneur: `devgo-dev`
-- Nom de l'image: `nextjs-projet-boilerplate-dev:latest`
+- Nom de l'image: `foothubgo-dev:latest`
 - **Hot reload** activé avec Turbopack
 - **Variables d'environnement** de développement
 - **Outils de debugging** disponibles
@@ -95,7 +95,7 @@ docker exec -it devgo-prod npx prisma migrate deploy
 ### Image de production (319MB)
 
 - Nom du conteneur: `devgo-prod`
-- Nom de l'image: `nextjs-projet-boilerplate-prod:latest`
+- Nom de l'image: `foothubgo-prod:latest`
 - **Application optimisée** et minifiée avec Next.js
 - **Variables d'environnement** de production sécurisées
 - **Sécurité renforcée** avec utilisateur non-root

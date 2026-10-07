@@ -8,7 +8,7 @@ import {
 import { Calendar, Ellipsis, House, TrafficCone, Trophy } from "lucide-react";
 import SelectPresence from "./SelectPresence";
 import { Badge } from "@/components/ui/badge";
-import dayjs from "dayjs";
+import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { ColorBadgeEvent } from "@/lib/ColorBadgeEvent";
 import { EvenementsAPI } from "../types/TypesEvenements";
@@ -39,11 +39,11 @@ function CardEvenement({
 
   const handleModifier = (id: string) => {
     // Redirection vers le calendrier car la page de modification individuelle n'existe plus
-    router.push(`/dashboardfoothub/calendrier`);
+    router.push(`/app/calendrier`);
   };
 
   const RoutingEvenementId = (id: string) => {
-    router.push(`/dashboardfoothub/evenements/${id}`);
+    router.push(`/app/evenements/${id}`);
   };
 
   return (
@@ -106,10 +106,10 @@ function CardEvenement({
                 <div className="flex gap-2">
                   <Calendar />
                   <p>
-                    {dayjs(e.dateDebut.toString()).format(`DD/MM/YYYY `)}{" "}
-                    {dayjs(e.dateDebut.toString()).format(`H`)}
+                    {format(e.dateDebut, "dd/MM/yyyy ")}{" "}
+                    {format(e.dateDebut, "H")}
                     {"h"}
-                    {dayjs(e.dateDebut.toString()).format(`mm`)}
+                    {format(e.dateDebut, "mm")}
                   </p>
                 </div>
 

@@ -3,7 +3,7 @@ import { PresenceEvenementJoueurAction } from "../actions/PresenceEvenementJoueu
 import { CreationPresenceSchema } from "@/features/presences/schemas/presenceschemas";
 import z from "zod";
 import { ReponseModifierPresenceAPI } from "../types/TypesEvenements";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 type schema = z.infer<typeof CreationPresenceSchema>;
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { RiCalendarCheckLine } from "@remixicon/react";
 import {
   addDays,
   addMonths,
@@ -19,9 +18,10 @@ import {
   ChevronRightIcon,
   PlusIcon,
   Filter,
+  CalendarCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -312,7 +312,7 @@ export function EventCalendar({
               onClick={handleToday}
               variant="outline"
             >
-              <RiCalendarCheckLine
+              <CalendarCheck
                 aria-hidden="true"
                 className="min-[480px]:hidden"
                 size={16}

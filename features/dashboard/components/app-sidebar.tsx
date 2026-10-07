@@ -21,44 +21,41 @@ import { TeamSwitcher } from "./team-switcher";
 import { NavMain } from "./nav-main";
 import { NavUser } from "./nav-user";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
-import { RoleEquipe } from "@prisma/client";
 
-interface Props {
-  props?: RoleEquipe;
-}
+type Props = React.ComponentProps<typeof Sidebar>;
 
 const navigationData = {
   teams: [],
   navMain: [
-    { title: "Accueil", url: "/dashboardfoothub", icon: House, isActive: true },
-    { title: "Transfert", url: "/dashboardfoothub/transfert", icon: House },
-    { title: "Effectif", url: "/dashboardfoothub/effectif", icon: UsersRound },
+    { title: "Accueil", url: "/app", icon: House, isActive: true },
+    { title: "Transfert", url: "/app/transfert", icon: House },
+    { title: "Effectif", url: "/app/effectif", icon: UsersRound },
     {
       title: "Evenements",
-      url: "/dashboardfoothub/evenements",
+      url: "/app/evenements",
       icon: Calendar,
     },
     {
       title: "Statistiques",
-      url: "/dashboardfoothub/statistiques",
+      url: "/app/statistiques",
       icon: ChartNoAxesCombined,
     },
     {
       title: "Convocations",
-      url: "/dashboardfoothub/convocations",
+      url: "/app/convocations",
       icon: CalendarPlus2,
     },
-    { title: "Blessures", url: "/dashboardfoothub/blessures", icon: Hospital },
+    { title: "Blessures", url: "/app/blessures", icon: Hospital },
     {
       title: "Calendrier",
-      url: "/dashboardfoothub/calendrier",
+      url: "/app/calendrier",
       icon: CalendarPlus2,
     },
-    { title: "Messages", url: "/dashboardfoothub/chat", icon: MessageCircle },
+    { title: "Messages", url: "/app/chat", icon: MessageCircle },
   ],
 };
 
-export function AppSidebar({ props }: Props) {
+export function AppSidebar(props: Props) {
   const { data: clubData, isPending } = useInfosClub();
 
   const role = clubData?.role;

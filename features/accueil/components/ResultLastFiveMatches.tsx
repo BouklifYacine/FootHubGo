@@ -2,18 +2,16 @@ import React from "react";
 import LogoLiverpool from "@/public/github-icon-2.svg";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
-import { $Enums } from "@prisma/client";
+import { $Enums } from "@/generated/prisma/browser";
 import { RecentMatch } from "../interfaces/InterfaceApiAccueil";
-import dayjs from "dayjs";
-import "dayjs/locale/fr";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Activity } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-
-dayjs.locale("fr");
 
 interface Props {
   Role: $Enums.RoleEquipe;
@@ -144,7 +142,7 @@ function ResultLastFiveMatches({ Role, recentmatch }: Props) {
               <p className="text-xs sm:text-sm lg:text-base font-medium text-center">
                 {match.dateDebut === "?"
                   ? "?"
-                  : dayjs(match.dateDebut).format("D MMM")}
+                  : format(match.dateDebut, "d MMM", { locale: fr })}
               </p>
 
               <div className="flex items-center gap-1 sm:gap-2">

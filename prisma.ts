@@ -1,25 +1,17 @@
-// src/lib/prisma.ts
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-// Fonction pour obtenir l'URL de la base de données selon l'environnement
-const getDatabaseUrl = (): string => {
-  // Utilise toujours DATABASE_URL qui est défini dans les fichiers .env appropriés
-  return process.env.DATABASE_URL!;
-};
+// Évite de multiples instanciations en dev (hot reload)
+const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-// Définir la variable DATABASE_URL dynamiquement pour Prisma
-const dbUrl = getDatabaseUrl();
+function createPrismaClient() {
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) throw new Error("DATABASE_URL n'est pas défini");
+  return new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
+}
 
-// évite de multiple instanciations en dev
-const globalForPrisma = global as unknown as { prisma?: PrismaClient };
-
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient();
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
-
-// Log simplifié
-console.log(`🔗 Base de données: ${dbUrl.includes('summer-king') ? 'DEV (summer-king)' : 'PROD (lingering-darkness)'}`);

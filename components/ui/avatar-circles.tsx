@@ -35,7 +35,6 @@ export const AvatarCircles = ({
             width={40}
             height={40}
             alt={`Avatar ${index + 1}`}
-            quality={85}
             priority={index === 0}
             sizes="(max-width: 768px) 40px, 50px"
           />

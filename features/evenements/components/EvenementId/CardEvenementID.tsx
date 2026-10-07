@@ -1,14 +1,14 @@
 "use client";
-import { $Enums, StatistiqueEquipe } from "@prisma/client";
+import { $Enums, StatistiqueEquipe } from "@/generated/prisma/browser";
 import React from "react";
 import City from "@/public/Logo_Manchester_City_2016.svg";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { AlarmClock, Calendar, CalendarDays, House } from "lucide-react";
-import dayjs from "dayjs";
+import { addHours, format, isAfter } from "date-fns";
 import { BoutonCreerStatsEquipe } from "@/features/stats/statsequipe/components/BoutonCreerStatsEquipe";
 import { useSupprimerStatsEquipe } from "@/features/stats/statsequipe/hooks/useSupprimerStatsEquipe";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { BoutonModifierStatsEquipe } from "@/features/stats/statsequipe/components/BoutonModifierStatsEquipe";
@@ -56,11 +56,11 @@ function CardEvenementID({ infosmatch, IdStatsandEvent }: Props) {
       statsEquipeId: IdStatsandEvent.idstatsequipe!,
     });
   };
-const now = dayjs();
-const matchDate = dayjs(infosmatch.date);
-const threeHoursAfterMatch = matchDate.add(3, "hours");
+const now = new Date();
+const matchDate = infosmatch.date ?? now;
+const threeHoursAfterMatch = addHours(matchDate, 3);
 
-const canCreateStats = now.isAfter(threeHoursAfterMatch);
+const canCreateStats = isAfter(now, threeHoursAfterMatch);
 
 
 if(isPendingInfosClub || isPending )
@@ -114,9 +114,9 @@ if(isPendingInfosClub || isPending )
                       size={14}
                       className="md:w-5 md:h-5 w-3.5 h-3.5"
                     />{" "}
-{dayjs(infosmatch.date?.toString()).format("H")}
+{format(matchDate, "H")}
                     {"h"}
-                    {dayjs(infosmatch.date?.toString()).format("mm")}
+                    {format(matchDate, "mm")}
                   </p>
                 </div>
               </Badge>
@@ -167,7 +167,7 @@ if(isPendingInfosClub || isPending )
           <div className="flex items-center justify-center gap-1 mt-2">
             <Calendar size={14} className="md:w-5 md:h-5 w-3.5 h-3.5" />
             <p className="text-[10px] md:text-base">
-              {dayjs(infosmatch.date?.toString()).format("DD/MM/YYYY")}
+              {format(matchDate, "dd/MM/yyyy")}
             </p>
           </div>
         </div>

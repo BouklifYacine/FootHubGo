@@ -1,6 +1,6 @@
 "use client";
 
-import { RiCalendarEventLine } from "@remixicon/react";
+import { CalendarDays } from "lucide-react";
 import { addDays, format, isToday } from "date-fns";
 import { fr } from "date-fns/locale"; // French locale
 import { useMemo } from "react";
@@ -43,7 +43,7 @@ export function AgendaView({
     <div className="border-border/70 border-t px-4">
       {!hasEvents ? (
         <div className="flex min-h-[70svh] flex-col items-center justify-center py-16 text-center">
-          <RiCalendarEventLine
+          <CalendarDays
             className="mb-2 text-muted-foreground/50"
             size={32}
           />

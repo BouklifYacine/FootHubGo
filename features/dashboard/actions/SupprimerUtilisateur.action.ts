@@ -2,7 +2,7 @@
 
 import { prisma } from "@/prisma";
 import { SessionAdmin } from "../../../lib/SessionAdmin";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "@/generated/prisma/client";
 
 interface DeleteResponse {
   success: boolean;

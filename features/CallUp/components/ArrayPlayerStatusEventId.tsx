@@ -12,8 +12,7 @@ import { useInfosClub } from "@/features/club/hooks/useinfosclub";
 import { UseTeamList } from "@/features/CallUp/hooks/UseTeamList";
 import { CircleCheck, CircleX } from "lucide-react";
 import CallUpButton from "@/features/CallUp/components/CallUpButton";
-import dayjs from "dayjs";
-import "dayjs/locale/fr";
+import { format, isBefore } from "date-fns";
 import DeleteCallUpButton from "./DeleteCallUpButton";
 import { ModalButtonAddPlayerStats } from "@/features/stats/statsjoueur/components/ModalButtonAddPlayerStats";
 import { StatsJoueur } from "@/features/evenements/types/TypesEvenements";
@@ -38,6 +37,9 @@ function ArrayPlayerStatusEventId({ statsteamid, statsJoueur }: Props) {
   );
 
   const entraineur = data?.role === "ENTRAINEUR";
+  const isEventUpcoming =
+    statsteamid.dateEvent !== undefined &&
+    isBefore(new Date(), statsteamid.dateEvent);
 
   if (isPending || isPendingTeamList) {
     return <div>Chargement des membres...</div>;
@@ -210,8 +212,9 @@ function ArrayPlayerStatusEventId({ statsteamid, statsJoueur }: Props) {
                     <TableCell className="text-black dark:text-white">
                       {convocation ? (
                         <span className="text-md">
-                          {dayjs(convocation.dateEnvoi).format(
-                            "DD/MM/YYYY à HH:mm"
+                          {format(
+                            convocation.dateEnvoi,
+                            "dd/MM/yyyy 'à' HH:mm"
                           )}
                         </span>
                       ) : (
@@ -221,8 +224,9 @@ function ArrayPlayerStatusEventId({ statsteamid, statsJoueur }: Props) {
                     <TableCell className="text-black dark:text-white">
                       {convocation?.dateReponse ? (
                         <span className="text-xs">
-                          {dayjs(convocation.dateReponse).format(
-                            "DD/MM/YYYY à HH:mm"
+                          {format(
+                            convocation.dateReponse,
+                            "dd/MM/yyyy 'à' HH:mm"
                           )}
                         </span>
                       ) : (
@@ -233,7 +237,7 @@ function ArrayPlayerStatusEventId({ statsteamid, statsJoueur }: Props) {
                       {m.position !== "ENTRAINEUR" && (
                         <div className="flex gap-2">
                           {!isCalled &&
-                            dayjs().isBefore(dayjs(statsteamid.dateEvent)) && (
+                            isEventUpcoming && (
                               <CallUpButton
                                 injured={m.isBlessed}
                                 playerId={m.id}
@@ -254,9 +258,7 @@ function ArrayPlayerStatusEventId({ statsteamid, statsJoueur }: Props) {
                                   />
                                 )}
 
-                              {dayjs().isBefore(
-                                dayjs(statsteamid.dateEvent)
-                              ) && (
+                              {isEventUpcoming && (
                                 <DeleteCallUpButton
                                   callUpId={convocation.id}
                                   eventId={statsteamid.eventid}

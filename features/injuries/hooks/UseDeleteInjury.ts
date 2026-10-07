@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { InjuryService } from "../services/InjuryService";
-import { Blessure } from "@prisma/client";
+import { Blessure } from "@/generated/prisma/browser";
 
 export function useDeleteInjury(sessionId: string) {
   const queryClient = useQueryClient();

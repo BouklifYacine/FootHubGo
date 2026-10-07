@@ -4,7 +4,6 @@ import { auth } from "@/auth";
 import { headers } from "next/headers";
 import { prisma } from "@/prisma";
 import { EventSchema, EventInput } from "../schemas/event.schema";
-import dayjs from "dayjs";
 
 export async function createEventAction(data: EventInput) {
   const session = await auth.api.getSession({
@@ -41,7 +40,7 @@ export async function createEventAction(data: EventInput) {
   if (!validation.success) {
     return {
       success: false,
-      message: validation.error.errors[0].message,
+      message: validation.error.issues[0].message,
     };
   }
 

@@ -1,6 +1,6 @@
-import dayjs from "dayjs";
+import { addHours } from "date-fns";
 import { CalendarEventResponse } from "../types/api-types";
-import { CalendarEvent } from "@/components";
+import { CalendarEvent } from "../types";
 import { CalendarService } from "../services/calendar.service";
 import { useQuery } from "@tanstack/react-query";
 
@@ -21,7 +21,7 @@ export const useCalendarEvents = () => {
         description: e.description,
         location: e.lieu,
         start: new Date(e.dateDebut),
-        end: dayjs(e.dateDebut).add(2, "hour").toDate(),
+        end: addHours(e.dateDebut, 2),
         color: eventColorMap[e.typeEvenement as keyof typeof eventColorMap],
         allDay: false,
         typeEvenement: e.typeEvenement as

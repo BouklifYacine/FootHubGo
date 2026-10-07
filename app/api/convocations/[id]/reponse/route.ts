@@ -1,9 +1,9 @@
 import { prisma } from "@/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import dayjs from "dayjs";
+import { differenceInHours, isAfter } from "date-fns";
 import { SchemaReponseConvocation } from "@/features/CallUp/schema/CallUpSchema";
 import { FindConvocationById } from "@/features/CallUp/repository/FindUniqueConvocationRepository";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@/generated/prisma/client";
 import { UpdateCallUpPlayerByCallUpId } from "@/features/CallUp/repository/UpdateCallUpPlayerByCallUpId";
 import { ZodValidationRequest } from "@/lib/ValidationZodApi/ValidationZodApi";
 import { GetSessionId } from "@/lib/SessionId/GetSessionId";
@@ -11,7 +11,7 @@ import { notifyUser } from "@/features/notifications/notifyUser";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: convocationId } = await params;
 
@@ -56,14 +56,14 @@ export async function PATCH(
         throw new Error("Événement introuvable");
       }
 
-      const now = dayjs();
-      const eventDate = dayjs(evenement.dateDebut);
+      const now = new Date();
+      const eventDate = evenement.dateDebut;
 
-      if (now.isAfter(eventDate)) {
+      if (isAfter(now, eventDate)) {
         throw new Error("L'événement est déjà passé, impossible de répondre");
       }
 
-      const diffHours = eventDate.diff(now, "hour", true);
+      const diffHours = differenceInHours(eventDate, now);
       if (diffHours < 3) {
         throw new Error(
           "Vous devez répondre au moins 3h avant le début du match"

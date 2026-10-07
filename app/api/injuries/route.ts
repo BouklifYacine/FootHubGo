@@ -4,7 +4,7 @@ import { GetSessionId } from "@/lib/SessionId/GetSessionId";
 import { ZodValidationRequest } from "@/lib/ValidationZodApi/ValidationZodApi";
 import { prisma } from "@/prisma";
 import { NextRequest, NextResponse } from "next/server";
-import dayjs from "dayjs";
+import { addDays, isAfter, isBefore, startOfDay } from "date-fns";
 import { FindUserIsPlayer } from "@/features/injuries/repository/FindUserHasClub";
 
 export async function POST(request: NextRequest) {
@@ -23,17 +23,17 @@ export async function POST(request: NextRequest) {
       createInjurySchema
     );
 
-    const today = dayjs().startOf("day");
-    const minEndDate = today.add(3, "day");
+    const today = startOfDay(new Date());
+    const minEndDate = addDays(today, 3);
 
-    if (dayjs(endDate).isBefore(today)) {
+    if (isBefore(endDate, today)) {
       return NextResponse.json(
         { message: "La date de fin ne peut pas être antérieure à aujourd'hui." },
         { status: 400 }
       );
     }
 
-    if (dayjs(endDate).isBefore(minEndDate)) {
+    if (isBefore(endDate, minEndDate)) {
       return NextResponse.json(
         { message: "Une blessure doit durer au minimum 3 jours." },
         { status: 400 }
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     const allInjuriesPlayer = await FindInjuriesPlayer(userId);
 
     const hasActiveInjury = allInjuriesPlayer.some((injury) =>
-      dayjs(injury.endDate).isAfter(today)
+      isAfter(injury.endDate, today)
     );
 
     if (hasActiveInjury) {

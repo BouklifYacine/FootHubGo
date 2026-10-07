@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import dayjs from "dayjs";
+import { isAfter, isBefore, isEqual } from "date-fns";
 import CardEvenement from "./CardEvenement";
 import { BoutonCreerEvenement } from "./BoutonCreerEvenement";
 import { useDeleteEvent } from "@/features/calendrier/hooks/use-delete-event";
@@ -25,17 +25,18 @@ function ListeEvenement() {
     ? {
         ...data,
         evenements: data.evenements.filter((e) => {
-          const eventDate = dayjs(e.dateDebut);
+          const eventDate = e.dateDebut;
+          const now = new Date();
 
           const filtreDateMatch = (() => {
             if (filtreDate === "tous") {
               return true;
             }
             if (filtreDate === "avant") {
-              return eventDate.isBefore(dayjs());
+              return isBefore(eventDate, now);
             }
             if (filtreDate === "apres") {
-              return eventDate.isSame(dayjs()) || eventDate.isAfter(dayjs());
+              return isEqual(eventDate, now) || isAfter(eventDate, now);
             }
             return true;
           })();

@@ -1,10 +1,10 @@
 import React from "react";
 import { AvatarCircles } from "@/components/ui/avatar-circles";
-import { IoStarSharp } from "react-icons/io5";
+import { Star } from "lucide-react";
 import { HandWrittenTitle } from "./ui/hand-writing-text";
 import { GlowEffectButton } from "./Boutons/BoutonGlowCTA";
 import Link from "next/link";
-import { AnimatedShinyTextDemo } from "./ui/TestShinyText";
+import { VersionBadge } from "@/components/landing/VersionBadge";
 
 const avatars = [
   {
@@ -51,7 +51,7 @@ const Section = () => {
       <div className="mx-auto pt-20 h-full">
         <div className="flex flex-col justify-center items-center gap-6 py-2">
           <div className="flex justify-center items-center pb-2">
-        <AnimatedShinyTextDemo></AnimatedShinyTextDemo>
+        <VersionBadge />
           </div>
           <h1 className="text-2xl md:text-4xl lg:text-6xl xl:text-8xl font-bold tracking-tighter  text-center px-4 max-w-8xl">
             Gérez votre club de {" "}
@@ -84,11 +84,11 @@ const Section = () => {
           </div>
 
           <div className="flex pb-8 space-x-1">
-            <IoStarSharp className="text-yellow-500 text-2xl" />
-            <IoStarSharp className="text-yellow-500 text-2xl" />
-            <IoStarSharp className="text-yellow-500 text-2xl" />
-            <IoStarSharp className="text-yellow-500 text-2xl" />
-            <IoStarSharp className="text-yellow-500 text-2xl" />
+            <Star className="size-6 fill-yellow-500 text-yellow-500" />
+            <Star className="size-6 fill-yellow-500 text-yellow-500" />
+            <Star className="size-6 fill-yellow-500 text-yellow-500" />
+            <Star className="size-6 fill-yellow-500 text-yellow-500" />
+            <Star className="size-6 fill-yellow-500 text-yellow-500" />
           </div>
         </div>
       </div>

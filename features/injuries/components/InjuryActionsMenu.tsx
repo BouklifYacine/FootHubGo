@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Blessure } from "@prisma/client";
+import { Blessure } from "@/generated/prisma/browser";
 import {
   DropdownMenu,
   DropdownMenuContent,

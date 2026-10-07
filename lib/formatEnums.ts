@@ -1,4 +1,4 @@
-import { PosteJoueur, NiveauClub } from "@prisma/client";
+import { PosteJoueur, NiveauClub } from "@/generated/prisma/browser";
 
 
 export function formatPosteJoueur(poste: PosteJoueur | string): string {

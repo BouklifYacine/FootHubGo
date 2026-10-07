@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SupprimerJoueurClubAction } from "../actions/SupprimerJoueurClubaction";
 import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export function useSupprimerJoueurClub() {
   const queryClient = useQueryClient();

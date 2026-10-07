@@ -19,7 +19,7 @@ import {
 import { Activity } from "lucide-react";
 import { createInjurySchema } from "@/features/injuries/schema/createinjuryschema";
 import { cn } from "@/lib/utils";
-import { Blessure } from "@prisma/client";
+import { Blessure } from "@/generated/prisma/browser";
 
 const validateType = ({ value }: { value: string }) => {
   const result = createInjurySchema.shape.type.safeParse(value);

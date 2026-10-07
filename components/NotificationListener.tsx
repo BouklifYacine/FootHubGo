@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { io } from "socket.io-client"; 
-import toast from "react-hot-toast"; 
+import { toast } from "sonner";
 
 export function NotificationListener({ userId }: { userId?: string }) {
   useEffect(() => {

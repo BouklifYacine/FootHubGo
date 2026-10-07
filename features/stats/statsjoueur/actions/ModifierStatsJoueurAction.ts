@@ -7,7 +7,7 @@ import {
   ModifierStatsJoueurSchema,
   TypeModifierStatsJoueurSchema,
 } from "../schema/ModifierStatsJoueurSchema";
-import dayjs from "dayjs";
+import { addDays, isAfter } from "date-fns";
 
 export async function modifierStatsJoueurAction(
   id: string,
@@ -92,8 +92,8 @@ export async function modifierStatsJoueurAction(
       };
     }
 
-    const debut = dayjs(evenement.dateDebut);
-    if (dayjs().isAfter(debut.add(2, "days"))) {
+    const debut = evenement.dateDebut;
+    if (isAfter(new Date(), addDays(debut, 2))) {
       return {
         success: false,
         message: "Après 48h de la date de l'événement vous ne pouvez plus modifiez un évenement",

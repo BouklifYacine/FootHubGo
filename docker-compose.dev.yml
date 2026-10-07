@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile.dev
-    image: nextjs-projet-boilerplate-dev:latest
+    image: foothubgo-dev:latest
     volumes:
       - .:/app
       - /app/node_modules

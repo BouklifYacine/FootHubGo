@@ -40,39 +40,47 @@ export function SectionMotDePasse() {
     <Card className="p-6">
       <div className="space-y-6">
         {etape === 'verification' && (
-          <form 
-            onSubmit={formVerification.handleSubmit((data) => 
-              verifierMotDePasseMutation.mutate(data.motdepasse)
-            )} 
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              formVerification.handleSubmit()
+            }}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label htmlFor="motdepasse">Mot de passe actuel</Label>
-              <InputPassword
-               
-                {...formVerification.register('motdepasse')}
-              />
-              {formVerification.formState.errors.motdepasse && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {formVerification.formState.errors.motdepasse.message}
-                  </AlertDescription>
-                </Alert>
+            <formVerification.Field name="motdepasse">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="motdepasse">Mot de passe actuel</Label>
+                  <InputPassword
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {field.state.meta.errors[0]?.message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               )}
-            </div>
+            </formVerification.Field>
             <div className="flex space-x-2">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={verifierMotDePasseMutation.isPending}
               >
-                {verifierMotDePasseMutation.isPending 
-                  ? "Vérification..." 
+                {verifierMotDePasseMutation.isPending
+                  ? "Vérification..."
                   : "Continuer"
                 }
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={reinitialiser}
               >
                 Annuler
@@ -82,53 +90,69 @@ export function SectionMotDePasse() {
         )}
 
         {etape === 'changement' && (
-          <form 
-            onSubmit={formChangement.handleSubmit((data) => 
-              changerMotDePasseMutation.mutate(data)
-            )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              formChangement.handleSubmit()
+            }}
             className="space-y-4"
           >
-            <div className="space-y-2">
-              <Label htmlFor="motdepasse">Nouveau mot de passe</Label>
-              <InputPassword
-                {...formChangement.register('motdepasse')}
-              />
-              {formChangement.formState.errors.motdepasse && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {formChangement.formState.errors.motdepasse.message}
-                  </AlertDescription>
-                </Alert>
+            <formChangement.Field name="motdepasse">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="motdepasse">Nouveau mot de passe</Label>
+                  <InputPassword
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {field.state.meta.errors[0]?.message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="codeverification">Code de vérification</Label>
-              <Input
-                id="codeverification"
-                {...formChangement.register('codeverification')}
-                placeholder="Entrez le code reçu par email"
-              />
-              {formChangement.formState.errors.codeverification && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {formChangement.formState.errors.codeverification.message}
-                  </AlertDescription>
-                </Alert>
+            </formChangement.Field>
+            <formChangement.Field name="codeverification">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label htmlFor="codeverification">Code de vérification</Label>
+                  <Input
+                    id="codeverification"
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    placeholder="Entrez le code reçu par email"
+                  />
+                  {field.state.meta.errors.length > 0 && (
+                    <Alert variant="destructive">
+                      <AlertDescription>
+                        {field.state.meta.errors[0]?.message}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
               )}
-            </div>
+            </formChangement.Field>
             <div className="flex space-x-2">
-              <Button 
+              <Button
                 type="submit"
                 disabled={changerMotDePasseMutation.isPending}
               >
-                {changerMotDePasseMutation.isPending 
-                  ? "Modification en cours..." 
+                {changerMotDePasseMutation.isPending
+                  ? "Modification en cours..."
                   : "Changer le mot de passe"
                 }
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={reinitialiser}
               >
                 Annuler

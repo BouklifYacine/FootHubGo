@@ -4,15 +4,16 @@ import {
   TeamListInterfaceAPI,
   CallUpResponse,
 } from "../interfaces/CallUpInterface";
-import toast from "react-hot-toast";
-import { AxiosError } from "axios";
+import { toast } from "sonner";
+import { HTTPError } from "ky";
+import { getHttpErrorMessage } from "@/lib/http-error";
 import { DeleteCallUpParams } from "../interfaces/DeleteCallUpInterface";
 import { deleteCallUpService } from "../services/deleteCallUp.service";
 
 export function useDeleteCallUp() {
   const queryClient = useQueryClient();
 
-  return useMutation<CallUpResponse,AxiosError<ErrorResponse>,DeleteCallUpParams,{ previousData: TeamListInterfaceAPI | undefined }
+  return useMutation<CallUpResponse,HTTPError<ErrorResponse>,DeleteCallUpParams,{ previousData: TeamListInterfaceAPI | undefined }
   >({
     mutationFn: ({ callUpId }: DeleteCallUpParams) =>
       deleteCallUpService.DeleteCallUp(callUpId),
@@ -45,7 +46,7 @@ export function useDeleteCallUp() {
         queryClient.setQueryData(["TeamList", teamId, eventId], context.previousData);
       }
 
-      toast.error(error.response?.data?.message || "Erreur lors de la convocation");
+      toast.error(getHttpErrorMessage(error, "Erreur lors de la convocation"));
     },
 
     onSuccess: (data) => {

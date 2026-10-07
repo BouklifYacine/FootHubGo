@@ -1,10 +1,9 @@
 "use client";
 
-import { RiDeleteBinLine } from "@remixicon/react";
-import dayjs from "dayjs";
-import { useEffect, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { addDays, format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useEffect, useMemo, useState } from "react";
+import { revalidateLogic, useForm, useStore } from "@tanstack/react-form";
 import { z } from "zod";
 import {
   Swords,
@@ -57,6 +56,8 @@ import { useCreateEvent } from "../hooks/use-create-event";
 import { useUpdateEvent } from "../hooks/use-update-event";
 import { useDeleteEvent } from "../hooks/use-delete-event";
 
+type EventFormValues = z.input<typeof EventSchema>;
+
 interface EventDialogProps {
   event: CalendarEvent | null;
   isOpen: boolean;
@@ -100,75 +101,76 @@ export function EventDialog({
     (event?.typeEvenement === "CHAMPIONNAT" ||
       event?.typeEvenement === "COUPE");
 
-  const {
-    control,
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    watch,
-    setValue,
-  } = useForm<EventInput>({
-    resolver: zodResolver(EventSchema),
-    defaultValues: {
+  // Valeurs du formulaire recalculées à chaque ouverture / changement d'événement
+  const defaultValues = useMemo<EventFormValues>(() => {
+    if (event && event.id) {
+      // Editing existing event
+      return {
+        titre: event.title,
+        dateDebut: event.start,
+        typeEvenement: event.typeEvenement || "ENTRAINEMENT",
+        lieu: event.location || "",
+        adversaire: event.adversaire || null,
+      };
+    }
+    // Creating new event
+    return {
+      titre: "",
+      dateDebut: event?.start || addDays(new Date(), 7),
       typeEvenement: "ENTRAINEMENT",
-      dateDebut: dayjs().add(7, "day").toDate(),
+      lieu: "",
+      adversaire: null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [event, isOpen]);
+
+  const form = useForm({
+    defaultValues,
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: EventSchema,
+    },
+    onSubmit: ({ value }) => {
+      // Guard: Only coaches can create/update events
+      if (!canEdit) return;
+      // Guard: Cannot modify protected events
+      if (isProtected) return;
+
+      const data: EventInput = EventSchema.parse(value);
+
+      if (isCreating) {
+        createEvent.mutate(data, {
+          onSuccess: () => {
+            onClose();
+          },
+        });
+      } else if (event?.id) {
+        updateEvent.mutate(
+          { id: event.id, data },
+          {
+            onSuccess: () => {
+              setIsEditMode(false);
+              onClose();
+            },
+          }
+        );
+      }
     },
   });
 
-  const typeEvenement = watch("typeEvenement");
+  const typeEvenement = useStore(
+    form.store,
+    (state) => state.values.typeEvenement
+  );
 
   // Reset form when dialog opens or event changes
   useEffect(() => {
     if (isOpen) {
-      if (event && event.id) {
-        // Editing existing event
-        reset({
-          titre: event.title,
-          dateDebut: event.start,
-          typeEvenement: event.typeEvenement || "ENTRAINEMENT",
-          lieu: event.location || "",
-          adversaire: event.adversaire || null,
-        });
-        setIsEditMode(false); // Default to view mode for existing events
-      } else {
-        // Creating new event
-        reset({
-          titre: "",
-          dateDebut: event?.start || dayjs().add(7, "day").toDate(),
-          typeEvenement: "ENTRAINEMENT",
-          lieu: "",
-          adversaire: null,
-        });
-        setIsEditMode(true); // Always edit mode for new events
-      }
+      form.reset(defaultValues);
+      // Default to view mode for existing events, always edit mode for new events
+      setIsEditMode(!(event && event.id));
     }
-  }, [isOpen, event, reset]);
-
-  const onSubmit = (data: EventInput) => {
-    // Guard: Only coaches can create/update events
-    if (!canEdit) return;
-    // Guard: Cannot modify protected events
-    if (isProtected) return;
-
-    if (isCreating) {
-      createEvent.mutate(data, {
-        onSuccess: () => {
-          onClose();
-        },
-      });
-    } else if (event?.id) {
-      updateEvent.mutate(
-        { id: event.id, data },
-        {
-          onSuccess: () => {
-            setIsEditMode(false);
-            onClose();
-          },
-        }
-      );
-    }
-  };
+  }, [isOpen, event, defaultValues, form]);
 
   const handleDelete = () => {
     // Guard: Only coaches can delete events
@@ -219,7 +221,9 @@ export function EventDialog({
                 <Label className="text-muted-foreground text-xs">Date</Label>
                 <p>
                   {event?.start &&
-                    dayjs(event.start).format("D MMMM YYYY [à] HH:mm")}
+                    format(event.start, "d MMMM yyyy 'à' HH:mm", {
+                      locale: fr,
+                    })}
                 </p>
               </div>
               <div>
@@ -264,123 +268,141 @@ export function EventDialog({
         ) : (
           <form
             id="event-form"
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
             className="space-y-4 py-4"
           >
             {/* Titre */}
-            <div className="space-y-1">
-              <Label htmlFor="titre">Titre</Label>
-              <Input
-                id="titre"
-                {...register("titre")}
-                placeholder="Ex: Entraînement tactique"
-                className={errors.titre ? "border-red-500" : ""}
-                disabled={isLoading}
-              />
-              {errors.titre && (
-                <p className="text-xs text-red-500">{errors.titre.message}</p>
-              )}
-            </div>
+            <form.Field name="titre">
+              {(field) => {
+                const error = field.state.meta.errors[0]?.message;
+                return (
+                  <div className="space-y-1">
+                    <Label htmlFor="titre">Titre</Label>
+                    <Input
+                      id="titre"
+                      name={field.name}
+                      value={field.state.value}
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Ex: Entraînement tactique"
+                      className={error ? "border-red-500" : ""}
+                      disabled={isLoading}
+                    />
+                    {error && <p className="text-xs text-red-500">{error}</p>}
+                  </div>
+                );
+              }}
+            </form.Field>
 
             {/* Type */}
-            <Controller
-              name="typeEvenement"
-              control={control}
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label htmlFor="typeEvenement">Type d'événement</Label>
-                  <Select
-                    onValueChange={(value) => {
-                      field.onChange(value);
-                      if (value === "ENTRAINEMENT") {
-                        setValue("adversaire", null);
-                      }
-                    }}
-                    value={field.value}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger
-                      className={errors.typeEvenement ? "border-red-500" : ""}
+            <form.Field name="typeEvenement">
+              {(field) => {
+                const error = field.state.meta.errors[0]?.message;
+                return (
+                  <div className="space-y-1">
+                    <Label htmlFor="typeEvenement">Type d'événement</Label>
+                    <Select
+                      onValueChange={(value) => {
+                        field.handleChange(
+                          value as EventFormValues["typeEvenement"]
+                        );
+                        if (value === "ENTRAINEMENT") {
+                          form.setFieldValue("adversaire", null);
+                        }
+                      }}
+                      value={field.state.value}
+                      disabled={isLoading}
                     >
-                      <SelectValue placeholder="Sélectionner un type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ENTRAINEMENT">Entraînement</SelectItem>
-                      <SelectItem value="CHAMPIONNAT">Championnat</SelectItem>
-                      <SelectItem value="COUPE">Coupe</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.typeEvenement && (
-                    <p className="text-xs text-red-500">
-                      {errors.typeEvenement.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
+                      <SelectTrigger className={error ? "border-red-500" : ""}>
+                        <SelectValue placeholder="Sélectionner un type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ENTRAINEMENT">Entraînement</SelectItem>
+                        <SelectItem value="CHAMPIONNAT">Championnat</SelectItem>
+                        <SelectItem value="COUPE">Coupe</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {error && <p className="text-xs text-red-500">{error}</p>}
+                  </div>
+                );
+              }}
+            </form.Field>
 
             {/* Date */}
-            <Controller
-              name="dateDebut"
-              control={control}
-              render={({ field }) => (
-                <div className="space-y-1">
-                  <Label>Date et heure</Label>
-                  <DateTimePicker
-                    value={field.value}
-                    onChange={field.onChange}
-                    className={errors.dateDebut ? "border-red-500" : ""}
-                    // disabled={isLoading} // Check if DateTimePicker supports disabled
-                  />
-                  {errors.dateDebut && (
-                    <p className="text-xs text-red-500">
-                      {errors.dateDebut.message}
-                    </p>
-                  )}
-                </div>
-              )}
-            />
+            <form.Field name="dateDebut">
+              {(field) => {
+                const error = field.state.meta.errors[0]?.message;
+                return (
+                  <div className="space-y-1">
+                    <Label>Date et heure</Label>
+                    <DateTimePicker
+                      value={field.state.value}
+                      onChange={(date) => field.handleChange(date)}
+                      className={error ? "border-red-500" : ""}
+                      // disabled={isLoading} // Check if DateTimePicker supports disabled
+                    />
+                    {error && <p className="text-xs text-red-500">{error}</p>}
+                  </div>
+                );
+              }}
+            </form.Field>
 
             {/* Lieu */}
-            <div className="space-y-1">
-              <Label htmlFor="lieu">Lieu</Label>
-              <div className="relative">
-                <Input
-                  id="lieu"
-                  {...register("lieu")}
-                  placeholder="Stade municipal"
-                  className={errors.lieu ? "pl-8 border-red-500" : "pl-8"}
-                  disabled={isLoading}
-                />
-                <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              </div>
-              {errors.lieu && (
-                <p className="text-xs text-red-500">{errors.lieu.message}</p>
-              )}
-            </div>
+            <form.Field name="lieu">
+              {(field) => {
+                const error = field.state.meta.errors[0]?.message;
+                return (
+                  <div className="space-y-1">
+                    <Label htmlFor="lieu">Lieu</Label>
+                    <div className="relative">
+                      <Input
+                        id="lieu"
+                        name={field.name}
+                        value={field.state.value ?? ""}
+                        onBlur={field.handleBlur}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        placeholder="Stade municipal"
+                        className={error ? "pl-8 border-red-500" : "pl-8"}
+                        disabled={isLoading}
+                      />
+                      <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    </div>
+                    {error && <p className="text-xs text-red-500">{error}</p>}
+                  </div>
+                );
+              }}
+            </form.Field>
 
             {/* Adversaire */}
             {typeEvenement !== "ENTRAINEMENT" && (
-              <div className="space-y-1">
-                <Label htmlFor="adversaire">Adversaire</Label>
-                <div className="relative">
-                  <Input
-                    id="adversaire"
-                    {...register("adversaire")}
-                    placeholder="Nom de l'équipe adverse"
-                    className={
-                      errors.adversaire ? "pl-8 border-red-500" : "pl-8"
-                    }
-                    disabled={isLoading}
-                  />
-                  <Swords className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                </div>
-                {errors.adversaire && (
-                  <p className="text-xs text-red-500">
-                    {errors.adversaire.message}
-                  </p>
-                )}
-              </div>
+              <form.Field name="adversaire">
+                {(field) => {
+                  const error = field.state.meta.errors[0]?.message;
+                  return (
+                    <div className="space-y-1">
+                      <Label htmlFor="adversaire">Adversaire</Label>
+                      <div className="relative">
+                        <Input
+                          id="adversaire"
+                          name={field.name}
+                          value={field.state.value ?? ""}
+                          onBlur={field.handleBlur}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          placeholder="Nom de l'équipe adverse"
+                          className={error ? "pl-8 border-red-500" : "pl-8"}
+                          disabled={isLoading}
+                        />
+                        <Swords className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                      </div>
+                      {error && <p className="text-xs text-red-500">{error}</p>}
+                    </div>
+                  );
+                }}
+              </form.Field>
             )}
           </form>
         )}
@@ -399,7 +421,7 @@ export function EventDialog({
                       <DropdownMenuItem
                         onClick={() =>
                           router.push(
-                            `/dashboardfoothub/evenements/${event?.id}`
+                            `/app/evenements/${event?.id}`
                           )
                         }
                       >
@@ -447,7 +469,7 @@ export function EventDialog({
                     <Button
                       className="w-full"
                       onClick={() =>
-                        router.push(`/dashboardfoothub/evenements/${event.id}`)
+                        router.push(`/app/evenements/${event.id}`)
                       }
                     >
                       Voir convocation
@@ -478,7 +500,7 @@ export function EventDialog({
                   if (isCreating) onClose();
                   else {
                     setIsEditMode(false);
-                    reset();
+                    form.reset();
                   }
                 }}
                 disabled={isLoading}

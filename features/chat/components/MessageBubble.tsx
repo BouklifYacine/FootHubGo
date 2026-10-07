@@ -12,7 +12,7 @@ import {
 import AvatarSimple from "@/components/Avatar/AvatarSimple";
 import { cn } from "@/lib/utils";
 import { Message } from "../types/chat.types";
-import dayjs from "dayjs";
+import { format } from "date-fns";
 
 interface MessageBubbleProps {
   message: Message;
@@ -109,7 +109,7 @@ export function MessageBubble({
                 isOwn ? "text-white/70" : "text-zinc-400"
               )}
             >
-              {dayjs(msg.createdAt).format("HH:mm")}
+              {format(msg.createdAt, "HH:mm")}
               {/* Read receipt indicator for my messages - WhatsApp style */}
               {isOwn && (
                 <span className="flex items-center ml-1">

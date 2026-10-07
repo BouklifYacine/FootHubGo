@@ -36,7 +36,7 @@ Types have been organized into a dedicated `/features/calendrier/types` folder.
 1. ✅ Copied all calendar components to `features/calendrier/components`
 2. ✅ Updated internal imports to use local paths instead of `@/components`
 3. ✅ Created barrel export in `components/index.ts`
-4. ✅ Updated `app/dashboardfoothub/calendrier/page.tsx` to use new import path
+4. ✅ Updated `app/app/calendrier/page.tsx` to use new import path
 5. ✅ Created comprehensive README.md documentation
 6. ✅ Organized types into dedicated `types/` folder
 

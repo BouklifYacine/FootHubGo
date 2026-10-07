@@ -14,7 +14,7 @@ import type {
 import type { Conversation, Message } from "../types";
 
 const api = ky.create({
-  prefixUrl: "/api",
+  prefix: "/api",
 });
 
 export const ChatService = {

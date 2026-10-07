@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreationClubAction } from "../actions/CreationClubAction";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { SchemaCreationClub } from "../schemas/SchemaCreationClub";
 import z from "zod";
 

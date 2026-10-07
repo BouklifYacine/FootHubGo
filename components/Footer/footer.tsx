@@ -1,12 +1,9 @@
-import Image from "next/image";
 import React from "react";
-import { FaFacebook, FaInstagram, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { Trophy } from "lucide-react";
 
 interface Footer7Props {
   logo?: {
     url: string;
-    src: string;
-    alt: string;
     title: string;
   };
   sections?: Array<{
@@ -28,57 +25,41 @@ interface Footer7Props {
 
 const defaultSections = [
   {
-    title: "Product",
+    title: "Produit",
     links: [
-      { name: "Overview", href: "#" },
-      { name: "Pricing", href: "#" },
-      { name: "Marketplace", href: "#" },
-      { name: "Features", href: "#" },
+      { name: "Fonctionnalités", href: "/#fonctionnalites" },
+      { name: "Tarifs", href: "/#tarifs" },
+      { name: "FAQ", href: "/#faq" },
     ],
   },
   {
-    title: "Company",
+    title: "Compte",
     links: [
-      { name: "About", href: "#" },
-      { name: "Team", href: "#" },
-      { name: "Blog", href: "#" },
-      { name: "Careers", href: "#" },
+      { name: "Connexion", href: "/connexion" },
+      { name: "Inscription", href: "/inscription" },
     ],
   },
   {
-    title: "Resources",
+    title: "Projet",
     links: [
-      { name: "Help", href: "#" },
-      { name: "Sales", href: "#" },
-      { name: "Advertise", href: "#" },
-      { name: "Privacy", href: "#" },
+      { name: "GitHub", href: "https://github.com/BouklifYacine/FootHubGo" },
     ],
   },
 ];
 
-const defaultSocialLinks = [
-  { icon: <FaInstagram className="size-5" />, href: "#", label: "Instagram" },
-  { icon: <FaFacebook className="size-5" />, href: "#", label: "Facebook" },
-  { icon: <FaTwitter className="size-5" />, href: "#", label: "Twitter" },
-  { icon: <FaLinkedin className="size-5" />, href: "#", label: "LinkedIn" },
-];
+const defaultSocialLinks: NonNullable<Footer7Props["socialLinks"]> = [];
 
-const defaultLegalLinks = [
-  { name: "Terms and Conditions", href: "#" },
-  { name: "Privacy Policy", href: "#" },
-];
+const defaultLegalLinks: NonNullable<Footer7Props["legalLinks"]> = [];
 
 export const Footer = ({
   logo = {
-    url: "https://www.shadcnblocks.com",
-    src: "https://www.shadcnblocks.com/images/block/logos/shadcnblockscom-icon.svg",
-    alt: "logo",
-    title: "Foothubgo",
+    url: "/",
+    title: "FootHubGo",
   },
   sections = defaultSections,
-  description = "",
+  description = "La plateforme tout-en-un pour gérer votre club de football amateur.",
   socialLinks = defaultSocialLinks,
-  copyright = "© 2025 Foothubgo. All rights reserved.",
+  copyright = `© ${new Date().getFullYear()} FootHubGo. Tous droits réservés.`,
   legalLinks = defaultLegalLinks,
 }: Footer7Props) => {
   return (
@@ -88,15 +69,8 @@ export const Footer = ({
           <div className="flex w-full flex-col justify-between gap-6 lg:items-start">
             {/* Logo */}
             <div className="flex items-center gap-2 lg:justify-start">
-              <a href={logo.url}>
-                <Image
-                  src={logo.src}
-                  alt={logo.alt}
-                  width={30}
-                  height={30}
-                  title={logo.title}
-                  className="h-8"
-                />
+              <a href={logo.url} aria-label={logo.title}>
+                <Trophy className="size-7 text-primary" />
               </a>
               <h2 className="text-xl font-semibold">{logo.title}</h2>
             </div>

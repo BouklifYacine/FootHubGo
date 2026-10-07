@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useDeleteUsers, useModifierRole } from "../hooks/UseDashboard";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { TableauDeBordProps } from "../interfaces/Interface-Types";
 import { Filtres } from "./Filtres";
 import { SectionStats } from "./SectionStats";
@@ -57,7 +57,7 @@ export const TableauDeBordClient: React.FC<TableauDeBordProps> = ({ utilisateurs
           .includes(recherche.toLowerCase());
         const correspondancePlan = !filtreabonnement || utilisateur.plan === "pro";
         const correspondanceplanmensuel = !filtreabonnementmensuel || utilisateur.plan === "pro" && utilisateur.abonnement?.periode === "mois"
-        const correspondanceplanannuel = !filtreabommentannuel || utilisateur.plan === "pro" && utilisateur.abonnement?.periode === "année"
+        const correspondanceplanannuel = !filtreabommentannuel || utilisateur.plan === "pro" && utilisateur.abonnement?.periode === "annee"
         const conrrespondanceRole =  !filtreAdmin || utilisateur.role === "Admin";
         return (
           correspondancePseudo && correspondancePlan && conrrespondanceRole && correspondanceplanmensuel && correspondanceplanannuel

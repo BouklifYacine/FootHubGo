@@ -6,7 +6,7 @@ import {
   Section,
   Text,
   // Img, // react-email a son propre composant Img optimisé pour les emails
-} from "@react-email/components";
+} from "react-email";
 
 import * as React from "react";
 

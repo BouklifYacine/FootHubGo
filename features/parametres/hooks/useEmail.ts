@@ -1,32 +1,40 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { revalidateLogic, useForm } from '@tanstack/react-form'
 import { useMutation } from '@tanstack/react-query'
 import { schemaVerificationMotDePasse, schemaEmail } from '../schemas/schema'
-import toast from 'react-hot-toast'
+import { toast } from "sonner";
 import { TypeEmail } from '../schemas/schema'
 import { DeconnexionClient } from '@/lib/FonctionDeconnexionClient'
 import { verifierMotDePasse } from '../actions/verifiermotdepasseaction'
 import { changerEmail } from '../actions/changeremailaction'
+import { definirErreurChamp } from '../lib/definirErreurChamp'
 
 export function useEmail() {
   const [etape, setEtape] = useState<'motdepasse' | 'email'>('motdepasse')
   const [enEdition, setEnEdition] = useState(false)
 
   const formMotDePasse = useForm({
-    resolver: zodResolver(schemaVerificationMotDePasse),
     defaultValues: {
       motdepasse: ''
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: schemaVerificationMotDePasse },
+    onSubmit: ({ value }) => {
+      verifierMotDePasseMutation.mutate(value.motdepasse)
     }
   })
 
-  const formEmail = useForm<TypeEmail>({
-    resolver: zodResolver(schemaEmail),
+  const formEmail = useForm({
     defaultValues: {
       nouvelEmail: '',
       codeverification: ''
+    },
+    validationLogic: revalidateLogic(),
+    validators: { onDynamic: schemaEmail },
+    onSubmit: ({ value }) => {
+      changerEmailMutation.mutate(value)
     }
   })
 
@@ -43,7 +51,7 @@ export function useEmail() {
     },
     onError: (error: Error) => {
       toast.error(error.message)
-      formMotDePasse.setError('motdepasse', { message: error.message })
+      definirErreurChamp(formMotDePasse, 'motdepasse', error.message)
     }
   })
 
@@ -60,9 +68,9 @@ export function useEmail() {
     onError: (error: Error) => {
       toast.error(error.message)
       if (error.message.includes('Code')) {
-        formEmail.setError('codeverification', { message: error.message })
+        definirErreurChamp(formEmail, 'codeverification', error.message)
       } else {
-        formEmail.setError('nouvelEmail', { message: error.message })
+        definirErreurChamp(formEmail, 'nouvelEmail', error.message)
       }
     }
   })

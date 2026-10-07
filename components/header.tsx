@@ -51,7 +51,7 @@ const Header = () => {
     <header className=" top-0 z-50 pt-4 px-4 ">
       <div className="mx-auto max-w-7xl px-4 md:px-6 py-3 md:py-4">
         <div className="flex items-center justify-between">
-          <p className="lg:text-2xl tracking-tighter">Foothubgo</p>
+          <p className="lg:text-2xl tracking-tighter">FootHubGo</p>
 
           <div className="md:hidden flex items-center gap-4 relative">
             <MenuDeroulant

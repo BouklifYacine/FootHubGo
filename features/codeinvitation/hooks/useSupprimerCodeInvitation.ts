@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SupprimerCodeInvitation } from "../actions/Supprimercodeinvitation";
 import { InfosClubApiResponse } from "@/features/club/hooks/useinfosclub";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 
 export function useSupprimerCodeInvitation() {

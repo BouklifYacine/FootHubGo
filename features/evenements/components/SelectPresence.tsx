@@ -9,8 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { usePresenceEvenementJoueur } from "../hooks/usePresenceEvenementJoueur";
-import { $Enums } from "@prisma/client";
-import dayjs from 'dayjs';
+import { $Enums } from "@/generated/prisma/browser";
+import { isBefore } from 'date-fns';
 
 type PresenceStatut = "ATTENTE" | "PRESENT" | "ABSENT";
 
@@ -35,7 +35,7 @@ function SelectPresence({typeEvent, id, value, date }: SelectPresenceProps) {
           data: { statut: value as PresenceStatut },
         })
       }
-      disabled={disabled || dayjs(date).isBefore(dayjs())
+      disabled={disabled || isBefore(date, new Date())
 }
     >
       <SelectTrigger

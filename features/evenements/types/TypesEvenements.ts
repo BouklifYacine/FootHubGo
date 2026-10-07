@@ -1,5 +1,6 @@
-import { $Enums, competition, PosteJoueur, ResultatMatch, StatutPresence, TypeEvenement } from "@prisma/client";
-import { JsonValue } from "@prisma/client/runtime/library";
+import { $Enums, competition, PosteJoueur, ResultatMatch, StatutPresence, TypeEvenement } from "@/generated/prisma/browser";
+import type { Prisma } from "@/generated/prisma/browser";
+type JsonValue = Prisma.JsonValue;
 
 export interface Evenements {
   description: string | null;

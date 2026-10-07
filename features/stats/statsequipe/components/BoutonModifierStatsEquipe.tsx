@@ -21,8 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { revalidateLogic, useForm } from "@tanstack/react-form";
 import { useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -31,7 +30,7 @@ import {
   SchemaModificationStatsEquipe,
 } from "@/features/stats/statsequipe/schema/ModifierStatsEquipeSchema";
 import { useModifierStatsEquipe } from "@/features/stats/statsequipe/hooks/useModifierStatsEquipe";
-import { StatistiqueEquipe } from "@prisma/client";
+import { StatistiqueEquipe } from "@/generated/prisma/browser";
 
 const enumsResultat = ["VICTOIRE", "DEFAITE", "NUL"] as const;
 const enumsCompetition = ["CHAMPIONNAT", "COUPE"] as const;
@@ -41,46 +40,48 @@ interface Props {
   statsEquipe: StatistiqueEquipe;
 }
 
+// Équivalent de `valueAsNumber` : champ vide => NaN (rejeté par le schéma)
+const numberInputValue = (value: number | undefined) =>
+  value === undefined || Number.isNaN(value) ? "" : value;
+
 export function BoutonModifierStatsEquipe({ eventid, statsEquipe }: Props) {
   const [open, setOpen] = useState(false);
   const { mutate, isPending } = useModifierStatsEquipe();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
-    setValue,
-    watch,
-  } = useForm<SchemaModificationStatsEquipe>({
-    resolver: zodResolver(ModifierStatsEquipeSchema),
-    defaultValues: {
-      resultatMatch: statsEquipe.resultatMatch,
-      butsMarques: statsEquipe.butsMarques,
-      butsEncaisses: statsEquipe.butsEncaisses,
-      cleanSheet: statsEquipe.cleanSheet,
-      domicile: statsEquipe.domicile,
-      competition: statsEquipe.competition,
-      tirsTotal: statsEquipe.tirsTotal ?? undefined,
-      tirsCadres: statsEquipe.tirsCadres ?? undefined,
+  const defaultValues: SchemaModificationStatsEquipe = {
+    resultatMatch: statsEquipe.resultatMatch,
+    butsMarques: statsEquipe.butsMarques,
+    butsEncaisses: statsEquipe.butsEncaisses,
+    cleanSheet: statsEquipe.cleanSheet,
+    domicile: statsEquipe.domicile,
+    competition: statsEquipe.competition,
+    tirsTotal: statsEquipe.tirsTotal ?? undefined,
+    tirsCadres: statsEquipe.tirsCadres ?? undefined,
+  };
+
+  const form = useForm({
+    defaultValues,
+    validationLogic: revalidateLogic(),
+    validators: {
+      onDynamic: ModifierStatsEquipeSchema,
+    },
+    onSubmit: ({ value }) => {
+      const data = ModifierStatsEquipeSchema.parse(value);
+      mutate(
+        {
+          eventId: eventid,
+          statsEquipeId: statsEquipe.id,
+          data,
+        },
+        {
+          onSuccess: () => {
+            setOpen(false);
+            form.reset();
+          },
+        }
+      );
     },
   });
-
-  const onSubmit = (data: SchemaModificationStatsEquipe) => {
-    mutate(
-      {
-        eventId: eventid,
-        statsEquipeId: statsEquipe.id,
-        data,
-      },
-      {
-        onSuccess: () => {
-          setOpen(false);
-          reset();
-        },
-      }
-    );
-  };
 
   return (
    <Dialog
@@ -88,7 +89,7 @@ export function BoutonModifierStatsEquipe({ eventid, statsEquipe }: Props) {
   onOpenChange={(isOpen) => {
     setOpen(isOpen);
     if (isOpen) {
-      reset({
+      form.reset({
         resultatMatch: statsEquipe.resultatMatch,
         butsMarques: statsEquipe.butsMarques,
         butsEncaisses: statsEquipe.butsEncaisses,
@@ -117,143 +118,200 @@ export function BoutonModifierStatsEquipe({ eventid, statsEquipe }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            form.handleSubmit();
+          }}
+          className="space-y-4"
+        >
 
-          <div>
-            <Label htmlFor="resultatMatch">Résultat du match *</Label>
-            <Select
-              onValueChange={(value) =>
-                setValue("resultatMatch", value as SchemaModificationStatsEquipe["resultatMatch"])
-              }
-              value={watch("resultatMatch")}
-            >
-              <SelectTrigger
-                id="resultatMatch"
-                className={errors.resultatMatch ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Sélectionnez un résultat" />
-              </SelectTrigger>
-              <SelectContent>
-                {enumsResultat.map((resultat) => (
-                  <SelectItem key={resultat} value={resultat}>
-                    {resultat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.resultatMatch && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.resultatMatch.message}
-              </p>
+          <form.Field name="resultatMatch">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="resultatMatch">Résultat du match *</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      field.handleChange(value as SchemaModificationStatsEquipe["resultatMatch"])
+                    }
+                    value={field.state.value}
+                  >
+                    <SelectTrigger
+                      id="resultatMatch"
+                      className={error ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Sélectionnez un résultat" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {enumsResultat.map((resultat) => (
+                        <SelectItem key={resultat} value={resultat}>
+                          {resultat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="butsMarques">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="butsMarques">Buts marqués *</Label>
+                  <Input
+                    id="butsMarques"
+                    type="number"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="butsEncaisses">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="butsEncaisses">Buts encaissés *</Label>
+                  <Input
+                    id="butsEncaisses"
+                    type="number"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
+
+          <form.Field name="cleanSheet">
+            {(field) => (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="cleanSheet"
+                  checked={field.state.value}
+                  onCheckedChange={(checked) => field.handleChange(!!checked)}
+                />
+                <Label htmlFor="cleanSheet">Clean sheet</Label>
+              </div>
             )}
-          </div>
+          </form.Field>
 
-          <div>
-            <Label htmlFor="butsMarques">Buts marqués *</Label>
-            <Input
-              id="butsMarques"
-              type="number"
-              {...register("butsMarques", { valueAsNumber: true })}
-              className={errors.butsMarques ? "border-red-500" : ""}
-            />
-            {errors.butsMarques && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.butsMarques.message}
-              </p>
+          <form.Field name="domicile">
+            {(field) => (
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="domicile"
+                  checked={field.state.value}
+                  onCheckedChange={(checked) => field.handleChange(!!checked)}
+                />
+                <Label htmlFor="domicile">Match à domicile</Label>
+              </div>
             )}
-          </div>
+          </form.Field>
 
-          <div>
-            <Label htmlFor="butsEncaisses">Buts encaissés *</Label>
-            <Input
-              id="butsEncaisses"
-              type="number"
-              {...register("butsEncaisses", { valueAsNumber: true })}
-              className={errors.butsEncaisses ? "border-red-500" : ""}
-            />
-            {errors.butsEncaisses && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.butsEncaisses.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="tirsTotal">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="tirsTotal">Tirs totaux</Label>
+                  <Input
+                    id="tirsTotal"
+                    type="number"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="cleanSheet"
-              checked={watch("cleanSheet")}
-              onCheckedChange={(checked) => setValue("cleanSheet", !!checked)}
-            />
-            <Label htmlFor="cleanSheet">Clean sheet</Label>
-          </div>
+          <form.Field name="tirsCadres">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="tirsCadres">Tirs cadrés</Label>
+                  <Input
+                    id="tirsCadres"
+                    type="number"
+                    name={field.name}
+                    value={numberInputValue(field.state.value)}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.valueAsNumber)}
+                    className={error ? "border-red-500" : ""}
+                  />
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="domicile"
-              checked={watch("domicile")}
-              onCheckedChange={(checked) => setValue("domicile", !!checked)}
-            />
-            <Label htmlFor="domicile">Match à domicile</Label>
-          </div>
-
-          <div>
-            <Label htmlFor="tirsTotal">Tirs totaux</Label>
-            <Input
-              id="tirsTotal"
-              type="number"
-              {...register("tirsTotal", { valueAsNumber: true })}
-              className={errors.tirsTotal ? "border-red-500" : ""}
-            />
-            {errors.tirsTotal && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.tirsTotal.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="tirsCadres">Tirs cadrés</Label>
-            <Input
-              id="tirsCadres"
-              type="number"
-              {...register("tirsCadres", { valueAsNumber: true })}
-              className={errors.tirsCadres ? "border-red-500" : ""}
-            />
-            {errors.tirsCadres && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.tirsCadres.message}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="competition">Compétition *</Label>
-            <Select
-              onValueChange={(value) =>
-                setValue("competition", value as SchemaModificationStatsEquipe["competition"])
-              }
-              value={watch("competition")}
-            >
-              <SelectTrigger
-                id="competition"
-                className={errors.competition ? "border-red-500" : ""}
-              >
-                <SelectValue placeholder="Sélectionnez une compétition" />
-              </SelectTrigger>
-              <SelectContent>
-                {enumsCompetition.map((competition) => (
-                  <SelectItem key={competition} value={competition}>
-                    {competition}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.competition && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.competition.message}
-              </p>
-            )}
-          </div>
+          <form.Field name="competition">
+            {(field) => {
+              const error = field.state.meta.errors[0]?.message;
+              return (
+                <div>
+                  <Label htmlFor="competition">Compétition *</Label>
+                  <Select
+                    onValueChange={(value) =>
+                      field.handleChange(value as SchemaModificationStatsEquipe["competition"])
+                    }
+                    value={field.state.value}
+                  >
+                    <SelectTrigger
+                      id="competition"
+                      className={error ? "border-red-500" : ""}
+                    >
+                      <SelectValue placeholder="Sélectionnez une compétition" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {enumsCompetition.map((competition) => (
+                        <SelectItem key={competition} value={competition}>
+                          {competition}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {error && (
+                    <p className="text-red-500 text-sm mt-1">{error}</p>
+                  )}
+                </div>
+              );
+            }}
+          </form.Field>
 
           <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
             <DialogClose asChild>

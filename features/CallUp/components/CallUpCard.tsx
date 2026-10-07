@@ -14,12 +14,10 @@ import {
   Ban,
 } from "lucide-react";
 import { useGetCallUp } from "../hooks/UseGetCallUp";
-import dayjs from "dayjs";
-import "dayjs/locale/fr";
+import { differenceInMilliseconds, format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { useCallUpResponseByPlayer } from "../hooks/UseCallUpResponseByPlayer";
 import { useState } from "react";
-
-dayjs.locale("fr");
 
 function CallUpCard() {
   const { data, isPending } = useGetCallUp();
@@ -67,11 +65,11 @@ function CallUpCard() {
   return (
     <>
       {data.convocations.map((convocation) => {
-        const date = dayjs(convocation.evenement.dateDebut).format("dddd D MMMM");
-        const heure = dayjs(convocation.evenement.dateDebut).format("HH:mm");
-        const eventDate = dayjs(convocation.evenement.dateDebut);
-        const now = dayjs();
-        const hoursUntilEvent = eventDate.diff(now, "hour", true);
+        const eventDate = convocation.evenement.dateDebut;
+        const date = format(eventDate, "EEEE d MMMM", { locale: fr });
+        const heure = format(eventDate, "HH:mm");
+        const hoursUntilEvent =
+          differenceInMilliseconds(eventDate, new Date()) / (1000 * 60 * 60);
         
         const isExpired = convocation.statut === "EN_ATTENTE" && hoursUntilEvent < 3;
         const isUrgent = hoursUntilEvent < 24 && hoursUntilEvent >= 3;
@@ -232,7 +230,7 @@ function CallUpCard() {
                   </Button>
                   {convocation.dateReponse && (
                     <p className="text-xs text-gray-500 text-center">
-                      Confirmé le {dayjs(convocation.dateReponse).format("DD/MM à HH:mm")}
+                      Confirmé le {format(convocation.dateReponse, "dd/MM 'à' HH:mm")}
                     </p>
                   )}
                 </div>
@@ -249,7 +247,7 @@ function CallUpCard() {
                   </Button>
                   {convocation.dateReponse && (
                     <p className="text-xs text-gray-500 text-center">
-                      Refusé le {dayjs(convocation.dateReponse).format("DD/MM à HH:mm")}
+                      Refusé le {format(convocation.dateReponse, "dd/MM 'à' HH:mm")}
                     </p>
                   )}
                 </div>

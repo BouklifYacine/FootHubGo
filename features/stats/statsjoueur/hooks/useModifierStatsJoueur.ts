@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { EvenementComplet } from "@/features/evenements/types/TypesEvenements";
 import { modifierStatsJoueurAction } from "../actions/ModifierStatsJoueurAction";
 import { TypeModifierStatsJoueurSchema } from "../schema/ModifierStatsJoueurSchema";

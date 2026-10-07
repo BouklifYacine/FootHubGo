@@ -1,14 +1,11 @@
 import React from "react";
 import { ApiAccueil } from "../interfaces/InterfaceApiAccueil";
-import dayjs from "dayjs";
-import "dayjs/locale/fr";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, MapPin, Timer, CalendarX } from "lucide-react";
 import LogoVS from "@/public/pngtree-fiery-vs-logo-battle-symbol-competition-icon-flame-clipart-png-image_15705733.png";
 import Image from "next/image";
 import LogoLiverpool from "@/public/Logo_FC_Liverpool.svg.png";
-
-dayjs.locale("fr");
 
 interface Props {
   data: ApiAccueil | undefined;
@@ -60,13 +57,13 @@ function NextEventsClub({ data, TeamName }: Props) {
       <div className="flex items-center justify-center gap-2 mt-2.5">
         <p className="flex items-center gap-1 text-xs md:text-lg lg:text-sm">
           <Calendar size={18} />
-          {dayjs(FirstUpcomingMatch.dateDebut).format("DD/MM/YYYY")}
+          {format(FirstUpcomingMatch.dateDebut, "dd/MM/yyyy")}
         </p>
         <p>|</p>
         <p className="flex items-center gap-1 text-xs md:text-lg lg:text-sm">
           <Timer size={18} />
-          {dayjs(FirstUpcomingMatch.dateDebut).format("H")}h
-          {dayjs(FirstUpcomingMatch.dateDebut).format("mm")}
+          {format(FirstUpcomingMatch.dateDebut, "H")}h
+          {format(FirstUpcomingMatch.dateDebut, "mm")}
         </p>
       </div>
 

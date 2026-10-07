@@ -110,7 +110,7 @@ function BoutonModifierClub({
             validators={{
               onChange: ({ value }) => {
                 const result = SchemaModifierInfosClub.shape.nom.safeParse(value);
-                return result.success ? undefined : result.error.errors[0].message;
+                return result.success ? undefined : result.error.issues[0].message;
               },
             }}
           >
@@ -141,7 +141,7 @@ function BoutonModifierClub({
             validators={{
               onChange: ({ value }) => {
                 const result = SchemaModifierInfosClub.shape.niveau.safeParse(value);
-                return result.success ? undefined : result.error.errors[0].message;
+                return result.success ? undefined : result.error.issues[0].message;
               },
             }}
           >
@@ -186,7 +186,7 @@ function BoutonModifierClub({
                 const result = SchemaModifierInfosClub.shape.description.safeParse(
                   value
                 );
-                return result.success ? undefined : result.error.errors[0].message;
+                return result.success ? undefined : result.error.issues[0].message;
               },
             }}
           >

@@ -19,18 +19,16 @@ export function SectionPseudo({ userId: identifiantUtilisateur }: PropsSectionPs
     estEnEdition,
     etapeActuelle,
     necessiteVerificationMotDePasse,
-    
+
     formulaireVerification,
     formulaireChangement,
-    
+
     mutationVerifierMotDePasse,
     mutationChangerPseudo,
-    
+
     // Actions
     commencerEdition,
     annulerModification,
-    soumettreVerification,
-    soumettreChangement
   } = useSectionPseudo(identifiantUtilisateur)
 
   // Vue par défaut (non en édition)
@@ -52,25 +50,36 @@ export function SectionPseudo({ userId: identifiantUtilisateur }: PropsSectionPs
   if (necessiteVerificationMotDePasse && etapeActuelle === 'verification') {
     return (
       <Card className="p-6">
-        <form 
-          onSubmit={formulaireVerification.handleSubmit(soumettreVerification)} 
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            e.stopPropagation()
+            formulaireVerification.handleSubmit()
+          }}
           className="space-y-4"
         >
-          <div className="space-y-2">
-            <Label htmlFor="motdepasse">Mot de passe actuel</Label>
-            <InputPassword
-              {...formulaireVerification.register('motdepasse')}
-            />
-            {formulaireVerification.formState.errors.motdepasse && (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  {formulaireVerification.formState.errors.motdepasse.message}
-                </AlertDescription>
-              </Alert>
+          <formulaireVerification.Field name="motdepasse">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="motdepasse">Mot de passe actuel</Label>
+                <InputPassword
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      {field.state.meta.errors[0]?.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             )}
-          </div>
+          </formulaireVerification.Field>
           <div className="flex gap-2">
-            <Button 
+            <Button
               type="submit"
               disabled={mutationVerifierMotDePasse.isPending}
             >
@@ -88,47 +97,65 @@ export function SectionPseudo({ userId: identifiantUtilisateur }: PropsSectionPs
   // Vue de changement du pseudo
   return (
     <Card className="p-6">
-      <form 
-        onSubmit={formulaireChangement.handleSubmit(soumettreChangement)} 
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          formulaireChangement.handleSubmit()
+        }}
         className="space-y-4"
       >
-        <div className="space-y-2">
-          <Label htmlFor="pseudo">Nouveau pseudo</Label>
-          <Input
-            id="pseudo"
-            {...formulaireChangement.register('pseudo')}
-            placeholder="Entrez votre nouveau pseudo"
-          />
-          {formulaireChangement.formState.errors.pseudo && (
-            <Alert variant="destructive">
-              <AlertDescription>
-                {formulaireChangement.formState.errors.pseudo.message}
-              </AlertDescription>
-            </Alert>
+        <formulaireChangement.Field name="pseudo">
+          {(field) => (
+            <div className="space-y-2">
+              <Label htmlFor="pseudo">Nouveau pseudo</Label>
+              <Input
+                id="pseudo"
+                name={field.name}
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Entrez votre nouveau pseudo"
+              />
+              {field.state.meta.errors.length > 0 && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    {field.state.meta.errors[0]?.message}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
           )}
-        </div>
+        </formulaireChangement.Field>
 
         {necessiteVerificationMotDePasse && (
-          <div className="space-y-2">
-            <Label htmlFor="codeverification">Code de vérification</Label>
-            <Input
-              id="codeverification"
-              {...formulaireChangement.register('codeverification')}
-              placeholder="Entrez le code reçu par email"
-              maxLength={6}
-            />
-            {formulaireChangement.formState.errors.codeverification && (
-              <Alert variant="destructive">
-                <AlertDescription>
-                  {formulaireChangement.formState.errors.codeverification.message}
-                </AlertDescription>
-              </Alert>
+          <formulaireChangement.Field name="codeverification">
+            {(field) => (
+              <div className="space-y-2">
+                <Label htmlFor="codeverification">Code de vérification</Label>
+                <Input
+                  id="codeverification"
+                  name={field.name}
+                  value={field.state.value}
+                  onBlur={field.handleBlur}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Entrez le code reçu par email"
+                  maxLength={6}
+                />
+                {field.state.meta.errors.length > 0 && (
+                  <Alert variant="destructive">
+                    <AlertDescription>
+                      {field.state.meta.errors[0]?.message}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
             )}
-          </div>
+          </formulaireChangement.Field>
         )}
 
         <div className="flex gap-2">
-          <Button 
+          <Button
             type="submit"
             disabled={mutationChangerPseudo.isPending}
           >

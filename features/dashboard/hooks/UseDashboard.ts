@@ -4,9 +4,9 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import axios from "axios";
+import ky from "ky";
 import { deleteUsers } from "../actions/SupprimerUtilisateur.action";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { ModifierRole } from "@/features/dashboard/actions/ModifierRoleAction";
 
 export interface StatsResponse {
@@ -41,7 +41,7 @@ export interface User {
   plan: "free" | "pro";
   createdAt: Date;
   abonnement?: {
-    periode: "mois" | "année";
+    periode: "mois" | "annee";
     datedebut: Date;
     datefin: Date;
   } | null;
@@ -59,8 +59,7 @@ export function useStats() {
   return useQuery<StatsResponse>({
     queryKey: ["stats"],
     queryFn: async () => {
-      const { data } = await axios.get<StatsResponse>("/api/dashboard/revenudetail");
-      return data;
+      return ky.get("/api/dashboard/revenudetail").json<StatsResponse>();
     },
     retry: 2,
     staleTime: 1000 * 60 * 5,
@@ -71,10 +70,9 @@ export function useUtilisateurs(page: number) {
   return useQuery<UtilisateurReponse>({
     queryKey: ["utilisateurs", page],
     queryFn: async () => {
-      const { data } = await axios.get<UtilisateurReponse>(
-        `/api/dashboard/totalutilisateur?page=${page}`
-      );
-      return data;
+      return ky
+        .get(`/api/dashboard/totalutilisateur?page=${page}`)
+        .json<UtilisateurReponse>();
     },
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60 * 5,

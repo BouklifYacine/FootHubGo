@@ -1,5 +1,5 @@
 
-import { Text } from "@react-email/components";
+import { Text } from "react-email";
 import * as React from "react";
 import { BaseEmailLayout } from "./TemplateMail";
 

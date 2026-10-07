@@ -21,22 +21,22 @@ export const enumsPoste = [
 export const AjouterStatsJoueurSchema = z.object({
   poste: z.enum(enumsPoste),
   buts: z.coerce
-    .number()
+    .number<string | number>()
     .min(0, "Rentrez le nombre de buts")
     .max(99, "Maximum 99 buts"),
   passesdecisive: z.coerce
-    .number()
+    .number<string | number>()
     .min(0, "Rentrez le nombre de passes décisives")
     .max(99, "Maximum 99 passes décisives"),
   minutesJouees: z.coerce
-    .number()
+    .number<string | number>()
     .min(0, "Rentrez le nombre de minutes jouées")
     .max(90, "Maximum 90 minutes"),
   note: z.coerce
-    .number()
+    .number<string | number>()
     .min(0, "Rentrez une note de match")
     .max(10, "Maximum 10 de note"),
-  titulaire: z.coerce.boolean(),
+  titulaire: z.coerce.boolean<boolean>(),
 });
 
 export type schemaAjouterStatsJoueurSchema = z.infer<

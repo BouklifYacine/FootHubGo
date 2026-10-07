@@ -1,6 +1,6 @@
 import ky from "ky";
 import type { CreateInjuryTypeAPI } from "../types/CreateInjuries.types";
-import { Blessure } from "@prisma/client";
+import { Blessure } from "@/generated/prisma/browser";
 
 type SingleInjuryResponse = {
   injury: Blessure;
