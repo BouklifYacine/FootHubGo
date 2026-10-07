@@ -1,6 +1,7 @@
 import { prisma } from "@/prisma";
 import { findMembership } from "@/lib/auth/session";
-import { canManageSection, sectionDisplayName } from "@/features/clubs/rules";
+import { canManageSection, isClubAdmin, sectionDisplayName } from "@/features/clubs/rules";
+import { CALL_UP_RULES } from "@/features/call-ups/server/rules";
 import { sectionEventsWhere } from "@/features/events/server/queries";
 
 const LEADERBOARD_SIZE = 5;
@@ -123,4 +124,37 @@ export async function getHomeData(userId: string) {
     topScorers: withPlayer(topScorers.map((row) => ({ userId: row.userId, value: row._sum.goals }))),
     topAssists: withPlayer(topAssists.map((row) => ({ userId: row.userId, value: row._sum.assists }))),
   };
+}
+
+/**
+ * Counters of the navigation badges (bottom tabs / sidebar), cheap counts only:
+ * call-ups still waiting for the user's answer, join requests waiting for the user's review.
+ */
+export async function getNavBadges(userId: string) {
+  const membership = await findMembership(userId);
+  if (!membership) return { callUps: 0, joinRequests: 0 };
+
+  const answerableAfter = new Date(Date.now() + CALL_UP_RULES.replyMinHours * 3_600_000);
+  const coached = membership.sections.filter((section) => section.role === "COACH").map((section) => section.teamId);
+  const reviewsAll = isClubAdmin(membership.clubRole);
+
+  const [callUps, joinRequests] = await Promise.all([
+    prisma.callUp.count({
+      where: {
+        userId,
+        status: "PENDING",
+        event: { startDate: { gt: answerableAfter }, teamId: { in: membership.sections.map((section) => section.teamId) } },
+      },
+    }),
+    reviewsAll || coached.length > 0
+      ? prisma.joinRequest.count({
+          where: {
+            status: "PENDING",
+            team: { clubId: membership.clubId },
+            ...(reviewsAll ? {} : { teamId: { in: coached } }),
+          },
+        })
+      : 0,
+  ]);
+  return { callUps, joinRequests };
 }

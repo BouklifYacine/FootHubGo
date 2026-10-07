@@ -32,7 +32,7 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
         </>
       )}
       <Button asChild variant="outline">
-        <Link href="/settings">Gérer mes notifications</Link>
+        <Link href="/app/settings">Gérer mes notifications</Link>
       </Button>
     </main>
   );

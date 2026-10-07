@@ -14,6 +14,10 @@ export const queryKeys = {
     joinRequests: ["me", "join-requests"] as const,
     callUps: ["me", "call-ups"] as const,
     attendances: ["me", "attendances"] as const,
+    /** Navigation badges (call-ups to answer, join requests to review). */
+    badges: ["me", "badges"] as const,
+    /** Onboarding tours already seen. */
+    tours: ["me", "tours"] as const,
   },
 
   /** Club directory (clubs and their sections). */

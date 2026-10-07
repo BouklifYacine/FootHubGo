@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronsUpDown, LogOut, Settings, Table } from "lucide-react";
+import { ChevronsUpDown, GraduationCap, LogOut, Settings, Table } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -13,11 +13,13 @@ import {
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
 import { signOutAndRedirect } from "@/lib/auth-client";
 import { useProfile } from "@/features/settings/hooks/use-profile";
+import { useReplayTour } from "@/features/onboarding/hooks/use-tours";
 
-/** Signed-in user at the bottom of the sidebar: settings, admin and sign-out. */
+/** Signed-in user at the bottom of the sidebar: settings, tutorial, admin and sign-out. */
 export function NavUser() {
-  const { isMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
   const { data: profile } = useProfile();
+  const replayTour = useReplayTour();
   const name = profile?.name ?? "";
 
   const identity = (
@@ -28,7 +30,7 @@ export function NavUser() {
       </Avatar>
       <div className="grid flex-1 text-left text-sm leading-tight">
         <span className="truncate font-medium">{name}</span>
-        <span className="truncate text-xs">{profile?.email}</span>
+        <span className="truncate text-xs text-muted-foreground">{profile?.email}</span>
       </div>
     </>
   );
@@ -55,9 +57,12 @@ export function NavUser() {
             <div className="flex items-center gap-2 px-1 py-1.5">{identity}</div>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/settings">
+              <Link href="/app/settings" onClick={() => setOpenMobile(false)}>
                 <Settings /> Paramètres
               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem data-tour="tour-replay" onClick={() => replayTour()}>
+              <GraduationCap /> Revoir le tutoriel
             </DropdownMenuItem>
             {profile?.role === "ADMIN" && (
               <DropdownMenuItem asChild>
@@ -68,7 +73,7 @@ export function NavUser() {
             )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOutAndRedirect()}>
-              <LogOut /> Déconnexion
+              <LogOut /> Se déconnecter
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

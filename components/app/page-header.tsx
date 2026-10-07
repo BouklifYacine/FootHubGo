@@ -15,7 +15,14 @@ type Props = {
  */
 export function PageHeader({ title, description, actions, className }: Props) {
   return (
-    <header className={cn("flex flex-col gap-3 md:flex-row md:items-end md:justify-between", className)}>
+    <header
+      className={cn(
+        "flex flex-col gap-3 md:flex-row md:items-end md:justify-between",
+        // Nothing visible under md (the top bar shows the title): no empty gap either.
+        !description && !actions && "max-md:sr-only",
+        className,
+      )}
+    >
       <div className="min-w-0 space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight max-md:sr-only">{title}</h1>
         {description && <p className="text-sm text-muted-foreground">{description}</p>}

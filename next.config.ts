@@ -23,17 +23,22 @@ const nextConfig: NextConfig = {
         ["/connexion/motdepasseoublie/:path*", "/forgot-password/:path*"],
         ["/connexion", "/sign-in"],
         ["/inscription", "/sign-up"],
-        ["/parametres/:path*", "/settings"],
+        ["/parametres/:path*", "/app/settings"],
         // Settings always use the session user: the old per-user URL is dropped.
-        ["/settings/:id", "/settings"],
+        ["/settings/:id", "/app/settings"],
         ["/app/blessures", "/app/injuries"],
         ["/app/calendrier", "/app/calendar"],
         ["/app/convocations", "/app/call-ups"],
         ["/app/effectif", "/app/squad"],
         ["/app/evenements/:path*", "/app/events/:path*"],
         ["/app/statistiques", "/app/stats"],
-        ["/app/transfert", "/app/transfers"],
+        ["/app/transfert", "/app/join-requests"],
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
+      // Lot 3 (UX): settings moved inside the app shell, "Transfert" renamed.
+      ...[
+        ["/settings", "/app/settings"],
+        ["/app/transfers", "/app/join-requests"],
+      ].map(([source, destination]) => ({ source, destination, permanent: false })),
     ];
   },
   // Only the hosts of real avatars: the image optimizer must not proxy arbitrary sites.

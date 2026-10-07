@@ -26,8 +26,8 @@ export function NotificationBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button aria-label="Ouvrir les notifications" className="relative" size="icon" variant="outline">
-          <BellIcon aria-hidden="true" size={16} />
+        <Button aria-label="Ouvrir les notifications" className="relative" size="icon" variant="ghost" data-tour="notification-bell">
+          <BellIcon aria-hidden="true" className="size-5" />
           {unreadCount > 0 && (
             <Badge className="-top-2 -translate-x-1/2 absolute left-full min-w-5 h-5 flex items-center justify-center px-1.5">
               {unreadCount > 99 ? "99+" : unreadCount}
