@@ -1,0 +1,75 @@
+# CI: every push on main and every pull request must pass these checks before merging.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Typecheck, lint, tests, migrations, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    # Throwaway PostgreSQL: proves every migration applies on an empty database.
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: foothubgo
+          POSTGRES_PASSWORD: foothubgo
+          POSTGRES_DB: foothubgo
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U foothubgo"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://foothubgo:foothubgo@localhost:5432/foothubgo
+      DIRECT_URL: postgresql://foothubgo:foothubgo@localhost:5432/foothubgo
+      NEXT_TELEMETRY_DISABLED: 1
+      # Placeholder values: the build only needs the variables to exist (no real secret in CI).
+      BETTER_AUTH_SECRET: ci-placeholder-secret-not-used-in-production
+      BETTER_AUTH_URL: http://localhost:3000
+      NEXT_PUBLIC_URL: http://localhost:3000
+      RESEND_API_KEY: re_ci_placeholder
+      RESEND_FROM_EMAIL: ci@example.com
+      AWS_ACCESS_KEY_ID: ci
+      AWS_SECRET_ACCESS_KEY: ci
+      AWS_REGION: eu-west-3
+      AWS_ENDPOINT_URL_S3: http://localhost:9000
+      S3_BUCKET_NAME: ci
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      STRIPE_WEBHOOK_SECRET: whsec_ci_placeholder
+      STRIPE_YEARLY_PRICE_ID: price_ci_placeholder
+      NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_URL: http://localhost:3000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14 # same version as the production Dockerfile
+
+      - name: Install dependencies (also generates the Prisma client)
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Apply migrations on an empty database
+        run: bun run db:deploy
+
+      - name: Build
+        run: bun run build

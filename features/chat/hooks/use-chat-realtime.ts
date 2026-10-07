@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSession } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query/keys";
@@ -8,7 +7,8 @@ import { useSocketEvent } from "@/lib/realtime/use-socket-event";
 import { insertMessage, setConversations, setMessages, updateConversation, updateMessages } from "../cache";
 
 /**
- * Applies every chat socket event to the query cache. Mount it ONCE (chat page).
+ * Applies every chat socket event to the query cache. Mounted ONCE by the app shell, so the unread
+ * badge of the sidebar stays live on every page.
  * Handlers go through `useSocketEvent`: they always see the latest session and never re-subscribe.
  */
 export function useChatRealtime() {
@@ -66,11 +66,5 @@ export function useChatRealtime() {
         participants: c.participants.map((p) => (p.id === userId ? { ...p, isOnline } : p)),
       })),
     ),
-  );
-
-  // Events are not received once the chat is closed: mark its cache stale for the next visit.
-  useEffect(
-    () => () => void queryClient.invalidateQueries({ queryKey: queryKeys.chat.all, refetchType: "none" }),
-    [queryClient],
   );
 }

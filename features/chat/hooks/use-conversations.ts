@@ -12,12 +12,24 @@ import type { ConversationDto } from "../types";
 
 const invalidate = [queryKeys.chat.conversations];
 
+const conversationsQuery = {
+  queryKey: queryKeys.chat.conversations,
+  queryFn: () => fetchJson<ConversationDto[]>("/api/chat/conversations"),
+};
+
 /** The user's conversations, kept live by `useChatRealtime`. */
 export function useConversations() {
-  return useQuery({
-    queryKey: queryKeys.chat.conversations,
-    queryFn: () => fetchJson<ConversationDto[]>("/api/chat/conversations"),
+  return useQuery(conversationsQuery);
+}
+
+/** Total of unread messages (sidebar badge). Shares the conversations cache with the chat page. */
+export function useUnreadMessagesCount(enabled: boolean) {
+  const { data = 0 } = useQuery({
+    ...conversationsQuery,
+    enabled,
+    select: (conversations) => conversations.reduce((total, c) => total + c.unreadCount, 0),
   });
+  return data;
 }
 
 /** Adds the conversation to the list right away so it can be opened before the refetch. */

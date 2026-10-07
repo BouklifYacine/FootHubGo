@@ -13,8 +13,8 @@ type Options<TInput, TData> = {
     update: (previous: unknown, input: TInput) => unknown;
   };
   onSuccess?: (data: TData, input: TInput) => void;
-  /** Show the action message in a toast (default: true). */
-  toast?: boolean;
+  /** Show the action message in a toast (default: true). "errors": only failures (silent success). */
+  toast?: boolean | "errors";
 };
 
 /**
@@ -48,7 +48,7 @@ export function useActionMutation<TInput, TData>(
       if (showToast) toast.error(error.message || "Une erreur est survenue");
     },
     onSuccess: (result, input) => {
-      if (showToast) toast.success(result.message);
+      if (showToast === true) toast.success(result.message);
       onSuccess?.(result.data, input);
     },
     onSettled: () =>

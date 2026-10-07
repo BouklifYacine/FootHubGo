@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import next from "next";
+import { startJobs } from "@/server/jobs";
 import { attachRealtime } from "@/server/realtime";
 
 /**
@@ -14,6 +15,7 @@ const handler = app.getRequestHandler();
 app.prepare().then(() => {
   const httpServer = createServer(handler);
   const io = attachRealtime(httpServer);
+  const stopJobs = startJobs();
 
   httpServer.listen(port, () => {
     console.log(`> Ready on http://localhost:${port}`);
@@ -21,6 +23,7 @@ app.prepare().then(() => {
 
   const shutdown = (signal: string) => {
     console.log(`> ${signal} received, shutting down`);
+    stopJobs();
     // io.close() also closes the underlying HTTP server.
     io.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 10_000).unref();

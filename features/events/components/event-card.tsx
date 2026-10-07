@@ -45,7 +45,7 @@ export function EventCard({ event, isCoach, listKey }: Props) {
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
                   disabled={deleteEvent.isPending}
-                  onClick={() => deleteEvent.mutate(event.id)}
+                  onClick={() => deleteEvent.mutate({ eventId: event.id })}
                 >
                   Supprimer
                 </DropdownMenuItem>

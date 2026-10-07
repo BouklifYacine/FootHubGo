@@ -54,6 +54,10 @@ export const queryKeys = {
     all: ["notifications"] as const,
   },
 
+  polls: {
+    all: ["polls"] as const,
+  },
+
   admin: {
     all: ["admin"] as const,
     users: (filters: Record<string, unknown>) => ["admin", "users", filters] as const,

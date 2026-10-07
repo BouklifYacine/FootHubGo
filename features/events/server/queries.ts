@@ -26,6 +26,7 @@ export async function listEvents(teamId: string, userId: string, { from, to, typ
       type: true,
       startDate: true,
       opponent: true,
+      seriesId: true,
       teamStat: { select: { id: true } },
       attendances: { where: { userId }, select: { status: true } },
     },

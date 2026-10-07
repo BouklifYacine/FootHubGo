@@ -60,6 +60,11 @@ export function EventHeader({ event }: { event: EventDetail }) {
           <House className="size-4" /> {event.location || "Lieu non indiqué"}
         </span>
       </div>
+      {event.description && (
+        <p className="mx-auto mt-4 max-w-2xl whitespace-pre-line text-center text-sm text-muted-foreground">
+          {event.description}
+        </p>
+      )}
     </div>
   );
 }

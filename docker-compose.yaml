@@ -3,7 +3,7 @@
 services:
   db:
     container_name: devgo-prod-db
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     restart: always
     env_file:
       - .env.production.local
@@ -12,7 +12,8 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_DB=${POSTGRES_DB:-devgo}
     volumes:
-      - db_data:/var/lib/postgresql/data
+      # PostgreSQL 18 image: the volume is mounted on the parent folder (data lives in /var/lib/postgresql/18)
+      - pg18_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-devgo}"]
       interval: 10s
@@ -38,4 +39,4 @@ services:
     #   - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-devgo}
 
 volumes:
-  db_data:
+  pg18_data:

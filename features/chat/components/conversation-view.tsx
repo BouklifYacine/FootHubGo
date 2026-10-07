@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -14,6 +14,7 @@ import {
 import { useTyping } from "../hooks/use-typing";
 import type { ConversationDto } from "../types";
 import { ChatAvatar } from "./chat-avatar";
+import { GroupSettingsDialog } from "./group-settings-dialog";
 import { MessageComposer } from "./message-composer";
 import { MessageList } from "./message-list";
 
@@ -27,6 +28,7 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
   const block = useSetUserBlocked();
   const leave = useLeaveGroup();
   const remove = useDeleteConversation();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const other = c.type === "PRIVATE" ? c.participants.find((p) => p.id !== myId) : undefined;
   const canDelete = c.type === "PRIVATE" || (c.type === "GROUP" && c.myRole === "ADMIN");
 
@@ -61,6 +63,9 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {c.type === "GROUP" && (
+              <DropdownMenuItem onClick={() => setSettingsOpen(true)}>Paramètres du groupe</DropdownMenuItem>
+            )}
             {c.type !== "TEAM" && (
               <DropdownMenuItem onClick={() => pin.mutate({ conversationId: c.id, pinned: !c.isPinned })}>
                 {c.isPinned ? "Désépingler" : "Épingler"}
@@ -89,6 +94,9 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
         </DropdownMenu>
       </header>
 
+      {c.type === "GROUP" && (
+        <GroupSettingsDialog conversation={c} myId={myId} onOpenChange={setSettingsOpen} open={settingsOpen} />
+      )}
       <MessageList conversationId={c.id} myId={myId} showSenders={c.type !== "PRIVATE"} typingNames={typingNames} />
       <MessageComposer conversationId={c.id} disabledReason={disabledReason} onTyping={notifyTyping} />
     </section>

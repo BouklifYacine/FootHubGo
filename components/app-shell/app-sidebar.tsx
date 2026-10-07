@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
   MessageCircle,
   UsersRound,
+  Vote,
   type LucideIcon,
 } from "lucide-react";
 import {
@@ -24,11 +25,13 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
 import type { TeamRole } from "@/generated/prisma/browser";
+import { useUnreadMessagesCount } from "@/features/chat/hooks/use-conversations";
 import { useMyTeam } from "@/features/team/hooks/use-my-team";
 import { NavUser } from "./nav-user";
 
@@ -43,6 +46,7 @@ const appItems: NavItem[] = [
   { title: "Convocations", url: "/app/call-ups", icon: CalendarCheck, roles: ["PLAYER"] },
   { title: "Blessures", url: "/app/injuries", icon: Hospital, roles: ["COACH", "PLAYER"] },
   { title: "Calendrier", url: "/app/calendar", icon: CalendarDays, roles: ["COACH", "PLAYER"] },
+  { title: "Sondages", url: "/app/polls", icon: Vote, roles: ["COACH", "PLAYER"] },
   { title: "Messages", url: "/app/chat", icon: MessageCircle, roles: ["COACH", "PLAYER"] },
 ];
 
@@ -55,6 +59,7 @@ export function AppSidebar({ variant }: { variant: "app" | "admin" }) {
   const pathname = usePathname();
   const { data } = useMyTeam();
   const role = data?.role ?? "NO_CLUB";
+  const unreadMessages = useUnreadMessagesCount(variant === "app" && role !== "NO_CLUB");
 
   const items =
     variant === "admin" ? adminItems : appItems.filter((item) => !item.roles || item.roles.includes(role));
@@ -90,6 +95,11 @@ export function AppSidebar({ variant }: { variant: "app" | "admin" }) {
                     <span>{item.title}</span>
                   </Link>
                 </SidebarMenuButton>
+                {item.url === "/app/chat" && unreadMessages > 0 && (
+                  <SidebarMenuBadge aria-label={`${unreadMessages} messages non lus`}>
+                    {unreadMessages > 99 ? "99+" : unreadMessages}
+                  </SidebarMenuBadge>
+                )}
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
