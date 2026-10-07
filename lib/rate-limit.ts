@@ -22,6 +22,7 @@ export type RateLimiter = {
 type Window = { count: number; resetAt: number };
 
 const MAX_KEYS = 10_000;
+const SWEEP_TARGET = MAX_KEYS * 0.9;
 
 export function createRateLimiter({
   max,
@@ -41,12 +42,16 @@ export function createRateLimiter({
     return null;
   };
 
+  /**
+   * Runs only when the map is full. It frees 10% of the capacity at once (expired windows first,
+   * then the oldest keys: a Map iterates in insertion order), so a flood of distinct keys costs
+   * one full scan every ~1,000 new keys instead of one per request.
+   */
   const sweep = (time: number) => {
     if (windows.size < MAX_KEYS) return;
     for (const [key, window] of windows) if (window.resetAt <= time) windows.delete(key);
-    // Still full (a flood of distinct keys): drop the oldest entries rather than grow forever.
     for (const key of windows.keys()) {
-      if (windows.size < MAX_KEYS) break;
+      if (windows.size <= SWEEP_TARGET) break;
       windows.delete(key);
     }
   };
