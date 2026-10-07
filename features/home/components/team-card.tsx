@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { teamLevelLabels } from "@/lib/enum-labels";
 import { InitialsAvatar } from "@/features/team/components/initials-avatar";
 import type { HomeData } from "../types";
+import { formatInviteCode } from "@/features/team/invite-code";
 
 export function TeamCard({ team }: { team: HomeData["team"] }) {
   return (
@@ -21,7 +22,12 @@ export function TeamCard({ team }: { team: HomeData["team"] }) {
 
         <div className="mt-4 flex gap-10">
           <Counter value={team.memberCount} label="Membres" />
-          {team.inviteCode && <Counter value={team.inviteCode} label="Code d'invitation" />}
+          {team.inviteCode && (
+            <div className="flex flex-col items-center">
+              <p className="font-mono text-base font-bold md:text-xl">{formatInviteCode(team.inviteCode)}</p>
+              <p className="text-sm tracking-tighter md:text-lg">Code d&apos;invitation</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -58,7 +58,7 @@ model Team {
   description  String?
   logoUrl      String?
   createdAt    DateTime       @default(now()) @map("dateCreation")
-  inviteCode   String?        @map("codeInvitation")
+  inviteCode   String?        @unique @map("codeInvitation")
   visibility   TeamVisibility @default(PUBLIC) @map("statut")
   level        TeamLevel      @default(RECREATIONAL) @map("niveau")
   members      TeamMember[]

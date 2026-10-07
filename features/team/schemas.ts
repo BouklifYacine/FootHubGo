@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PlayerPosition, TeamLevel, TeamVisibility } from "@/generated/prisma/browser";
+import { isInviteCodeFormat, normalizeInviteCode } from "./invite-code";
 
 /** Used to create AND edit a team (same rules on both forms). */
 export const teamSchema = z.object({
@@ -22,7 +23,11 @@ export const teamSchema = z.object({
 export type TeamInput = z.infer<typeof teamSchema>;
 
 export const inviteCodeSchema = z.object({
-  inviteCode: z.string().regex(/^\d{6}$/, "Le code d'invitation contient 6 chiffres"),
+  inviteCode: z
+    .string()
+    .max(40)
+    .transform(normalizeInviteCode)
+    .refine(isInviteCodeFormat, "Le code d'invitation contient 12 caractères (ex. ABCD-EFGH-JKMN)"),
 });
 
 export const memberRoleSchema = z.object({
