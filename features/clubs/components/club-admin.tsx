@@ -162,7 +162,7 @@ function Billing({ data }: { data: ClubAdmin }) {
 
   return (
     <Panel title="Abonnement du club">
-      <p className="flex flex-wrap items-center gap-2 text-sm">
+      <div className="flex flex-wrap items-center gap-2 text-sm">
         <CreditCard className="size-4 text-muted-foreground" />
         <Badge>{club.plan === "pro" ? "Premium" : "Gratuit"}</Badge>
         {club.subscription && (
@@ -171,7 +171,7 @@ function Billing({ data }: { data: ClubAdmin }) {
             {format(club.subscription.endDate, "dd/MM/yyyy")}
           </span>
         )}
-      </p>
+      </div>
       {!data.canManageBilling ? (
         <p className="text-sm text-muted-foreground">L&apos;abonnement est géré par le propriétaire du club.</p>
       ) : club.plan === "pro" ? (
@@ -321,7 +321,7 @@ function MemberRow({ member, data }: { member: ClubAdminMember; data: ClubAdmin 
     <li className="flex items-center gap-3 py-3">
       <InitialsAvatar name={member.name} src={member.image} className="size-9 text-xs" />
       <div className="min-w-0 flex-1 space-y-1">
-        <p className="flex flex-wrap items-center gap-2 font-medium">
+        <div className="flex flex-wrap items-center gap-2 font-medium">
           <span className="truncate">{member.name}</span>
           {member.role !== "MEMBER" && (
             <Badge variant={member.role === "OWNER" ? "default" : "outline"}>
@@ -329,14 +329,14 @@ function MemberRow({ member, data }: { member: ClubAdminMember; data: ClubAdmin 
               {clubRoleLabels[member.role]}
             </Badge>
           )}
-        </p>
-        <p className="flex flex-wrap gap-1">
+        </div>
+        <div className="flex flex-wrap gap-1">
           {member.sections.map((section) => (
             <Badge key={section.teamId} variant="secondary" className="font-normal">
               {sectionName.get(section.teamId)} · {teamRoleLabels[section.role]}
             </Badge>
           ))}
-        </p>
+        </div>
       </div>
 
       {hasActions && (

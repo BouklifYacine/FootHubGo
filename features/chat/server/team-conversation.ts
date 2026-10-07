@@ -87,6 +87,9 @@ async function syncParticipants(
   return conversation.id;
 }
 
+/** "FC Test · Tout le club": tells the club channel apart from a section named like the club. */
+export const clubChannelName = (clubName: string) => `${clubName} · Tout le club`;
+
 async function upsertClubConversation(clubId: string, name: string) {
   const upsert = () =>
     prisma.conversation.upsert({
@@ -110,7 +113,7 @@ export async function ensureClubConversation(clubId: string): Promise<string> {
   });
   if (!club) throw notFound("Club introuvable");
 
-  const conversation = await upsertClubConversation(clubId, club.name);
+  const conversation = await upsertClubConversation(clubId, clubChannelName(club.name));
   return syncParticipants(conversation, new Map(club.members.map((m) => [m.userId, clubRoleFor(m.role)])));
 }
 

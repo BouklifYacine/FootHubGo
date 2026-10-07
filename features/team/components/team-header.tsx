@@ -61,7 +61,7 @@ export function TeamHeader({ data }: { data: MyTeam }) {
       )}
 
       <InitialsAvatar
-        name={team.name}
+        name={club?.name ?? team.name}
         src={team.logoUrl}
         className="size-[100px] text-2xl md:size-[140px]"
       />

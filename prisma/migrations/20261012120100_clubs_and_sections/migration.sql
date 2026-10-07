@@ -96,7 +96,7 @@ ALTER TABLE "conversation" ADD COLUMN "clubId" TEXT;
 
 -- Data: one club channel per club, with every club member (OWNER / ADMIN administer it).
 INSERT INTO "conversation" ("id", "type", "name", "createdAt", "updatedAt", "clubId")
-SELECT gen_random_uuid()::text, 'CLUB', "name", CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, "id" FROM "club";
+SELECT gen_random_uuid()::text, 'CLUB', "name" || ' · Tout le club', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, "id" FROM "club";
 
 INSERT INTO "conversation_participant" ("id", "userId", "conversationId", "role")
 SELECT
