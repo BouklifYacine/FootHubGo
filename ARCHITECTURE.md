@@ -22,7 +22,8 @@ but Next.js queues them one at a time, so reads go through cacheable, parallel `
 
 | File | Purpose |
 |---|---|
-| `lib/auth/session.ts` | `requireUser()`, `requireAdmin()`, `requireMember(teamId?)`, `requireCoach(teamId?)`, `findMembership(userId)`. They **throw** — never compare against an `undefined` user id. |
+| `lib/auth/session.ts` | `requireUser()`, `requireAdmin()`, `findMembership(userId)` (the **active section**, see below), `requireMember(teamId?)`, `requireCoach(teamId?)`, `requireSectionManager(teamId?)`, `requireClubRole(...roles)`, `requireClubPermission(permission)`. They **throw** — never compare against an `undefined` user id. |
+| `lib/auth/active-section.ts` | `setActiveSection(teamId)`: writes the active-section cookie (server actions only). |
 | `lib/errors.ts` | `AppError(message, status)` + `unauthorized()`, `forbidden()`, `notFound()`. Messages are shown to the user. |
 | `lib/api/route.ts` | `route(handler)` for GET handlers: awaits params, returns JSON, maps errors to `{ message }` + status. |
 | `lib/actions/action.ts` | `action(zodSchema, handler)` → resolves to `ActionResult` `{ success, message, data? }`, never throws. |
@@ -36,6 +37,50 @@ but Next.js queues them one at a time, so reads go through cacheable, parallel `
 | `lib/client-ip.ts` | `clientIpFrom(headers)`: the client IP resolved by `server.ts` (`TRUSTED_IP_HEADER`). |
 | `lib/signed-token.ts` | Purpose-bound HMAC tokens (unsubscribe links, hashed one-time codes). |
 | `lib/security-headers.ts` | CSP and other security headers set in `next.config.ts`. |
+
+## Clubs and sections
+
+```
+Club (club)                       name, logo, description, visibility, plan + Stripe customer (billing)
+ ├─ ClubMember (club_member)      club role OWNER | ADMIN | MEMBER — exactly one OWNER (partial unique index)
+ │   └─ TeamMember (MembreEquipe) section role COACH | PLAYER — composite FK (clubId, userId) -> club_member
+ ├─ Team = SECTION (equipe)       name ("Seniors A"), category SENIOR | VETERAN | LEISURE, level, invite code
+ │   └─ events, call-ups, attendances, stats, polls, injuries, join requests, section chat channel
+ ├─ Event with teamId = null      club-wide event, visible in every section
+ ├─ Conversation type CLUB        club chat channel (every club member)
+ └─ Subscription (clubId)         paid by the OWNER
+```
+
+- The Prisma model `Team` **is a section** (historical name and table kept to limit churn). Every former team
+  became a club with one section of the same id (migration `20261012120100_clubs_and_sections`).
+- **One club per user for now**: `club_member.userId` is unique (it also makes concurrent joins safe, audit L13).
+  A user can belong to **several sections** of their club (e.g. coach of "Vétérans", player of "Seniors A").
+  A club member always has at least one section: leaving / being removed from the last one leaves the club
+  (the OWNER must transfer ownership or delete the club first).
+- **Active section**: stored in the `fhg-section` cookie (httpOnly), switched with the section switcher
+  (`switchSection`). `findMembership()` checks the cookie against the user's memberships on **every** request
+  and falls back to their oldest section (`resolveActiveSection`), so a forged or stale cookie is harmless.
+  `membership.teamId` / `role` / `team` are the active section's; `membership.clubId`, `club`, `clubRole` and
+  `sections` (all the user's sections) come with it.
+- **Who can do what** is a pure, tested matrix in `features/clubs/rules.ts` (`CLUB_PERMISSIONS`,
+  `canManageSection`, `*Error` rules). Club-level actions (club info, sections, coach appointments, member
+  removal, club-wide events) need OWNER / ADMIN; club roles, ownership transfer, billing and club deletion need
+  the OWNER. Section-level actions (events, call-ups, stats, polls, invite code, join requests) need a coach of
+  the section **or** a club OWNER / ADMIN (`requireSectionManager`), except the existing coach-only screens
+  that still use `requireCoach` (call-ups, stats, polls, injuries of the active section).
+- Scoping: section data is filtered by `membership.teamId`; club data by `membership.clubId`; events of a
+  section are `sectionEventsWhere()` (its own + the club-wide ones). Never trust a section / member id from the
+  client: look it up inside the caller's club first.
+- **Club-wide events** (`teamId: null`): created / edited by OWNER / ADMIN (event form: "Tout le club" or a
+  section). No call-ups, no attendance, no stats; the reminder goes to every club member (information only).
+- **Chat**: one CLUB channel (OWNER / ADMIN are channel admins) + one TEAM channel per section, kept in sync by
+  `features/team/server/team-chat.ts` (`resyncClubChat`, `syncChatOnMemberJoined`, `syncChatOnClubLeft`…).
+  DMs and groups are between members of the same club.
+- **Billing**: the subscription belongs to the club and is paid by its OWNER (`startClubCheckout`, club id in the
+  Checkout metadata; webhook resolves the club by `stripeCustomerId`). Legacy per-user subscriptions of users who
+  owned no club at migration time stay on the user (`User.plan` / `User.clientId`, `Subscription.userId`) and are
+  still handled by the webhook. A transfer of ownership keeps the club's Stripe customer (the new owner updates
+  the payment method from the customer portal).
 
 ## Feature folder
 
@@ -65,7 +110,8 @@ export const deleteEvent = action(z.string(), async (eventId) => {
 });
 ```
 
-Always scope by the caller's team (`teamId: membership.teamId`): never trust an id coming from the client.
+Always scope by the caller's section (`teamId: membership.teamId`) or club (`clubId: membership.clubId`):
+never trust an id coming from the client.
 
 ## Writing a read
 
