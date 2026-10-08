@@ -270,7 +270,16 @@ update before doing the work). `DISABLE_JOBS=1` turns them off on an instance.
 
 - Unit tests sit next to the code (`*.test.ts`, `bun test`) and target pure functions
   (rules, recurrence, recipients). Keep business rules pure so they stay testable without a database.
-- `.github/workflows/ci.yml`: typecheck, lint, tests, migrations on an empty PostgreSQL, build — on every PR.
+- Database tests (`tests/db/*.db.ts`, `bun run test:db`) run the REAL guards, actions, Prisma queries and
+  routes on a throwaway PostgreSQL database (`foothubgo_test` by default, `TEST_DATABASE_URL` otherwise; its
+  name must end with `_test`: every test empties all tables). `scripts/test-db.ts` creates and migrates it,
+  then `tests/db/setup.ts` replaces only the edges: who is signed in (`signInAs(user)`, or `asUser(user, fn)`
+  for concurrent calls as different users), Next.js cookies / headers and outgoing emails. `bun test` never
+  picks them up (no `.test` in the name). What they cover: isolation between clubs (every id sent by a client),
+  club roles, concurrent requests (locks), Stripe webhook idempotency, match day. **A new action that takes an
+  id from the client gets a club-isolation test**: the v1.1.0 invite-code bug only showed with a database.
+- `.github/workflows/ci.yml`: typecheck, lint, unit tests, migrations on an empty PostgreSQL, database tests,
+  build — on every PR.
 - Local data: `bun run db:seed` (`scripts/seed.ts`) wipes and recreates demo accounts `*@foothub.test`
   (password `motdepasse123`). Never in production (it refuses `NODE_ENV=production`).
 - `.github/workflows/release.yml`: when `main` gets a `package.json` version without a release, it creates

@@ -29,6 +29,12 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 - Les journaux d'erreurs du chat, des tâches planifiées et du temps réel ne contiennent plus de données
   personnelles.
 
+### Ajouté
+
+- Tests sur une vraie base PostgreSQL (`bun run test:db`, lancés aussi par la CI) : séparation entre clubs,
+  rôles, requêtes simultanées, webhook Stripe et jour de match. Ils font tourner le vrai code (vérifications
+  d'accès, actions, requêtes) sur une base jetable `foothubgo_test`.
+
 ### Corrigé
 
 - Deux retraits simultanés ne peuvent plus laisser un club sans propriétaire, ni un membre sans aucune section.
@@ -42,6 +48,7 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 - Désabonnement des rappels par email : la page demande une confirmation (les antivirus de messagerie qui ouvrent
   les liens ne désabonnent plus personne).
 - Stripe :
+  - la signature des webhooks est vérifiée en asynchrone (fonctionne aussi sous Bun) ;
   - un paiement dont le traitement a été interrompu (redémarrage) est repris au prochain essai de Stripe ;
   - un club en retard de paiement garde Pro pendant que Stripe retente le prélèvement ;
   - la date de fin suit les renouvellements et l'annulation d'une résiliation ;

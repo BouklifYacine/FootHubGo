@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = getStripe().webhooks.constructEvent(
+    // Async: works with every crypto provider (Node, and Web Crypto under Bun / edge runtimes).
+    event = await getStripe().webhooks.constructEventAsync(
       await request.text(),
       signature,
       process.env.STRIPE_WEBHOOK_SECRET as string,

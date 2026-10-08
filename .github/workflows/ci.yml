@@ -71,5 +71,10 @@ jobs:
       - name: Apply migrations on an empty database
         run: bun run db:deploy
 
+      - name: Database tests (throwaway foothubgo_test database on the same server)
+        run: bun run test:db
+        env:
+          TEST_DATABASE_URL: postgresql://foothubgo:foothubgo@localhost:5432/foothubgo_test
+
       - name: Build
         run: bun run build
