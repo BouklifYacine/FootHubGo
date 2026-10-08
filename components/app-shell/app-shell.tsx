@@ -66,10 +66,9 @@ export function AppShell({ variant, children }: { variant: "app" | "admin"; chil
         </header>
         <div
           className={cn(
-            "flex-1",
             fullHeight
-              ? "flex flex-col max-md:h-[calc(100dvh-var(--app-topbar-height)-var(--app-bottom-nav-height)-env(safe-area-inset-top)-env(safe-area-inset-bottom))] md:h-[calc(100dvh-3.5rem)] md:p-4 md:pt-0"
-              : cn("px-4 pt-4 md:px-6 md:pt-2 md:pb-8", isApp ? "pb-[calc(var(--app-bottom-nav-height)+env(safe-area-inset-bottom)+1.5rem)]" : "pb-8"),
+              ? "flex flex-none flex-col max-md:h-[calc(100dvh-var(--app-topbar-height)-var(--app-bottom-nav-height)-env(safe-area-inset-top)-env(safe-area-inset-bottom)-1px)] md:h-[calc(100dvh-3.5rem)] md:p-4 md:pt-0"
+              : cn("flex-1 px-4 pt-4 md:px-6 md:pt-2 md:pb-8", isApp ? "pb-[calc(var(--app-bottom-nav-height)+env(safe-area-inset-bottom)+1.5rem)]" : "pb-8"),
           )}
         >
           {children}

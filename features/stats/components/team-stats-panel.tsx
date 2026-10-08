@@ -58,7 +58,7 @@ export function TeamStatsPanel({ eventId }: { eventId: string }) {
       {teamStat ? (
         <MatchDetails teamStat={teamStat} />
       ) : (
-        <p className="text-sm text-muted-foreground">
+        isCoach && <p className="text-sm text-muted-foreground">
           {window.isOpen
             ? "Aucune statistique d'équipe pour ce match."
             : "Le score et les statistiques se saisissent à partir de 3h après le coup d'envoi."}

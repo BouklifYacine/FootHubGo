@@ -28,7 +28,7 @@ export function MessageList({ conversationId, myId, showSenders, typingNames }: 
   if (isLoading) return <LoadingState rows={4} className="flex-1 p-4" />;
 
   return (
-    <div className="flex-1 space-y-2 overflow-y-auto p-4">
+    <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
       {hasNextPage && (
         <Button className="mx-auto block" disabled={isFetchingNextPage} onClick={() => fetchNextPage()} size="sm" variant="ghost">
           Charger les messages précédents

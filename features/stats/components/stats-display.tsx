@@ -49,7 +49,7 @@ export function StatsRadar({ title, data }: { title: string; data: RadarPoint[] 
       <h2 className="font-semibold">{title}</h2>
       <div className="h-72 w-full md:h-80">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
+          <RadarChart cx="50%" cy="50%" outerRadius="62%" data={data}>
             <PolarGrid stroke="hsl(var(--border))" />
             <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
             <PolarRadiusAxis domain={[0, 1]} tick={false} axisLine={false} />
