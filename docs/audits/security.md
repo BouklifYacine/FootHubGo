@@ -150,6 +150,30 @@ OK means the caller is authenticated, every id from the client is scoped to the 
 | GET `/api/club` | OWNER / ADMIN | OK |
 | GET `/api/club/join-requests` | manages at least one section; admins see the club's requests, coaches their sections' | OK |
 
+### Lot 6 (PWA + Web Push): new actions, route and threat model
+
+| Item | Guard / rule | Verdict |
+|---|---|---|
+| push `subscribePush` | `requireUser`; zod: `https://` endpoint ≤ 2048 chars, base64url keys; 20 per hour per user; at most 10 devices per user (least recently used evicted); 503 when VAPID is not configured | OK |
+| push `unsubscribePush` | `requireUser`; deletes only `{ endpoint, userId: caller }` | OK |
+| push `setPushCategory` | `requireUser`; category from a closed enum | OK |
+| GET `/api/push/config` | `requireUser`; returns the VAPID **public** key and the caller's device count | OK |
+| `/sw.js` | static, `Cache-Control: no-cache, no-store`, root scope; caches only `/_next/static` + icons + `/offline.html`, never HTML of the app, API, auth or POST | OK |
+
+Threat model changes:
+- **Push endpoints are personal data** (a URL per browser at Google / Mozilla / Apple + encryption keys). Stored in
+  `push_subscription`, deleted with the account (`onDelete: Cascade`, also admin deletion), on sign-out of that
+  browser (`signOutAndRedirect` unsubscribes first), when the push service answers 404 / 410, and when the user
+  turns push off. Never logged (logs: counts and status codes only).
+- **Payload**: encrypted end to end (aes128gcm, RFC 8291), the push service sees only the size. It carries the
+  notification's title and text (already shown in-app), the page to open and a tag: no ids beyond the URL, no
+  email, no avatar. Chat pushes show the sender and a 180-character preview on the lock screen: the user can
+  turn the "Messages" category off. The service worker only opens paths under `/app` (`safeAppUrl`).
+- **Endpoint re-use**: `subscribePush` upserts on the endpoint, so the last account signed in on a browser owns its
+  pushes. Claiming someone else's endpoint requires that browser's subscription (unguessable URL + keys).
+- **CSP**: `worker-src 'self'`, `manifest-src 'self'` added.
+- **VAPID private key**: environment only (never in the image); without it push is disabled, nothing breaks.
+
 ### GET routes (24, plus better-auth)
 
 | Route | Guard | Verdict |

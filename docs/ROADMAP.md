@@ -42,5 +42,11 @@ green CI required. Release: PR `dev` -> `main`, tag `v1.1.0`.
    place and time, note), first come first served booking without overbooking, driver removes a passenger or
    cancels (passengers notified), "À faire" for confirmed players without a seat. Details in `ARCHITECTURE.md`
    ("Match day").
-6. PWA + push notifications.
+6. PWA + push notifications. **Done** (branch `feat/pwa-push`): installable app (manifest, icons, hand-written
+   service worker with an offline page, install card in Plus and the settings, iPhone instructions), Web Push with
+   `web-push` (VAPID from the environment, push disabled without it), one `sendPush` called by `notifyUser` for
+   call-ups and answers, reminders, man of the match, carpool, join requests, polls, plus grouped chat pushes
+   when the recipient has no open tab; per-device switch and 5 categories in the settings, opt-in card on the
+   home (never asks on page load), `player-v2` tour with the home screen hint for iPhone Safari. Details in
+   `ARCHITECTURE.md` ("PWA and Web Push").
 7. Release v1.1.0.

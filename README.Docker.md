@@ -37,6 +37,27 @@ docker compose down
 
 Au démarrage, le conteneur exécute `bun run db:deploy` avec le CLI Prisma local 7.10.0, puis démarre `server.ts` via `bun run start` (`tsx server.ts`). Le serveur personnalisé conserve Socket.IO; le build standalone de Next.js n’est pas utilisé.
 
+### Notifications push (PWA)
+
+L'image est construite **sans secrets** : les notifications push sont lues à l'exécution. Pour les activer,
+générez une paire de clés VAPID une seule fois et ajoutez-la à `.env.production.local` :
+
+```bash
+bunx web-push generate-vapid-keys
+```
+
+```
+VAPID_PUBLIC_KEY="..."   # clé publique (envoyée aux navigateurs)
+VAPID_PRIVATE_KEY="..."  # clé privée (secrète)
+VAPID_SUBJECT="mailto:contact@votre-domaine.fr"
+```
+
+Sans ces variables, l'application fonctionne et les réglages indiquent que les notifications ne sont pas
+disponibles. Ne changez pas de clés en production (les appareils abonnés se réabonnent seulement à leur
+prochaine ouverture de l'app). Le serveur doit pouvoir joindre les services de push en HTTPS sortant
+(`fcm.googleapis.com`, `updates.push.services.mozilla.com`, `web.push.apple.com`...). L'application installable
+et les notifications exigent HTTPS (sauf sur `localhost`).
+
 ### Reverse proxy et adresse IP des clients
 
 Les limites de tentatives (connexion, code d'invitation, mot de passe) sont calculées par adresse IP.
