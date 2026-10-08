@@ -80,6 +80,38 @@ user menu). Seen tours and the dismissed coach checklist are stored per user in 
 (`markOnboardingSeen`), so they follow the user across devices. Bump a key (`coach-v2`) to show a reworked
 tour again.
 
+**Match day** (lot 4-5). Only **section matches** (`type` LEAGUE / CUP, `teamId` set): trainings and club-wide
+events never get playing time, a man of the match or a carpool. Every rule is pure and tested next to the code.
+
+- **Playing time** (`features/stats/playing-time.ts`): the coach's sheet ("Temps de jeu" tab of the match page,
+  `savePlayingTime`) lists the **present players** (PLAYERs of the section with a CONFIRMED call-up), one tap
+  Titulaire (90') / Entré (30') / Pas joué + minute presets, 0..130 minutes (extra time), 11 starters max. It
+  opens with the stats window (kick-off + 3h, score entered first, editable until +48h). 0 minutes = no
+  `PlayerStat` row (refused for a scorer); rows created by the sheet have no rating / position yet (nullable
+  columns, left out of the average rating). Season totals: `summarizePlayerStats` (minutes, minutes per match
+  played) and `getTeamPlayingTime` (`GET /api/stats/teams/<id>/players`, the coach's ranking).
+- **Man of the match** (`features/motm`): the vote opens at kick-off + 3h (same as the stats) and lasts 48h
+  (`motmWindow`, derived from `startDate`, no extra table). Nominees = present players; voters = present players
+  + the section's coaches; at least 2 present players. One `MotmVote` per voter and match (unique), changeable
+  until the end, never for yourself. **Results are hidden for everyone until the end** (only the turnout shows,
+  so nobody votes for the leader); ties = co-winners, no vote = no winner; winners are computed from the votes
+  (`motmWinners`, `motmAwardsByUser`), never stored. Jobs (`features/motm/server/jobs.ts`, run by `server/jobs.ts`)
+  notify the voters when the vote opens and the winners when it closes, each match claimed once with
+  `Event.motmOpenNotifiedAt` / `motmClosedAt`. Read: `GET /api/events/<id>/motm`; write: `voteManOfTheMatch`
+  (rate limited). Awards show in the player's stats and the team ranking.
+- **Carpool** (`features/carpool`): `Event.isHome` (Domicile / Extérieur in the event form, synced by the score
+  form; existing events took the home/away of their score, the others are home). Only an **away** section match,
+  only the members of its section (players and coaches). `Ride` (one per driver and match: seats 1..8,
+  departure place, time between 24h before and kick-off, note) and `RidePassenger` (one seat per user and match,
+  `eventId` denormalized for the unique index). Booking (`server/booking.ts`) locks the user on the match
+  (`pg_advisory_xact_lock`: nobody is both driver and passenger) then the ride row (`FOR UPDATE`): first come
+  first served, no overbooking. Everything closes at kick-off; a match with rides can't be switched back to home.
+  Notifications: booking / seat given back -> driver; passenger removed / ride cancelled -> passengers.
+- **Where it shows**: the event page (carpool block for away matches, man-of-the-match block after the score,
+  third tab "Temps de jeu"), the home "À faire" (`motmVotes`: votes waiting for the user; `carpools`: confirmed
+  players without a car or a seat in the next 7 days), `participationOf` (`motmVote`, `carpool`: agenda badges).
+  Notifications use `notifyUser({ url: "/app/events/<id>" })`, types `MAN_OF_THE_MATCH` and `CARPOOL`.
+
 **Invites**: `/join/<code>` shows the club and section of an invite code (rate limited per IP); signed-out
 visitors sign up / in with `?next=` (`safeNextPath`, no open redirect) and come back to join in one tap.
 
@@ -177,7 +209,7 @@ the client uses a single socket from `RealtimeProvider`.
 ## Background jobs
 
 `server/jobs.ts` runs in the same process as the server (every 10 minutes): event reminders
-(`features/events/server/reminders.ts`). Jobs must be idempotent (claim the row with a conditional
+(`features/events/server/reminders.ts`) and the man-of-the-match votes (`features/motm/server/jobs.ts`). Jobs must be idempotent (claim the row with a conditional
 update before doing the work). `DISABLE_JOBS=1` turns them off on an instance.
 
 ## Branches

@@ -34,7 +34,13 @@ green CI required. Release: PR `dev` -> `main`, tag `v1.1.0`.
    event page as the hub, call-up answer changeable until 3h before, notifications deep-link, card lists on
    phones, invite links with share sheet, auto sign-in, shared page building blocks and confirmations,
    tutoiement, driver.js tours (seen flags per user). Status per audit item in `docs/audits/ux.md`.
-4. Playing time + man of the match.
-5. Carpool for away matches.
+4. Playing time + man of the match. **Done** (branch `feat/match-day`): playing-time sheet on the match page
+   (present players, presets, 0-130'), season minutes in the player's stats and the coach's ranking; man of the
+   match voted 48h from kick-off + 3h by the present players and the coaches, results hidden until the end,
+   co-winners on a tie, notifications (vote open, winner), "À faire", awards in the stats.
+5. Carpool for away matches. **Done** (branch `feat/match-day`): home / away on events, rides (seats, departure
+   place and time, note), first come first served booking without overbooking, driver removes a passenger or
+   cancels (passengers notified), "À faire" for confirmed players without a seat. Details in `ARCHITECTURE.md`
+   ("Match day").
 6. PWA + push notifications.
 7. Release v1.1.0.
