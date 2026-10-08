@@ -2,75 +2,61 @@
 
 import { useState } from "react";
 import { TrendingUp } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { EmptyState } from "@/components/app/empty-state";
+import { SectionTitle } from "@/components/app/page-header";
+import { SegmentedControl } from "@/components/app/segmented-control";
 import { playerPositionLabels } from "@/lib/enum-labels";
 import { InitialsAvatar } from "@/features/team/components/initials-avatar";
 import type { HomeData } from "../types";
-import { EmptyState } from "@/components/app/empty-state";
 
-/** Top scorers / top assists of the team, toggled with a switch. */
+/** Top scorers / top assists of the section. */
 export function Leaderboard({ topScorers, topAssists }: Pick<HomeData, "topScorers" | "topAssists">) {
-  const [showGoals, setShowGoals] = useState(true);
-
-  if (topScorers.length === 0 && topAssists.length === 0) {
-    return (
-      <EmptyState
-        icon={TrendingUp}
-        title="Aucune statistique disponible"
-        bare
-        description="Les classements apparaîtront après les premiers matchs"
-      />
-    );
-  }
-
-  const players = showGoals ? topScorers : topAssists;
-  const unit = (value: number) => (showGoals ? (value > 1 ? "Buts" : "But") : value > 1 ? "Passes" : "Passe");
+  const [view, setView] = useState<"goals" | "assists">("goals");
+  const players = view === "goals" ? topScorers : topAssists;
+  const unit = (value: number) => (view === "goals" ? (value > 1 ? "buts" : "but") : value > 1 ? "passes" : "passe");
 
   return (
-    <div className="flex h-full w-full flex-col">
-      <div className="mb-4 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center lg:mb-5">
-        <h3 className="text-base font-bold tracking-tight lg:text-lg">
-          {showGoals ? "Classement buteurs" : "Classement passeurs"}
-        </h3>
-        <div className="flex items-center gap-2">
-          <Switch id="leaderboard-toggle" checked={showGoals} onCheckedChange={setShowGoals} />
-          <Label htmlFor="leaderboard-toggle" className="cursor-pointer text-xs tracking-tight lg:text-sm">
-            {showGoals ? "Buteurs" : "Passeurs"}
-          </Label>
-        </div>
-      </div>
-
-      {players.length === 0 ? (
-        <p className="py-8 text-center text-xs text-gray-500 lg:text-sm">
-          {showGoals ? "Aucun buteur pour le moment" : "Aucun passeur pour le moment"}
+    <section className="space-y-2" aria-labelledby="leaderboard-title">
+      <SectionTitle
+        action={
+          <SegmentedControl
+            label="Classement"
+            value={view}
+            onChange={setView}
+            options={[
+              { value: "goals", label: "Buteurs" },
+              { value: "assists", label: "Passeurs" },
+            ]}
+          />
+        }
+      >
+        <span id="leaderboard-title">Classement</span>
+      </SectionTitle>
+      {topScorers.length === 0 && topAssists.length === 0 ? (
+        <EmptyState icon={TrendingUp} title="Pas encore de classement" description="Il apparaîtra après les premiers matchs." />
+      ) : players.length === 0 ? (
+        <p className="rounded-xl border bg-card p-6 text-center text-sm text-muted-foreground">
+          {view === "goals" ? "Aucun buteur pour le moment" : "Aucun passeur pour le moment"}
         </p>
       ) : (
-        <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-          {players.map((player) => (
-            <li key={player.userId} className="flex items-center justify-between py-2 lg:py-3">
-              <div className="flex min-w-0 flex-1 items-center gap-2 lg:gap-3">
-                <InitialsAvatar name={player.name} src={player.image} className="size-12 lg:size-14" />
-                <div className="flex min-w-0 flex-col">
-                  <p className="truncate text-sm font-medium tracking-tight lg:text-base">{player.name}</p>
-                  {player.position && (
-                    <Badge className="mt-1 w-fit px-2 py-0.5 text-xs tracking-tight">
-                      {playerPositionLabels[player.position]}
-                    </Badge>
-                  )}
-                </div>
-              </div>
-              <p className="ml-2 shrink-0 text-sm font-semibold tracking-tight lg:text-base">
-                {player.value}{" "}
-                <span className="text-xs font-normal text-gray-600 lg:text-sm dark:text-gray-400">
-                  {unit(player.value)}
-                </span>
-              </p>
+        <ol className="divide-y overflow-hidden rounded-xl border bg-card">
+          {players.map((player, index) => (
+            <li key={player.userId} className="flex min-h-12 items-center gap-3 px-4 py-2">
+              <span className="w-4 text-sm font-semibold text-muted-foreground tabular-nums">{index + 1}</span>
+              <InitialsAvatar name={player.name} src={player.image} className="size-9" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-sm font-medium">{player.name}</span>
+                {player.position && (
+                  <span className="block truncate text-xs text-muted-foreground">{playerPositionLabels[player.position]}</span>
+                )}
+              </span>
+              <span className="shrink-0 text-sm font-semibold tabular-nums">
+                {player.value} <span className="font-normal text-muted-foreground">{unit(player.value)}</span>
+              </span>
             </li>
           ))}
-        </ul>
+        </ol>
       )}
-    </div>
+    </section>
   );
 }

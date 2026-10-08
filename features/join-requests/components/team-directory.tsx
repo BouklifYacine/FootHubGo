@@ -1,7 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Handshake } from "lucide-react";
+import { Check, Handshake, Lock, Search } from "lucide-react";
+import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/error-state";
+import { LoadingState } from "@/components/app/loading-state";
+import { SectionTitle } from "@/components/app/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { clubVisibilityLabels, sectionCategoryLabels, teamLevelLabels } from "@/lib/enum-labels";
@@ -12,7 +16,7 @@ import { JoinRequestDialog } from "./join-request-dialog";
 
 /** Clubs a player without a club can apply to: one request per section. */
 export function TeamDirectory() {
-  const { data: clubs, isPending, isError } = usePublicClubs();
+  const { data: clubs, isPending, error, refetch } = usePublicClubs();
   const { data: myRequests } = useMyJoinRequests();
   // Derived from the server, so the button state survives remounts and reloads.
   const pendingSectionIds = new Set(
@@ -20,19 +24,16 @@ export function TeamDirectory() {
   );
 
   return (
-    <section className="space-y-4">
-      <h2 className="text-2xl font-bold tracking-tight">Liste des clubs</h2>
+    <section className="space-y-2" aria-labelledby="directory-title">
+      <SectionTitle>
+        <span id="directory-title">Clubs qui recrutent</span>
+      </SectionTitle>
       {isPending ? (
-        <p className="py-4 text-center">Chargement des clubs...</p>
-      ) : isError ? (
-        <p className="py-4 text-center text-red-500">Erreur lors du chargement des clubs.</p>
+        <LoadingState variant="cards" rows={2} />
+      ) : error ? (
+        <ErrorState error={error} onRetry={refetch} />
       ) : clubs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-md border bg-muted/10 p-8">
-          <p className="text-lg font-medium text-muted-foreground">Aucun club trouvé</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Il n&apos;y a actuellement aucun club inscrit sur la plateforme.
-          </p>
-        </div>
+        <EmptyState icon={Search} title="Aucun club pour le moment" description="Aucun club public n'est encore inscrit." />
       ) : (
         <ul className="grid gap-4 md:grid-cols-2">
           {clubs.map((club) => (
@@ -47,7 +48,7 @@ export function TeamDirectory() {
 function ClubCard({ club, pendingSectionIds }: { club: PublicClub; pendingSectionIds: Set<string> }) {
   const acceptsRequests = club.visibility === "PUBLIC";
   return (
-    <li className="space-y-3 rounded-xl border p-4">
+    <li className="space-y-3 rounded-xl border bg-card p-4">
       <div className="flex items-center gap-3">
         <InitialsAvatar name={club.name} src={club.logoUrl} className="size-10 text-sm" />
         <div className="min-w-0 flex-1">
@@ -60,7 +61,7 @@ function ClubCard({ club, pendingSectionIds }: { club: PublicClub; pendingSectio
       {club.description && <p className="text-sm text-muted-foreground">{club.description}</p>}
       <ul className="divide-y rounded-lg border">
         {club.sections.map((section) => (
-          <li key={section.id} className="flex items-center justify-between gap-2 p-2">
+          <li key={section.id} className="flex flex-wrap items-center justify-between gap-2 p-3">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">{section.name}</p>
               <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
@@ -94,18 +95,26 @@ function ApplyButton({
   requestPending: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const label = !acceptsRequests ? "Sur invitation" : requestPending ? "Demande envoyée" : "Postuler";
+  // Why it can't be done is written out (no tooltip): touch screens have no hover.
+  if (!acceptsRequests) {
+    return (
+      <span className="flex items-center gap-1 text-xs text-muted-foreground">
+        <Lock className="size-3.5" aria-hidden /> Sur invitation du coach
+      </span>
+    );
+  }
+  if (requestPending) {
+    return (
+      <span className="flex items-center gap-1 text-xs font-medium text-success">
+        <Check className="size-3.5" aria-hidden /> Demande envoyée
+      </span>
+    );
+  }
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        aria-label={`${label} : ${sectionName}`}
-        disabled={!acceptsRequests || requestPending}
-        onClick={() => setOpen(true)}
-      >
-        <Handshake className="size-4" /> {label}
+      <Button variant="outline" size="sm" aria-label={`Postuler : ${sectionName}`} onClick={() => setOpen(true)}>
+        <Handshake /> Postuler
       </Button>
       {acceptsRequests && (
         <JoinRequestDialog mode="create" teamId={sectionId} sectionName={sectionName} open={open} onOpenChange={setOpen} />

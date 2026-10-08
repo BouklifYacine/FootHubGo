@@ -34,9 +34,18 @@ export function cancelCallUpError(eventStart: Date, now = new Date()) {
 export function replyCallUpError(eventStart: Date, now = new Date()) {
   if (eventStart <= now) return "L'événement est déjà passé";
   if (hoursUntil(eventStart, now) < CALL_UP_RULES.replyMinHours) {
-    return `Vous devez répondre au moins ${CALL_UP_RULES.replyMinHours}h avant le match`;
+    return `Tu dois répondre au moins ${CALL_UP_RULES.replyMinHours}h avant le match`;
   }
   return null;
+}
+
+/**
+ * What the player can still do with their call-up: answer, or change their answer, until
+ * `replyMinHours` before the match (an EXPIRED call-up is closed).
+ */
+export function callUpAnswerState(status: "PENDING" | "CONFIRMED" | "DECLINED" | "EXPIRED", eventStart: Date, now = new Date()) {
+  const deadline = new Date(eventStart.getTime() - CALL_UP_RULES.replyMinHours * 3_600_000);
+  return { canReply: status !== "EXPIRED" && replyCallUpError(eventStart, now) === null, deadline };
 }
 
 /** True if one of the injuries covers the day of the event. */

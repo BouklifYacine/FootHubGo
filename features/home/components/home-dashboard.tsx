@@ -1,89 +1,115 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { Loader2, Plus } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { KeyRound, Search, Shield } from "lucide-react";
+import { ErrorState } from "@/components/app/error-state";
+import { LoadingState } from "@/components/app/loading-state";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { cn } from "@/lib/utils";
-import { JoinTeamDialog } from "@/features/team/components/join-team-dialog";
 import { ClubFormDialog } from "@/features/clubs/components/club-form-dialog";
-import { TeamDirectory } from "@/features/join-requests/components/team-directory";
+import { MyJoinRequests } from "@/features/join-requests/components/my-join-requests";
+import { InviteCodeInput } from "@/features/team/components/invite-code-input";
+import { useJoinWithCode } from "@/features/team/hooks/use-join-with-code";
 import { useHome } from "../hooks/use-home";
+import { FirstRunChecklist } from "./first-run-checklist";
 import { KeyStats } from "./key-stats";
 import { Leaderboard } from "./leaderboard";
+import { NextEventCard } from "./next-event-card";
 import { RecentResults } from "./recent-results";
-import { TeamCard } from "./team-card";
-import { UpcomingMatches } from "./upcoming-matches";
+import { TodoList } from "./todo-list";
 
+/**
+ * Home, per role: the next event with the player's answer or the coach's call-up summary, the
+ * to-do list, the coach's first steps, then the season (results, stats, leaderboard).
+ */
 export function HomeDashboard() {
-  const { data, isPending, error } = useHome();
+  const { data, isPending, error, refetch } = useHome();
   const { data: session } = authClient.useSession();
+  const firstName = session?.user.name.split(" ")[0];
 
-  if (isPending) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="animate-spin text-zinc-400" />
-      </div>
-    );
-  }
-  if (error) return <p className="p-5 text-red-500">{error.message}</p>;
-  if (!data) return <NoTeam />;
+  if (isPending) return <LoadingState variant="detail" className="mx-auto max-w-5xl" />;
+  if (error) return <ErrorState error={error} onRetry={refetch} className="mx-auto max-w-5xl" />;
+  if (!data) return <NoClub firstName={firstName} />;
 
   return (
-    <div className="w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <h1 className="mb-6 text-xl font-medium tracking-tight sm:text-2xl lg:mb-10 lg:text-3xl">
-        Bienvenue {session?.user.name}
-      </h1>
-      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3 lg:gap-6">
-        <Tile>
-          <TeamCard team={data.team} />
-        </Tile>
-        <Tile wide>
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <header>
+        <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{firstName ? `Salut ${firstName} !` : "Accueil"}</h1>
+        <p className="text-sm text-muted-foreground max-md:hidden">{data.team.name}</p>
+      </header>
+      <div className="grid gap-6 lg:grid-cols-5">
+        <div className="flex flex-col gap-6 lg:col-span-3">
+          <NextEventCard event={data.nextEvent} canManage={data.canManage} />
+          <TodoList todo={data.todo} />
+          {data.checklist && <FirstRunChecklist checklist={data.checklist} teamLabel={data.team.name} />}
           <RecentResults results={data.recentResults} isPlayer={data.role === "PLAYER"} />
-        </Tile>
-        <Tile wide>
+        </div>
+        <div className="flex flex-col gap-6 lg:col-span-2">
           <KeyStats teamStats={data.teamStats} playerStats={data.playerStats} />
-        </Tile>
-        <Tile>
           <Leaderboard topScorers={data.topScorers} topAssists={data.topAssists} />
-        </Tile>
-        <Tile className="lg:col-span-3">
-          <UpcomingMatches matches={data.upcomingMatches} teamName={data.team.name} />
-        </Tile>
+        </div>
       </div>
     </div>
   );
 }
 
-function Tile({ wide, className, children }: { wide?: boolean; className?: string; children: ReactNode }) {
-  return (
-    <div
-      className={cn(
-        "rounded-2xl border-2 border-gray-300 p-4 sm:p-5 lg:rounded-3xl lg:p-6",
-        wide && "lg:col-span-2",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-/** Home of a user without a team: create one, join one with a code, or apply to a club. */
-function NoTeam() {
+/** Without a club: two clear choices (I have a code / create my club), then my requests and the directory. */
+function NoClub({ firstName }: { firstName?: string }) {
   const [creating, setCreating] = useState(false);
+  const join = useJoinWithCode();
 
   return (
-    <div className="mx-8 space-y-8">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" onClick={() => setCreating(true)}>
-          Créer un club
-          <Plus className="ml-1 opacity-60" />
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <header className="space-y-1">
+        <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+          {firstName ? `Bienvenue ${firstName} !` : "Bienvenue !"}
+        </h1>
+        <p className="text-sm text-muted-foreground">Rejoins ton équipe ou crée ton club pour commencer.</p>
+      </header>
+
+      <section className="space-y-4 rounded-2xl border-2 border-primary/80 bg-card p-5" aria-labelledby="join-title">
+        <div className="flex items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <KeyRound className="size-5" aria-hidden />
+          </span>
+          <div>
+            <h2 id="join-title" className="font-semibold">
+              J&apos;ai un code d&apos;invitation
+            </h2>
+            <p className="text-sm text-muted-foreground">Ton coach t&apos;a envoyé un lien ou un code&nbsp;? Entre le code ici.</p>
+          </div>
+        </div>
+        <InviteCodeInput pending={join.isPending} onSubmit={(inviteCode) => join.mutate({ inviteCode })} />
+      </section>
+
+      <section className="space-y-4 rounded-2xl border bg-card p-5" aria-labelledby="create-title">
+        <div className="flex items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-muted">
+            <Shield className="size-5" aria-hidden />
+          </span>
+          <div>
+            <h2 id="create-title" className="font-semibold">
+              Créer mon club
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Tu es coach ou dirigeant&nbsp;? Crée ton club et sa première équipe, puis invite tes joueurs.
+            </p>
+          </div>
+        </div>
+        <Button variant="outline" size="lg" className="w-full sm:w-auto" onClick={() => setCreating(true)}>
+          Créer mon club
         </Button>
-        <JoinTeamDialog />
-      </div>
-      <ClubFormDialog open={creating} onOpenChange={setCreating} />
-      <TeamDirectory />
+        <ClubFormDialog open={creating} onOpenChange={setCreating} />
+      </section>
+
+      <MyJoinRequests compact />
+
+      <Button asChild variant="ghost" className="self-center">
+        <Link href="/app/join-requests">
+          <Search /> Chercher un club et postuler
+        </Link>
+      </Button>
     </div>
   );
 }

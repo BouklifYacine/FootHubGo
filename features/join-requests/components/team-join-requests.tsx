@@ -1,133 +1,128 @@
 "use client";
 
-import { formatDate } from "@/lib/format";
-import { Check, Clock, Loader2, X } from "lucide-react";
+import { Check, UserPlus, X } from "lucide-react";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/error-state";
+import { LoadingState } from "@/components/app/loading-state";
+import { Page, PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { formatDate } from "@/lib/format";
 import { playerPositionLabels, teamLevelLabels } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
-import { cn } from "@/lib/utils";
 import { InitialsAvatar } from "@/features/team/components/initials-avatar";
 import { reviewJoinRequest } from "../actions";
 import { useManagedJoinRequests } from "../hooks/use-managed-join-requests";
 import type { TeamJoinRequest } from "../types";
-import { EmptyRequests, RequestDetails, RequestStatusBadge } from "./request-details";
+import { RequestStatusBadge } from "./request-details";
 
 /** Coach / club admin side: the join requests received by the sections they manage. */
 export function TeamJoinRequests() {
-  const { data: requests, isPending } = useManagedJoinRequests();
-  const pendingCount = requests?.filter((request) => request.status === "PENDING").length ?? 0;
+  const { data: requests, isPending, error, refetch } = useManagedJoinRequests();
+  const pending = requests?.filter((request) => request.status === "PENDING") ?? [];
+  const done = requests?.filter((request) => request.status !== "PENDING") ?? [];
 
   return (
-    <section className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 md:mx-0 md:px-0">
-      <h1 className="text-2xl font-bold tracking-tight">Candidatures reçues</h1>
-      {pendingCount > 0 && (
-        <div className="flex items-center gap-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-          <Clock className="size-4 text-amber-500" />
-          {pendingCount} demande(s) en attente
-        </div>
-      )}
+    <Page className="max-w-3xl">
+      <PageHeader
+        title="Demandes d'adhésion"
+        description={
+          pending.length > 0
+            ? `${pending.length} demande${pending.length > 1 ? "s" : ""} en attente de ta réponse.`
+            : "Les joueurs qui postulent dans tes sections apparaissent ici."
+        }
+      />
       {isPending ? (
-        <Loader2 className="animate-spin text-zinc-400" />
+        <LoadingState rows={3} />
+      ) : error ? (
+        <ErrorState error={error} onRetry={refetch} />
       ) : !requests?.length ? (
-        <EmptyRequests text="Vous n'avez reçu aucune demande d'adhésion pour le moment." />
+        <EmptyState
+          icon={UserPlus}
+          title="Aucune demande pour le moment"
+          description="Pour faire venir tes joueurs plus vite, partage plutôt le lien d'invitation depuis l'onglet Équipe."
+          action={{ label: "Inviter des joueurs", href: "/app/squad?invite=1", icon: UserPlus }}
+        />
       ) : (
-        requests.map((request) => <TeamJoinRequestCard key={request.id} request={request} />)
+        <>
+          {pending.length > 0 && (
+            <ul className="space-y-3">
+              {pending.map((request) => (
+                <TeamJoinRequestCard key={request.id} request={request} />
+              ))}
+            </ul>
+          )}
+          {done.length > 0 && (
+            <section className="space-y-2">
+              <h2 className="text-sm font-semibold text-muted-foreground">Déjà traitées</h2>
+              <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+                {done.map((request) => (
+                  <li key={request.id} className="flex items-center gap-3 px-4 py-3">
+                    <InitialsAvatar name={request.user.name} src={request.user.image} className="size-9" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium">{request.user.name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {request.team.name} · {formatDate(request.createdAt)}
+                      </span>
+                    </span>
+                    <RequestStatusBadge status={request.status} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
       )}
-    </section>
+    </Page>
   );
 }
 
 function TeamJoinRequestCard({ request }: { request: TeamJoinRequest }) {
-  const isPending = request.status === "PENDING";
-
-  return (
-    <div
-      className={cn(
-        "group flex items-center justify-between rounded-2xl border bg-white p-5 shadow-sm transition-all dark:bg-zinc-900",
-        isPending ? "border-amber-200 hover:-translate-y-0.5 hover:shadow-md dark:border-amber-800/50" : "opacity-70",
-      )}
-    >
-      <div className="flex items-center gap-5">
-        <InitialsAvatar name={request.user.name} src={request.user.image} />
-        <div className="flex flex-col gap-1">
-          <p className="text-xl font-bold tracking-tight group-hover:text-primary">{request.user.name}</p>
-          <div className="flex flex-wrap items-center gap-3 text-xs">
-            <span className="rounded-md bg-zinc-100 px-2 py-0.5 font-semibold tracking-wider text-zinc-500 uppercase dark:bg-zinc-800">
-              {playerPositionLabels[request.position]}
-            </span>
-            <span className="font-medium">Section : {request.team.name}</span>
-            <span className="text-zinc-400">Niveau : {teamLevelLabels[request.level]}</span>
-            <span className="text-zinc-400">{formatDate(request.createdAt)}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <RequestStatusBadge status={request.status} className="hidden sm:flex" />
-        {isPending && (
-          <>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  Voir
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="overflow-hidden p-0 sm:max-w-[400px]">
-                <div className="flex flex-col items-center border-b bg-zinc-50/50 p-8 text-center dark:bg-zinc-900/50">
-                  <InitialsAvatar name={request.user.name} src={request.user.image} className="mb-4 size-16" />
-                  <DialogTitle className="text-2xl font-black tracking-tight uppercase">{request.user.name}</DialogTitle>
-                  <p className="mt-1 text-sm font-medium text-zinc-500">Demande d&apos;adhésion</p>
-                </div>
-                <RequestDetails request={request} motivationLabel="Motivation" />
-                <div className="flex justify-center pb-8">
-                  <ReviewButtons requestId={request.id} />
-                </div>
-              </DialogContent>
-            </Dialog>
-            <ReviewButtons requestId={request.id} />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function ReviewButtons({ requestId }: { requestId: string }) {
+  const confirm = useConfirm();
   const review = useActionMutation(reviewJoinRequest, {
-    invalidate: [queryKeys.club.all, queryKeys.me.team, queryKeys.home],
+    invalidate: [queryKeys.club.all, queryKeys.me.team, queryKeys.home, queryKeys.me.badges],
     optimistic: {
       queryKey: queryKeys.club.joinRequests,
       update: (previous, { decision }) =>
-        (previous as TeamJoinRequest[] | undefined)?.map((r) =>
-          r.id === requestId ? { ...r, status: decision } : r,
-        ),
+        (previous as TeamJoinRequest[] | undefined)?.map((r) => (r.id === request.id ? { ...r, status: decision } : r)),
     },
   });
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label="Accepter"
-        className="size-8 border-green-200 text-green-600 hover:bg-green-50 hover:text-green-700"
-        onClick={() => review.mutate({ requestId, decision: "ACCEPTED" })}
-        disabled={review.isPending}
-      >
-        <Check className="size-4" />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        aria-label="Refuser"
-        className="size-8 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
-        onClick={() => review.mutate({ requestId, decision: "REJECTED" })}
-        disabled={review.isPending}
-      >
-        <X className="size-4" />
-      </Button>
-    </div>
+    <li className="space-y-3 rounded-xl border bg-card p-4">
+      <div className="flex items-start gap-3">
+        <InitialsAvatar name={request.user.name} src={request.user.image} className="size-11" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold">{request.user.name}</p>
+          <p className="text-sm text-muted-foreground">
+            {playerPositionLabels[request.position]} · {teamLevelLabels[request.level]}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Pour {request.team.name} · {formatDate(request.createdAt)}
+          </p>
+        </div>
+      </div>
+      <p className="rounded-lg bg-muted/60 p-3 text-sm whitespace-pre-line">{request.motivation}</p>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          variant="outline"
+          disabled={review.isPending}
+          onClick={async () => {
+            const ok = await confirm({
+              title: `Refuser la demande de ${request.user.name} ?`,
+              description: "Il sera prévenu. Il pourra postuler à nouveau plus tard.",
+              confirmLabel: "Refuser",
+            });
+            if (ok) review.mutate({ requestId: request.id, decision: "REJECTED" });
+          }}
+        >
+          <X /> Refuser
+        </Button>
+        <Button variant="success" disabled={review.isPending} onClick={() => review.mutate({ requestId: request.id, decision: "ACCEPTED" })}>
+          <Check /> Accepter
+        </Button>
+      </div>
+    </li>
   );
 }
