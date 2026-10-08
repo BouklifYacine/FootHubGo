@@ -7,12 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { authClient } from "@/lib/auth-client";
 import { useAppForm } from "@/lib/form";
 import { authErrorMessage } from "../auth-error";
+import { withNext } from "../next-url";
 import { signInSchema } from "../schemas";
 import { FormError, OrSeparator, TermsNotice } from "./auth-layout";
 import { PasswordField } from "./password-field";
 import { SocialSignInButtons } from "./social-sign-in-buttons";
 
-export function SignInForm() {
+export function SignInForm({ next = "/app" }: { next?: string }) {
   const router = useRouter();
   const [error, setError] = useState("");
 
@@ -23,7 +24,7 @@ export function SignInForm() {
       setError("");
       const { error } = await authClient.signIn.email(signInSchema.parse(value));
       if (error) return setError(authErrorMessage(error));
-      router.push("/app");
+      router.push(next);
       router.refresh();
     },
   });
@@ -33,10 +34,10 @@ export function SignInForm() {
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Se connecter</CardTitle>
-          <CardDescription>Connexion avec un compte Google ou Github</CardDescription>
+          <CardDescription>Avec Google, GitHub ou ton email.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-6">
-          <SocialSignInButtons />
+          <SocialSignInButtons mode="sign-in" next={next} />
           <OrSeparator />
           <form
             className="grid gap-6"
@@ -46,7 +47,7 @@ export function SignInForm() {
             }}
           >
             <form.AppField name="email">
-              {(field) => <field.TextField label="Email" type="email" placeholder="footy@example.com" />}
+              {(field) => <field.TextField label="Email" type="email" placeholder="ton@email.com" autoComplete="email" />}
             </form.AppField>
             <div className="grid gap-2">
               <form.AppField name="password">
@@ -59,19 +60,19 @@ export function SignInForm() {
               </Link>
             </div>
             <form.AppForm>
-              <form.SubmitButton className="w-full">Connexion</form.SubmitButton>
+              <form.SubmitButton className="w-full">Se connecter</form.SubmitButton>
             </form.AppForm>
             <FormError message={error} />
             <p className="text-center text-sm">
-              Vous n&apos;avez pas de compte ?{" "}
-              <Link href="/sign-up" className="underline underline-offset-4">
-                Inscrivez-vous
+              Pas encore de compte ?{" "}
+              <Link href={withNext("/sign-up", next)} className="underline underline-offset-4">
+                Inscris-toi
               </Link>
             </p>
           </form>
         </CardContent>
       </Card>
-      <TermsNotice action="connexion" />
+      <TermsNotice action="Se connecter" />
     </div>
   );
 }

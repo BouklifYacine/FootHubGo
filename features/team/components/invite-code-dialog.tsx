@@ -1,20 +1,21 @@
 "use client";
 
-import { Check, Copy, RefreshCw, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { RefreshCw, Trash2 } from "lucide-react";
+import { useConfirm } from "@/components/app/confirm-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/app/responsive-dialog";
+import { Button } from "@/components/ui/button";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { regenerateInviteCode, removeInviteCode } from "../actions";
 import type { MyTeam } from "../hooks/use-my-team";
 import { formatInviteCode } from "../invite-code";
+import { InviteShareButtons, useInviteLink } from "./invite-share";
 
 type Props = {
   open: boolean;
@@ -23,13 +24,16 @@ type Props = {
   /** A section of the club (club management page); omitted = the active section. */
   teamId?: string;
   sectionName?: string;
+  /** "FC Démo · Seniors A", in the shared message. */
+  teamLabel?: string;
 };
 
 const invalidate = [queryKeys.me.team, queryKeys.home, queryKeys.club.admin];
 
-/** The invite code of ONE section: whoever types it joins that section (and the club). */
-export function InviteCodeDialog({ open, onOpenChange, code, teamId, sectionName }: Props) {
-  const [copied, setCopied] = useState(false);
+/** Invite players to ONE section: share the link (or the code), change or delete it. */
+export function InviteCodeDialog({ open, onOpenChange, code, teamId, sectionName, teamLabel }: Props) {
+  const confirm = useConfirm();
+  const link = useInviteLink(code);
   const regenerate = useActionMutation(regenerateInviteCode, { invalidate });
   const remove = useActionMutation(removeInviteCode, {
     invalidate,
@@ -41,61 +45,72 @@ export function InviteCodeDialog({ open, onOpenChange, code, teamId, sectionName
       },
     },
   });
-
-  const copy = async () => {
-    if (!code) return;
-    await navigator.clipboard.writeText(formatInviteCode(code));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
+  const label = teamLabel ?? sectionName ?? "la section";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Code d&apos;invitation{sectionName ? ` : ${sectionName}` : " de la section"}</DialogTitle>
-          <DialogDescription>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="sm:max-w-md">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Inviter des joueurs{sectionName ? ` : ${sectionName}` : ""}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
             {code
-              ? "Partagez ce code : il fait rejoindre cette section (et le club)."
-              : "Générez un code d'invitation pour agrandir votre section !"}
-          </DialogDescription>
-        </DialogHeader>
+              ? "Partage le lien dans le groupe de l'équipe : tes joueurs rejoignent la section en un geste."
+              : "Crée un lien d'invitation pour faire venir tes joueurs."}
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
 
-        <div className="flex flex-col gap-4 py-4">
-          {code && (
-            <div className="flex items-center gap-2">
-              <span className="flex-1 rounded-lg border px-4 py-2 text-center font-mono text-xl tracking-wider sm:text-2xl">
-                {formatInviteCode(code)}
-              </span>
-              <Button variant="outline" size="icon" onClick={copy} aria-label="Copier le code">
-                {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-              </Button>
+        {code && link ? (
+          <div className="space-y-4">
+            <InviteShareButtons code={code} teamLabel={label} />
+            <div className="space-y-1 rounded-lg border bg-muted/50 p-3">
+              <p className="text-xs text-muted-foreground">Lien d&apos;invitation</p>
+              <p className="font-mono text-sm break-all select-all">{link}</p>
+              <p className="pt-1 text-xs text-muted-foreground">
+                Ou le code à saisir dans l&apos;app : <span className="font-mono font-semibold text-foreground">{formatInviteCode(code)}</span>
+              </p>
             </div>
-          )}
-
-          <div className="flex justify-center gap-2">
-            <Button
-              className="flex-1"
-              onClick={() => regenerate.mutate({ teamId })}
-              disabled={regenerate.isPending}
-            >
-              <RefreshCw className="mr-2 size-4" />
-              {code ? "Changer le code" : "Créer un code"}
-            </Button>
-            {code && (
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={() => remove.mutate({ teamId })}
-                disabled={remove.isPending}
-                aria-label="Supprimer le code"
-              >
-                <Trash2 className="size-4" />
-              </Button>
-            )}
           </div>
+        ) : null}
+
+        <div className="flex gap-2">
+          <Button
+            variant={code ? "outline" : "default"}
+            className="flex-1"
+            onClick={async () => {
+              const ok =
+                !code ||
+                (await confirm({
+                  title: "Changer le lien d'invitation ?",
+                  description: "L'ancien lien et l'ancien code ne marcheront plus.",
+                  confirmLabel: "Changer",
+                  destructive: false,
+                }));
+              if (ok) regenerate.mutate({ teamId });
+            }}
+            disabled={regenerate.isPending}
+          >
+            <RefreshCw /> {code ? "Changer le lien" : "Créer un lien"}
+          </Button>
+          {code && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={async () => {
+                const ok = await confirm({
+                  title: "Supprimer le lien d'invitation ?",
+                  description: "Plus personne ne pourra rejoindre la section avec ce lien ou ce code.",
+                  confirmLabel: "Supprimer",
+                });
+                if (ok) remove.mutate({ teamId });
+              }}
+              disabled={remove.isPending}
+              aria-label="Supprimer le lien d'invitation"
+            >
+              <Trash2 className="text-destructive" />
+            </Button>
+          )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

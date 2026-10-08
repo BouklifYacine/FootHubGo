@@ -103,10 +103,10 @@ async function main() {
   });
 
   const seniors = await prisma.team.create({
-    data: { name: "Seniors A", category: "SENIOR", level: "DEPARTEMENTAL_1", clubId: club.id, inviteCode: "DEMO2026SENIORS" },
+    data: { name: "Seniors A", category: "SENIOR", level: "DEPARTEMENTAL_1", clubId: club.id, inviteCode: "SENRSA234567" },
   });
   const veterans = await prisma.team.create({
-    data: { name: "Vétérans", category: "VETERAN", level: "RECREATIONAL", clubId: club.id, inviteCode: "DEMO2026VETERANS" },
+    data: { name: "Vétérans", category: "VETERAN", level: "RECREATIONAL", clubId: club.id, inviteCode: "VETRNS234567" },
   });
 
   await prisma.teamMember.createMany({
@@ -131,7 +131,7 @@ async function main() {
     data: { name: "AS Voisins", visibility: "PUBLIC", members: { create: { userId: otherClubOwner.id, role: "OWNER" } } },
   });
   const otherSection = await prisma.team.create({
-    data: { name: "Seniors", category: "SENIOR", level: "DEPARTEMENTAL_2", clubId: otherClub.id, inviteCode: "DEMO2026VOISINS" },
+    data: { name: "Seniors", category: "SENIOR", level: "DEPARTEMENTAL_2", clubId: otherClub.id, inviteCode: "VSNSAS234567" },
   });
   await prisma.teamMember.create({ data: { userId: otherClubOwner.id, teamId: otherSection.id, clubId: otherClub.id, role: "COACH" } });
 

@@ -56,7 +56,8 @@ function CreateClubForm({ onDone }: { onDone: () => void }) {
   const create = useActionMutation(createClub, {
     onSuccess: () => {
       onDone();
-      refreshAll("/app/squad");
+      // The home shows the coach's next steps (checklist: invite players, first event...).
+      refreshAll("/app");
     },
   });
 

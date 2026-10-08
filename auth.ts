@@ -31,7 +31,9 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: PASSWORD_MIN_LENGTH,
     maxPasswordLength: PASSWORD_MAX_LENGTH,
-    autoSignIn: false,
+    // Signed in right after sign-up (no second login). There is no email verification yet
+    // (security audit L2, deferred): when it comes, sign-up will have to wait for it.
+    autoSignIn: true,
     revokeSessionsOnPasswordReset: true,
     password: { hash: hashPassword, verify: verifyPassword },
   },
