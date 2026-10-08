@@ -88,7 +88,7 @@ export function AttendanceAnswer({
     );
   }
   return (
-    <div className={cn("space-y-2", className)} data-tour="callup-answer">
+    <div className={cn("space-y-2", className)} data-tour="attendance-answer">
       <div className="grid grid-cols-2 gap-2" role="group" aria-label="Ma présence à l'entraînement">
         <AnswerButton
           selected={current === "PRESENT"}

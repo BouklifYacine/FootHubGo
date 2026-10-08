@@ -63,7 +63,8 @@ export function AppSidebar({ variant }: { variant: "app" | "admin" }) {
         {groups.map((group) =>
           group.items.length === 0 ? null : (
             <SidebarGroup key={group.label}>
-              <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+              {/* The "Plus" group is where the tour's last step points on desktop (mobile: the Plus tab). */}
+              <SidebarGroupLabel data-tour={group.label === "Plus" ? "nav-more" : undefined}>{group.label}</SidebarGroupLabel>
               <SidebarMenu>
                 {group.items.map((item) => (
                   <SidebarLink key={item.href} item={item} count={item.badge ? counts[item.badge] : 0} />

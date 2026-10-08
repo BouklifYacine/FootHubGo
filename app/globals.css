@@ -211,3 +211,54 @@
 @utility pt-safe {
   padding-top: env(safe-area-inset-top);
 }
+
+/* Onboarding tour (driver.js): the bubbles follow the design tokens, light and dark. */
+.driver-popover.fhg-tour {
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) + 4px);
+  font-family: inherit;
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 16px;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+}
+.driver-popover.fhg-tour .driver-popover-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+.driver-popover.fhg-tour .driver-popover-description {
+  color: hsl(var(--muted-foreground));
+  font-size: 0.9rem;
+}
+.driver-popover.fhg-tour .driver-popover-progress-text {
+  color: hsl(var(--muted-foreground));
+}
+.driver-popover.fhg-tour .driver-popover-close-btn {
+  width: 44px;
+  height: 44px;
+  color: hsl(var(--muted-foreground));
+}
+.driver-popover.fhg-tour .driver-popover-footer-btn {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-shadow: none;
+}
+.driver-popover.fhg-tour .driver-popover-next-btn {
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+.driver-popover.fhg-tour .driver-popover-footer-btn:focus-visible {
+  outline: 3px solid hsl(var(--ring) / 0.5);
+}
+.driver-popover.fhg-tour .driver-popover-arrow-side-top { border-top-color: hsl(var(--popover)); }
+.driver-popover.fhg-tour .driver-popover-arrow-side-bottom { border-bottom-color: hsl(var(--popover)); }
+.driver-popover.fhg-tour .driver-popover-arrow-side-left { border-left-color: hsl(var(--popover)); }
+.driver-popover.fhg-tour .driver-popover-arrow-side-right { border-right-color: hsl(var(--popover)); }

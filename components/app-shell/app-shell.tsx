@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -76,7 +76,11 @@ export function AppShell({ variant, children }: { variant: "app" | "admin"; chil
         </div>
       </SidebarInset>
       {isApp && <BottomNav />}
-      {isApp && <TourLauncher />}
+      {isApp && (
+        <Suspense fallback={null}>
+          <TourLauncher />
+        </Suspense>
+      )}
     </SidebarProvider>
   );
 }

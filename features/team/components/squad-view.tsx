@@ -40,7 +40,7 @@ export function SquadView() {
         description={`${team.displayName} · ${sectionCategoryLabels[team.category]} · ${teamLevelLabels[team.level]} · ${data.members.length} membre${data.members.length > 1 ? "s" : ""}`}
         actions={
           canManage && (
-            <Button onClick={() => setInviteOpen(true)} data-tour="invite-players-team">
+            <Button onClick={() => setInviteOpen(true)} >
               <UserPlus /> Inviter des joueurs
             </Button>
           )
