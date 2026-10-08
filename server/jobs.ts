@@ -1,5 +1,6 @@
 import { sendDueReminders } from "@/features/events/server/reminders";
 import { closeDueMotmVotes, openDueMotmVotes } from "@/features/motm/server/jobs";
+import { loggableError } from "@/lib/errors";
 
 const EVERY_MINUTES = 10;
 
@@ -20,7 +21,7 @@ export function startJobs() {
       const result = await sendDueReminders();
       if (result.recipients > 0) console.log(`[jobs] reminders: ${result.events} events, ${result.recipients} recipients`);
     } catch (error) {
-      console.error("[jobs] reminders failed", error);
+      console.error("[jobs] reminders failed", loggableError(error));
     }
     try {
       const opened = await openDueMotmVotes();
@@ -29,7 +30,7 @@ export function startJobs() {
         console.log(`[jobs] man of the match: ${opened.notified} voters notified, ${closed.winners} winners`);
       }
     } catch (error) {
-      console.error("[jobs] man of the match failed", error);
+      console.error("[jobs] man of the match failed", loggableError(error));
     } finally {
       running = false;
     }

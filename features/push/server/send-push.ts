@@ -3,7 +3,7 @@ import { prisma } from "@/prisma";
 import { loggableError } from "@/lib/errors";
 import { wantsPush, type PushCategory } from "../categories";
 import type { PushPayload } from "../payload";
-import { isGoneStatus } from "../subscriptions";
+import { isGoneStatus, isPushServiceEndpoint } from "../subscriptions";
 import { pushConfig } from "./vapid";
 
 /** How long a push service keeps an undelivered push (phone off): chat is stale sooner. */
@@ -31,7 +31,12 @@ export async function sendPush(userIds: string[], category: PushCategory, payloa
       where: { userId: { in: ids } },
       select: { id: true, endpoint: true, p256dh: true, auth: true, user: { select: { pushMutedCategories: true } } },
     });
-    const targets = subscriptions.filter((sub) => wantsPush(category, sub.user.pushMutedCategories));
+    // Rows stored before the push service allow-list: never POSTed to, dropped.
+    const foreign = subscriptions.filter((sub) => !isPushServiceEndpoint(sub.endpoint)).map((sub) => sub.id);
+    if (foreign.length > 0) await prisma.pushSubscription.deleteMany({ where: { id: { in: foreign } } });
+    const targets = subscriptions.filter(
+      (sub) => isPushServiceEndpoint(sub.endpoint) && wantsPush(category, sub.user.pushMutedCategories),
+    );
     if (targets.length === 0) return { sent: 0, removed: 0, failed: 0 };
 
     const body = JSON.stringify(payload);

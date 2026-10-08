@@ -5,6 +5,7 @@ import { pushCategoryOf } from "@/features/push/categories";
 import { notificationPayload } from "@/features/push/payload";
 import { sendPush } from "@/features/push/server/send-push";
 import { toNotificationDto } from "./queries";
+import { loggableError } from "@/lib/errors";
 
 export type NotifyUserInput = {
   userId: string;
@@ -71,7 +72,7 @@ async function storeAndEmit(input: NotifyUserInput) {
     }
   } catch (error) {
     // Realtime is best effort: the notification is stored either way.
-    console.error("[notifications] realtime push failed", error);
+    console.error("[notifications] realtime push failed", loggableError(error));
   }
 
   return dto;

@@ -1,4 +1,5 @@
 import { prisma } from "@/prisma";
+import { AppError, loggableError } from "@/lib/errors";
 import {
   addTeamConversationMember,
   ensureClubConversation,
@@ -17,7 +18,7 @@ async function safely(label: string, run: () => Promise<unknown>) {
   try {
     await run();
   } catch (error) {
-    console.error(`[club-chat] ${label}`, error);
+    console.error(`[club-chat] ${label}`, loggableError(error));
   }
 }
 
@@ -86,10 +87,20 @@ export async function deleteClubWithChat(clubId: string) {
   return club;
 }
 
-/** Deletes an (empty) section and its channel. */
+/**
+ * Deletes an EMPTY section and its channel. The emptiness is checked again under a row lock: a
+ * concurrent join (which needs that row for its foreign key) waits, then fails, instead of being
+ * cascaded away and leaving a club member without any section.
+ */
 export async function deleteSectionWithChat(teamId: string) {
   const conversations = await channelParticipants({ teamId });
-  const section = await prisma.team.delete({ where: { id: teamId } });
+  const section = await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "equipe" WHERE "id" = ${teamId} FOR UPDATE`;
+    if ((await tx.teamMember.count({ where: { teamId } })) > 0) {
+      throw new AppError("Retirez d'abord les membres de cette section");
+    }
+    return tx.team.delete({ where: { id: teamId } });
+  });
   await notifyRemoved(conversations);
   return section;
 }

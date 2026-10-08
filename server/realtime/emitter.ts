@@ -1,5 +1,6 @@
 import type { Server } from "socket.io";
 import { prisma } from "@/prisma";
+import { loggableError } from "@/lib/errors";
 import {
   conversationRoom,
   userRoom,
@@ -70,7 +71,7 @@ export async function emitToConversation<E extends EventName>(
       payload,
     );
   } catch (error) {
-    console.error("[realtime] emitToConversation failed", error);
+    console.error("[realtime] emitToConversation failed", loggableError(error));
   }
 }
 

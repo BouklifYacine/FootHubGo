@@ -5,6 +5,7 @@ import { UNAUTHORIZED_ERROR, userRoom } from "@/lib/realtime/protocol";
 import { setIO, type RealtimeServer } from "./emitter";
 import { registerChatHandlers } from "./handlers/chat";
 import { updatePresence } from "./handlers/presence";
+import { loggableError } from "@/lib/errors";
 
 /** Creates the Socket.IO server on top of the HTTP server and registers every handler. */
 export function attachRealtime(httpServer: HttpServer): RealtimeServer {
@@ -39,7 +40,7 @@ export function attachRealtime(httpServer: HttpServer): RealtimeServer {
       await socket.join(userRoom(session.user.id));
       next();
     } catch (error) {
-      console.error("[realtime] authentication failed", error);
+      console.error("[realtime] authentication failed", loggableError(error));
       next(new Error("authentication_failed"));
     }
   });
@@ -49,7 +50,7 @@ export function attachRealtime(httpServer: HttpServer): RealtimeServer {
     registerChatHandlers(socket);
 
     const syncPresence = () =>
-      updatePresence(io, userId).catch((error) => console.error("[realtime] presence failed", error));
+      updatePresence(io, userId).catch((error) => console.error("[realtime] presence failed", loggableError(error)));
     void syncPresence();
     socket.on("disconnect", () => void syncPresence());
   });
