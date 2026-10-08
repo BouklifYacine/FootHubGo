@@ -32,6 +32,9 @@ model User {
   /// Onboarding steps already seen / dismissed, per user so they follow them across devices:
   /// tours ("coach-v1", "player-v1") and the coach checklist ("coach-checklist").
   onboardingSeen           String[]                  @default([])
+  /// Push categories the user turned off ("callUps", "motm", "carpool", "messages", "club"), see
+  /// features/push/categories.ts. Empty = every category on. Push itself is per device (PushSubscription).
+  pushMutedCategories      String[]                  @default([])
   callUps                  CallUp[]
   memberships              TeamMember[]
   clubMembership           ClubMember?
@@ -61,6 +64,7 @@ model User {
   motmVotesReceived        MotmVote[]                @relation("MotmNominee")
   ridesOffered             Ride[]
   rideSeats                RidePassenger[]
+  pushSubscriptions        PushSubscription[]
 
   @@map("user")
 }
@@ -415,6 +419,27 @@ model Ride {
 
   @@unique([eventId, driverId])
   @@map("ride")
+}
+
+/// A browser / device subscribed to Web Push (lot 6). Personal data: deleted with the user (cascade)
+/// and when the push service answers 404 / 410 (subscription expired or revoked).
+model PushSubscription {
+  id         String   @id @default(cuid())
+  userId     String
+  /// Push service URL (unique per browser subscription).
+  endpoint   String   @unique
+  /// Client public key (P-256 ECDH) and auth secret, used to encrypt the payload.
+  p256dh     String
+  auth       String
+  /// Short device label shown in the settings ("Chrome · Android"), never the raw user agent.
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  /// Last subscribe or successful delivery.
+  lastUsedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscription")
 }
 
 /// A booked seat. `eventId` is denormalized so that a user holds at most one seat per match.
