@@ -43,19 +43,17 @@ export function InjuryFormDialog({ injury, open, onOpenChange }: Props) {
         </DialogTrigger>
       )}
 
-      <DialogContent className="sm:max-w-[550px] p-0 gap-0 overflow-hidden border-none shadow-2xl dark:bg-zinc-950/95 backdrop-blur-xl ring-1 ring-black/5 dark:ring-white/10">
-        <div className="px-6 py-6 border-b dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
+      <DialogContent className="sm:max-w-[550px]">
+        <div>
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold flex items-center gap-3 text-primary">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Activity className="h-6 w-6 text-primary" />
-              </div>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="size-5 text-muted-foreground" aria-hidden />
               {injury ? "Modifier la blessure" : "Nouvelle blessure"}
             </DialogTitle>
-            <DialogDescription className="text-base pt-2">
+            <DialogDescription>
               {injury
-                ? "Mettez à jour les informations de la blessure."
-                : "Remplissez les informations ci-dessous pour informer le staff."}
+                ? "Mets à jour les informations de la blessure."
+                : "Ton coach est prévenu et ne te convoque pas jusqu'à ton retour."}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -107,7 +105,7 @@ function InjuryForm({ injury, onSuccess }: { injury?: PlayerInjury; onSuccess: (
       </form.AppField>
       <form.AppField name="endDate">{(field) => <field.DateField label="Date de retour estimée" />}</form.AppField>
 
-      <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-4 border-t dark:border-zinc-800">
+      <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end pt-4">
         <DialogClose asChild>
           <Button type="button" variant="outline">
             Annuler

@@ -1,31 +1,44 @@
 "use client";
 
 import { Vote } from "lucide-react";
+import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/error-state";
+import { LoadingState } from "@/components/app/loading-state";
+import { Page, PageHeader } from "@/components/app/page-header";
 import { useMyTeam } from "@/features/team/hooks/use-my-team";
 import { usePolls } from "../hooks/use-polls";
 import { CreatePollDialog } from "./create-poll-dialog";
 import { PollCard } from "./poll-card";
 
 export function PollsOverview() {
-  const { data: polls, isPending, error } = usePolls();
+  const { data: polls, isPending, error, refetch } = usePolls();
   const { data: team } = useMyTeam();
   const isCoach = team?.role === "COACH";
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold tracking-tight">Sondages</h1>
-        {isCoach && <CreatePollDialog />}
-      </div>
-      {isPending && <p className="text-muted-foreground">Chargement...</p>}
-      {error && <p className="text-destructive">{error.message}</p>}
-      {polls?.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-lg border p-8 text-center text-muted-foreground">
-          <Vote className="size-8" />
-          <p>Aucun sondage pour le moment.</p>
+    <Page className="max-w-2xl">
+      <PageHeader
+        title="Sondages"
+        description={isCoach ? "Demande l'avis de l'équipe : repas, horaires, maillots..." : "Vote aux sondages de ton équipe."}
+        actions={isCoach && <CreatePollDialog />}
+      />
+      {isPending ? (
+        <LoadingState variant="cards" rows={2} />
+      ) : error ? (
+        <ErrorState error={error} onRetry={refetch} />
+      ) : polls.length === 0 ? (
+        <EmptyState
+          icon={Vote}
+          title="Aucun sondage pour le moment"
+          description={isCoach ? "Crée le premier : ton équipe vote depuis son téléphone." : "Ton coach n'a encore rien demandé."}
+        />
+      ) : (
+        <div className="space-y-4">
+          {polls.map((poll) => (
+            <PollCard isCoach={isCoach} key={poll.id} poll={poll} />
+          ))}
         </div>
       )}
-      {polls?.map((poll) => <PollCard isCoach={isCoach} key={poll.id} poll={poll} />)}
-    </div>
+    </Page>
   );
 }

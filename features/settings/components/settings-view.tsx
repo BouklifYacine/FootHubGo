@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Bell, Key, Mail, Trash2, User, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingState } from "@/components/app/loading-state";
 import { cn } from "@/lib/utils";
 import { useProfile } from "../hooks/use-profile";
 import { EmailForm, NameForm, PasswordForm } from "./account-forms";
@@ -28,7 +28,7 @@ export function SettingsView() {
   const [active, setActive] = useState<SectionId>("profile");
   const { data: profile, isPending, error } = useProfile();
 
-  if (isPending) return <Skeleton className="h-96 w-full" />;
+  if (isPending) return <LoadingState variant="detail" />;
   if (error) return <p className="text-destructive">{error.message}</p>;
 
   // Email and password can only be changed on accounts that have a password.

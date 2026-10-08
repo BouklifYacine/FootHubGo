@@ -16,6 +16,8 @@ import {
 } from "@/components/ui/popover"
 
 interface DateTimePickerProps {
+  /** id of the trigger button (so the field label points at it). */
+  id?: string
   value?: Date
   onChange?: (date: Date) => void
   placeholder?: string
@@ -25,9 +27,10 @@ interface DateTimePickerProps {
 }
 
 export function DateTimePicker({
+  id,
   value,
   onChange,
-  placeholder = "Sélectionner une date et heure",
+  placeholder = "Choisir une date et une heure",
   disabled = false,
   className,
   error = false,
@@ -65,11 +68,12 @@ export function DateTimePicker({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
+            id={id}
             variant="outline"
             className={cn(
               "w-full justify-start text-left font-normal",
               !selectedDate && "text-muted-foreground",
-              error && "border-red-500",
+              error && "border-destructive",
               className
             )}
             disabled={disabled}
@@ -100,6 +104,7 @@ export function DateTimePicker({
                 value={timeValue}
                 onChange={(e) => handleTimeChange(e.target.value)}
                 className="w-auto"
+                aria-label="Heure"
               />
             </div>
           </div>
@@ -111,6 +116,8 @@ export function DateTimePicker({
 
 // Composant simplifié pour juste la date
 interface DatePickerProps {
+  /** id of the trigger button (so the field label points at it). */
+  id?: string
   date?: Date
   onSelect?: (date: Date | undefined) => void
   placeholder?: string
@@ -119,9 +126,10 @@ interface DatePickerProps {
 }
 
 export function DatePicker({
+  id,
   date,
   onSelect,
-  placeholder = "Sélectionner une date",
+  placeholder = "Choisir une date",
   disabled = false,
   className,
 }: DatePickerProps) {
@@ -129,6 +137,7 @@ export function DatePicker({
     <Popover>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal",

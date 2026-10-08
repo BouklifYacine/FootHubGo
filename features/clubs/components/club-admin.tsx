@@ -1,13 +1,14 @@
 "use client";
 
 import { useConfirm } from "@/components/app/confirm-dialog";
+import { ErrorState } from "@/components/app/error-state";
+import { LoadingState } from "@/components/app/loading-state";
 import { formatNumericDate } from "@/lib/format";
 import { useState, type ReactNode } from "react";
 import {
   Crown,
   CreditCard,
   KeyRound,
-  Loader2,
   MoreVertical,
   Pencil,
   Plus,
@@ -70,13 +71,9 @@ export function ClubAdminView() {
   const { data, isPending, error } = useClubAdmin();
 
   if (isPending) {
-    return (
-      <div className="flex justify-center py-10">
-        <Loader2 className="animate-spin text-zinc-400" />
-      </div>
-    );
+    return <LoadingState variant="detail" className="mx-auto max-w-4xl" />;
   }
-  if (error) return <p className="p-5 text-red-500">{error.message}</p>;
+  if (error) return <ErrorState error={error} />;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-8 pb-10">
@@ -128,7 +125,7 @@ function ClubInfo({ data }: { data: ClubAdmin }) {
         <div className="min-w-0">
           <h1 className="truncate text-2xl font-bold">{club.name}</h1>
           <p className="text-sm text-muted-foreground">
-            {clubVisibilityLabels[club.visibility]} · votre rôle : {clubRoleLabels[data.myRole]}
+            {clubVisibilityLabels[club.visibility]} · ton rôle : {clubRoleLabels[data.myRole]}
           </p>
         </div>
       </div>

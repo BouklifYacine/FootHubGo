@@ -11,15 +11,15 @@ export function PasswordInput(props: Omit<ComponentProps<"input">, "type">) {
   const [visible, setVisible] = useState(false);
   return (
     <div className="relative">
-      <Input type={visible ? "text" : "password"} className="pr-10" {...props} />
+      <Input type={visible ? "text" : "password"} className="pr-12" {...props} />
       <button
         type="button"
         onClick={() => setVisible((v) => !v)}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+        className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-md text-muted-foreground outline-none hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring/50"
         aria-label={visible ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-        tabIndex={-1}
+        aria-pressed={visible}
       >
-        {visible ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+        {visible ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
       </button>
     </div>
   );
