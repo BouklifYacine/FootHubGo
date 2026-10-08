@@ -9,6 +9,7 @@ import { ThemeSelector } from "@/components/theme-toggle";
 import { MORE_NAV, visibleItems } from "@/lib/navigation";
 import { signOutAndRedirect } from "@/lib/auth-client";
 import { SectionList } from "@/features/clubs/components/section-switcher";
+import { InstallAppCard } from "@/features/push/components/install-app-card";
 import { useReplayTour } from "@/features/onboarding/hooks/use-tours";
 import { useProfile } from "@/features/settings/hooks/use-profile";
 import { badgeLabel, badgeText, useNavigation } from "./use-navigation";
@@ -64,6 +65,8 @@ export function MoreMenu() {
           ))}
         </ul>
       </Group>
+
+      <InstallAppCard />
 
       <Group title="Apparence">
         <ThemeSelector />

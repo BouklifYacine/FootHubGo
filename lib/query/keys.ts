@@ -74,6 +74,11 @@ export const queryKeys = {
     all: ["notifications"] as const,
   },
 
+  /** This browser (not the server): push permission / subscription, install state. */
+  device: {
+    push: ["device", "push"] as const,
+  },
+
   polls: {
     all: ["polls"] as const,
   },
