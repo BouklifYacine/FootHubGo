@@ -92,14 +92,18 @@ export const createEvent = action(eventSchema, async ({ repeatUntil, scope: requ
   if (free.length === 0) throw new AppError("Un événement existe déjà à cette date et heure", 409);
 
   const seriesId = dates.length > 1 ? randomUUID() : null;
-  await prisma.event.createMany({
+  const created = await prisma.event.createManyAndReturn({
     data: free.map((startDate) => ({ ...toEventColumns({ ...input, startDate }), ...scope, seriesId })),
+    select: { id: true },
   });
+  // The form offers "Convoquer maintenant" right after a match is created.
+  const data = { eventId: created[0].id, type: input.type, title: input.title };
 
-  if (dates.length === 1) return { message: "Événement créé" };
+  if (dates.length === 1) return { message: "Événement créé", data };
   const skipped = dates.length - free.length;
   return {
     message: `${free.length} entraînements créés${skipped ? ` (${skipped} ignoré${skipped > 1 ? "s" : ""} : créneau déjà pris)` : ""}`,
+    data,
   };
 });
 

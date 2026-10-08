@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog as Dialog,
+  ResponsiveDialogContent as DialogContent,
+  ResponsiveDialogDescription as DialogDescription,
+  ResponsiveDialogFooter as DialogFooter,
+  ResponsiveDialogHeader as DialogHeader,
+  ResponsiveDialogTitle as DialogTitle,
+} from "@/components/app/responsive-dialog";
 import { useAppForm } from "@/lib/form";
 import { clubVisibilityLabels, sectionCategoryLabels, teamLevelLabels, toOptions } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
@@ -31,7 +31,7 @@ type Props = {
 export function ClubFormDialog({ open, onOpenChange, club }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[95vw] max-w-md overflow-y-auto sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{club ? "Modifier le club" : "Créer un club"}</DialogTitle>
           <DialogDescription>

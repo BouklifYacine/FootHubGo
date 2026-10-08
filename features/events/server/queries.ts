@@ -3,6 +3,7 @@ import type { EventType, Prisma } from "@/generated/prisma/client";
 import { notFound } from "@/lib/errors";
 import type { Membership } from "@/lib/auth/session";
 import { canManageSection, sectionDisplayName } from "@/features/clubs/rules";
+import { participationOf } from "./participation";
 
 export type EventFilters = { from?: Date; to?: Date; type?: EventType };
 
@@ -13,9 +14,9 @@ export const sectionEventsWhere = (scope: { clubId: string; teamId: string }): P
 });
 
 /**
- * Events of the active section and of the whole club (used by the events list and the calendar),
- * oldest first, with the caller's own attendance, whether the event is locked by team stats and
- * whether the caller can edit it.
+ * Events of the active section and of the whole club (used by the agenda list and calendar),
+ * oldest first, with "who is coming" from the caller's point of view (participationOf), the score,
+ * whether the event is locked by team stats and whether the caller can edit it.
  */
 export async function listEvents(membership: Membership, userId: string, { from, to, type }: EventFilters = {}) {
   const where: Prisma.EventWhereInput = {
@@ -37,22 +38,23 @@ export async function listEvents(membership: Membership, userId: string, { from,
       opponent: true,
       seriesId: true,
       teamId: true,
-      teamStat: { select: { id: true } },
-      attendances: { where: { userId }, select: { status: true } },
+      teamStat: { select: { id: true, result: true, goalsFor: true, goalsAgainst: true } },
     },
   });
 
-  return events.map(({ teamStat, attendances, teamId, ...event }) => ({
+  const participation = await participationOf(events, membership, userId);
+  return events.map(({ teamStat, ...event }) => ({
     ...event,
-    isClubEvent: teamId === null,
-    canEdit: canManageSection(membership, teamId),
+    isClubEvent: event.teamId === null,
+    canEdit: canManageSection(membership, event.teamId),
     hasStats: teamStat !== null,
-    myAttendance: attendances[0]?.status ?? "PENDING",
+    score: teamStat ? { result: teamStat.result, goalsFor: teamStat.goalsFor, goalsAgainst: teamStat.goalsAgainst } : null,
+    ...participation.get(event.id)!,
   }));
 }
 
 /** One event of the section (or a club-wide one), with its score and the training attendances. */
-export async function getEvent(eventId: string, membership: Membership) {
+export async function getEvent(eventId: string, membership: Membership, userId: string) {
   const teamId = membership.teamId;
   const event = await prisma.event.findFirst({
     where: { id: eventId, ...sectionEventsWhere(membership) },
@@ -64,6 +66,7 @@ export async function getEvent(eventId: string, membership: Membership) {
       type: true,
       startDate: true,
       opponent: true,
+      seriesId: true,
       teamId: true,
       team: { select: { name: true } },
       club: { select: { name: true, logoUrl: true } },
@@ -86,8 +89,10 @@ export async function getEvent(eventId: string, membership: Membership) {
   if (!event) throw notFound("Événement introuvable");
 
   const { attendances, team, club, teamId: eventTeamId, ...rest } = event;
+  const participation = await participationOf([event], membership, userId);
   return {
     ...rest,
+    ...participation.get(event.id)!,
     // Club-wide events show the club; section events "Club · Section".
     team: { name: team ? sectionDisplayName(club.name, team.name) : club.name, logoUrl: club.logoUrl },
     isClubEvent: eventTeamId === null,

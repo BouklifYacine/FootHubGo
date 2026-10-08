@@ -69,7 +69,7 @@ export function CalendarToolbar({ controller, types, onTypesChange, onCreate }: 
         </Popover>
 
         <Select value={controller.view?.type} onValueChange={(view) => controller.changeView(view)}>
-          <SelectTrigger className="h-8 w-28" aria-label="Vue">
+          <SelectTrigger className="w-28 md:h-8" aria-label="Vue">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
