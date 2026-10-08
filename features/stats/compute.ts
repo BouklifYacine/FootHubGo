@@ -111,7 +111,8 @@ export function summarizePlayerStats(matches: PlayerMatch[]) {
   };
 }
 
-export type PlayerStatsSummary = ReturnType<typeof summarizePlayerStats>;
+/** The player's season (`motmAwards`: times elected man of the match, added by the query). */
+export type PlayerStatsSummary = ReturnType<typeof summarizePlayerStats> & { motmAwards: number };
 
 export type Standing = {
   team: { id: string; name: string; logoUrl: string | null };

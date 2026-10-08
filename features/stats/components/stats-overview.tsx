@@ -159,6 +159,7 @@ function PlayerStatsView({ team }: { team: Team }) {
             { label: "Matchs titulaire", value: stats.starts },
             { label: "Minutes jouées", value: stats.minutes },
             { label: "Minutes / match", value: stats.avgMinutes },
+            { label: "Homme du match", value: stats.motmAwards },
           ],
           [
             { label: "Titulaire", value: `${stats.startRate}%` },

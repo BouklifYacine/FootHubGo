@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, MapPin, Repeat } from "lucide-react";
+import { ChevronRight, MapPin, Repeat, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -47,6 +47,11 @@ export function AgendaEventCard({ event, isPast }: { event: EventListItem; isPas
           <div className="flex flex-wrap items-center gap-1 pt-0.5">
             <Badge className={type.badgeClass}>{type.label}</Badge>
             {event.isClubEvent && <Badge variant="outline">Tout le club</Badge>}
+            {event.motmVote && !event.motmVote.hasVoted && (
+              <Badge variant="warning">
+                <Trophy aria-hidden /> Vote homme du match
+              </Badge>
+            )}
             {event.seriesId && (
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Repeat className="size-3" aria-hidden /> Chaque semaine

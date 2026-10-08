@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, CalendarCheck, ChevronRight, Dumbbell, Send, UserPlus, type LucideIcon } from "lucide-react";
+import { BarChart3, CalendarCheck, ChevronRight, Dumbbell, Send, Trophy, UserPlus, type LucideIcon } from "lucide-react";
 import { SectionTitle } from "@/components/app/page-header";
 import { formatDayLabel, formatTime } from "@/lib/format";
 import type { HomeData } from "../types";
@@ -19,6 +19,14 @@ export function TodoList({ todo }: { todo: HomeData["todo"] }) {
       icon: CalendarCheck,
       title: `Convocation : ${nameOf(event)}`,
       detail: `${when(event.startDate)} · Réponds à ton coach`,
+      tone: "warning" as const,
+    })),
+    ...todo.motmVotes.map((event) => ({
+      key: `motm-${event.id}`,
+      href: `/app/events/${event.id}`,
+      icon: Trophy,
+      title: `Homme du match : ${nameOf(event)}`,
+      detail: `Vote avant ${formatDayLabel(event.closesAt).toLowerCase()} à ${formatTime(event.closesAt)}`,
       tone: "warning" as const,
     })),
     ...todo.trainingsToAnswer.map((event) => ({

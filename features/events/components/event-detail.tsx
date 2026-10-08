@@ -11,6 +11,7 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { Button } from "@/components/ui/button";
 import { AttendanceAnswer, CallUpAnswer } from "@/features/call-ups/components/call-up-answer";
 import { CallUpTable } from "@/features/call-ups/components/call-up-table";
+import { MotmCard } from "@/features/motm/components/motm-card";
 import { PlayerStatsTable } from "@/features/stats/components/player-stats-table";
 import { PlayingTimeList } from "@/features/stats/components/playing-time-list";
 import { TeamStatsPanel } from "@/features/stats/components/team-stats-panel";
@@ -82,6 +83,7 @@ export function EventDetail({ eventId }: { eventId: string }) {
       ) : (
         <section className="space-y-3">
           <TeamStatsPanel eventId={eventId} />
+          <MotmCard eventId={eventId} />
           <SegmentedControl
             label="Afficher"
             value={tab}

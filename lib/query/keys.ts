@@ -40,6 +40,10 @@ export const queryKeys = {
     calendar: ["events", "calendar"] as const,
     detail: (eventId: string) => ["events", "detail", eventId] as const,
     callUps: (eventId: string) => ["events", "detail", eventId, "call-ups"] as const,
+    /** Man-of-the-match vote of a match. */
+    motm: (eventId: string) => ["events", "detail", eventId, "motm"] as const,
+    /** Carpool of an away match. */
+    carpool: (eventId: string) => ["events", "detail", eventId, "carpool"] as const,
   },
 
   stats: {

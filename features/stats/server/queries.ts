@@ -10,6 +10,7 @@ import {
   summarizeTeamStats,
 } from "../compute";
 import { summarizePlayingTime } from "../playing-time";
+import { countMotmAwards, getSectionMotmAwards } from "@/features/motm/server/queries";
 
 /**
  * League table of the sections (aggregated by the database) + last 5 results. Sections of private
@@ -63,19 +64,22 @@ export async function getTeamStatsSummary(teamId: string) {
 }
 
 export async function getPlayerStatsSummary(userId: string) {
-  const matches = await prisma.playerStat.findMany({
-    where: { userId },
-    select: { goals: true, assists: true, rating: true, minutesPlayed: true, isStarter: true },
-  });
-  return summarizePlayerStats(matches);
+  const [matches, motmAwards] = await Promise.all([
+    prisma.playerStat.findMany({
+      where: { userId },
+      select: { goals: true, assists: true, rating: true, minutesPlayed: true, isStarter: true },
+    }),
+    countMotmAwards(userId),
+  ]);
+  return { ...summarizePlayerStats(matches), motmAwards };
 }
 
 /**
- * Season playing time of the section's players (every player of the section, even without minutes),
- * most minutes first.
+ * Season playing time of the section's players (every player of the section, even without minutes)
+ * and their man-of-the-match awards, most minutes first.
  */
 export async function getTeamPlayingTime(teamId: string) {
-  const [players, rows] = await Promise.all([
+  const [players, rows, awards] = await Promise.all([
     prisma.teamMember.findMany({
       where: { teamId, role: "PLAYER" },
       select: { userId: true, position: true, user: { select: { name: true, image: true } } },
@@ -84,6 +88,7 @@ export async function getTeamPlayingTime(teamId: string) {
       where: { event: { teamId } },
       select: { userId: true, minutesPlayed: true, isStarter: true },
     }),
+    getSectionMotmAwards(teamId),
   ]);
   const totals = new Map(summarizePlayingTime(rows).map((row) => [row.userId, row]));
   return players
@@ -93,6 +98,7 @@ export async function getTeamPlayingTime(teamId: string) {
       image: player.user.image,
       position: player.position,
       ...(totals.get(player.userId) ?? { matches: 0, minutes: 0, starts: 0, avgMinutes: 0 }),
+      motmAwards: awards.get(player.userId) ?? 0,
     }))
     .sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name, "fr"));
 }

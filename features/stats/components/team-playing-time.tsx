@@ -1,6 +1,6 @@
 "use client";
 
-import { Timer } from "lucide-react";
+import { Timer, Trophy } from "lucide-react";
 import { EmptyState } from "@/components/app/empty-state";
 import { ErrorState } from "@/components/app/error-state";
 import { LoadingState } from "@/components/app/loading-state";
@@ -17,7 +17,7 @@ export function TeamPlayingTime({ teamId, className }: { teamId: string; classNa
       <h2 id="playing-time-title" className="font-semibold">
         Temps de jeu
       </h2>
-      <p className="mb-3 text-sm text-muted-foreground">Qui a le plus joué cette saison.</p>
+      <p className="mb-3 text-sm text-muted-foreground">Qui a le plus joué cette saison (et combien de fois homme du match).</p>
       {isLoading ? (
         <LoadingState rows={3} />
       ) : error || !data ? (
@@ -33,7 +33,18 @@ export function TeamPlayingTime({ teamId, className }: { teamId: string; classNa
                 <span className="w-5 text-right text-sm text-muted-foreground tabular-nums">{index + 1}</span>
                 <InitialsAvatar name={player.name} src={player.image} className="size-9" />
                 <div className="min-w-0 flex-1 space-y-1">
-                  <p className="truncate text-sm font-medium">{player.name}</p>
+                  <p className="flex items-center gap-1.5 text-sm font-medium">
+                    <span className="truncate">{player.name}</span>
+                    {player.motmAwards > 0 && (
+                      <span
+                        className="flex shrink-0 items-center gap-0.5 text-xs font-semibold text-warning"
+                        aria-label={`${player.motmAwards} fois homme du match`}
+                        title="Homme du match"
+                      >
+                        <Trophy className="size-3.5" aria-hidden /> {player.motmAwards}
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-muted-foreground">
                     {player.matches} match{player.matches > 1 ? "s" : ""} · {player.starts} titulaire · {player.avgMinutes}&apos; / match
                   </p>
