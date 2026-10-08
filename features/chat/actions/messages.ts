@@ -9,6 +9,7 @@ import { conversationIdSchema, deleteMessageSchema, sendMessageSchema } from "..
 import { assertNotBlocked, requireParticipant } from "../server/access";
 import { messageInclude, toMessageDto } from "../server/dto";
 import { assertCanSendMessage } from "../server/rate-limit";
+import { pushChatMessage } from "@/features/push/server/chat-push";
 
 export const sendMessage = action(sendMessageSchema, async ({ conversationId, content }) => {
   const user = await requireUser();
@@ -43,6 +44,8 @@ export const sendMessage = action(sendMessageSchema, async ({ conversationId, co
 
   const dto = toMessageDto(message);
   await emitToConversation(conversationId, "chat:message", dto);
+  // Participants without an open tab get a push (grouped per conversation); not awaited.
+  void pushChatMessage({ conversationId, senderId: user.id, senderName: message.sender.name, content });
   return { message: "Message envoyé", data: dto };
 });
 

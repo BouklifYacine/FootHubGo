@@ -18,6 +18,8 @@ export const queryKeys = {
     badges: ["me", "badges"] as const,
     /** Onboarding tours already seen. */
     tours: ["me", "tours"] as const,
+    /** Web Push: VAPID public key + number of subscribed devices. */
+    push: ["me", "push"] as const,
   },
 
   /** Club directory (clubs and their sections). */
