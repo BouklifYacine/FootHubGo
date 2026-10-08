@@ -6,6 +6,8 @@ import { Check, CheckCheck, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { LoadingState } from "@/components/app/loading-state";
 import { isPending } from "../cache";
 import { useDeleteMessage, useMessages } from "../hooks/use-messages";
 import { ChatAvatar } from "./chat-avatar";
@@ -15,6 +17,7 @@ type Props = { conversationId: string; myId: string | undefined; showSenders: bo
 export function MessageList({ conversationId, myId, showSenders, typingNames }: Props) {
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useMessages(conversationId);
   const deleteMessage = useDeleteMessage();
+  const confirm = useConfirm();
   const bottom = useRef<HTMLDivElement>(null);
   const messages = data?.pages.toReversed().flatMap((page) => page.messages) ?? [];
   const lastId = messages.at(-1)?.id;
@@ -22,7 +25,7 @@ export function MessageList({ conversationId, myId, showSenders, typingNames }: 
   // Follow the newest message (not when older pages are prepended).
   useEffect(() => bottom.current?.scrollIntoView({ block: "end" }), [lastId, typingNames.length]);
 
-  if (isLoading) return <p className="flex-1 p-8 text-center text-sm text-muted-foreground">Chargement...</p>;
+  if (isLoading) return <LoadingState rows={4} className="flex-1 p-4" />;
 
   return (
     <div className="flex-1 space-y-2 overflow-y-auto p-4">
@@ -31,7 +34,7 @@ export function MessageList({ conversationId, myId, showSenders, typingNames }: 
           Charger les messages précédents
         </Button>
       )}
-      {messages.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">Aucun message. Lancez la discussion !</p>}
+      {messages.length === 0 && <p className="p-8 text-center text-sm text-muted-foreground">Aucun message. Lance la discussion !</p>}
 
       {messages.map((m) => {
         const mine = m.senderId === myId;
@@ -60,8 +63,14 @@ export function MessageList({ conversationId, myId, showSenders, typingNames }: 
             {!pending && !m.deletedForAll && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button aria-label="Options du message" className="size-6 opacity-0 group-hover:opacity-100" size="icon" variant="ghost">
-                    <MoreVertical className="size-3" />
+                  {/* Always visible on touch screens; on desktop it shows on hover / keyboard focus. */}
+                  <Button
+                    aria-label="Options du message"
+                    className="size-9 shrink-0 text-muted-foreground md:size-7 md:opacity-0 md:group-hover:opacity-100 md:focus-visible:opacity-100 md:data-[state=open]:opacity-100"
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <MoreVertical className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align={mine ? "end" : "start"}>
@@ -69,7 +78,17 @@ export function MessageList({ conversationId, myId, showSenders, typingNames }: 
                     Supprimer pour moi
                   </DropdownMenuItem>
                   {mine && (
-                    <DropdownMenuItem onClick={() => deleteMessage.mutate({ messageId: m.id, scope: "all" })}>
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: "Supprimer ce message pour tout le monde ?",
+                          description: "Il sera remplacé par « Message supprimé » chez tous les participants.",
+                          confirmLabel: "Supprimer pour tous",
+                        });
+                        if (ok) deleteMessage.mutate({ messageId: m.id, scope: "all" });
+                      }}
+                    >
                       Supprimer pour tous
                     </DropdownMenuItem>
                   )}

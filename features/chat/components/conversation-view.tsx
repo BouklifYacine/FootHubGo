@@ -40,16 +40,16 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
   }, [c.id, c.unreadCount, markRead]);
 
   const disabledReason = c.blocked?.byMe
-    ? "Vous avez bloqué cet utilisateur."
+    ? "Tu as bloqué cet utilisateur."
     : c.blocked?.byThem
-      ? "Vous ne pouvez pas répondre à cette conversation."
+      ? "Tu ne peux pas répondre à cette conversation."
       : undefined;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col">
       <header className="flex items-center gap-3 border-b p-3">
         <Button aria-label="Retour" className="md:hidden" onClick={onClose} size="icon" variant="ghost">
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-5" />
         </Button>
         <ChatAvatar image={other?.image} isOnline={other?.isOnline} name={c.name} />
         <div className="min-w-0 flex-1">
@@ -61,7 +61,7 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button aria-label="Options de la conversation" size="icon" variant="ghost">
-              <MoreVertical className="size-4" />
+              <MoreVertical className="size-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

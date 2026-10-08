@@ -30,6 +30,8 @@ export const queryKeys = {
     all: ["club"] as const,
     admin: ["club", "admin"] as const,
     joinRequests: ["club", "join-requests"] as const,
+    /** Every member of the club (chat). */
+    members: ["club", "members"] as const,
   },
 
   events: {

@@ -12,29 +12,30 @@ import {
 } from "@/components/app/responsive-dialog";
 import { Input } from "@/components/ui/input";
 import { teamRoleLabels } from "@/lib/enum-labels";
+import { LoadingState } from "@/components/app/loading-state";
 import { cn } from "@/lib/utils";
-import { useMyTeam } from "@/features/team/hooks/use-my-team";
+import { useClubMembers } from "@/features/clubs/hooks/use-club-members";
 import { useCreateConversation } from "../hooks/use-conversations";
 import { GROUP_MAX_MEMBERS } from "../schemas";
 import { ChatAvatar } from "./chat-avatar";
 
 type Mode = "PRIVATE" | "GROUP";
 
-/** Starts a private conversation or creates a group with members of the user's team. */
+/** Starts a private conversation or creates a group with members of the user's club (every section). */
 export function NewConversationDialog({ myId, onCreated }: { myId?: string; onCreated: (id: string) => void }) {
   const [open, setOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("PRIVATE");
   const [search, setSearch] = useState("");
   const [groupName, setGroupName] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
-  const { data: team, isLoading } = useMyTeam();
+  const { data: clubMembers, isLoading } = useClubMembers(open);
   const create = useCreateConversation((conversation) => {
     onCreated(conversation.id);
     onOpenChange(false);
   });
 
-  const members = (team?.members ?? []).filter(
-    (m) => m.userId !== myId && m.user.name.toLowerCase().includes(search.trim().toLowerCase()),
+  const members = (clubMembers ?? []).filter(
+    (m) => m.userId !== myId && m.name.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
   function onOpenChange(next: boolean) {
@@ -55,7 +56,7 @@ export function NewConversationDialog({ myId, onCreated }: { myId?: string; onCr
     <Dialog onOpenChange={onOpenChange} open={open}>
       <DialogTrigger asChild>
         <Button aria-label="Nouvelle conversation" size="icon" variant="ghost">
-          <Plus className="size-4" />
+          <Plus className="size-5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[400px]">
@@ -71,12 +72,12 @@ export function NewConversationDialog({ myId, onCreated }: { myId?: string; onCr
           ))}
         </div>
         {mode === "GROUP" && (
-          <Input onChange={(e) => setGroupName(e.target.value)} placeholder="Nom du groupe..." value={groupName} />
+          <Input aria-label="Nom du groupe" onChange={(e) => setGroupName(e.target.value)} placeholder="Nom du groupe" value={groupName} />
         )}
-        <Input onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un membre..." value={search} />
+        <Input aria-label="Rechercher un membre du club" onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un membre du club" value={search} />
 
-        <div className="max-h-60 space-y-1 overflow-y-auto">
-          {isLoading && <p className="py-4 text-center text-sm text-muted-foreground">Chargement...</p>}
+        <div className="max-h-[45dvh] space-y-1 overflow-y-auto md:max-h-72">
+          {isLoading && <LoadingState rows={3} />}
           {!isLoading && members.length === 0 && (
             <p className="py-4 text-center text-sm text-muted-foreground">Aucun membre trouvé</p>
           )}
@@ -85,7 +86,7 @@ export function NewConversationDialog({ myId, onCreated }: { myId?: string; onCr
             return (
               <button
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-accent disabled:opacity-50",
+                  "flex min-h-12 w-full items-center gap-3 rounded-lg p-2 text-left outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:opacity-50",
                   isSelected && "bg-primary/10",
                 )}
                 disabled={create.isPending}
@@ -95,10 +96,12 @@ export function NewConversationDialog({ myId, onCreated }: { myId?: string; onCr
                 }
                 type="button"
               >
-                <ChatAvatar image={m.user.image} name={m.user.name} />
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{m.user.name}</p>
-                  <p className="text-xs text-muted-foreground">{teamRoleLabels[m.role]}</p>
+                <ChatAvatar image={m.image} name={m.name} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{m.name}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {m.sections.map((section) => `${section.name} (${teamRoleLabels[section.role].toLowerCase()})`).join(", ")}
+                  </p>
                 </div>
                 {isSelected && <Check className="size-4 text-primary" />}
               </button>

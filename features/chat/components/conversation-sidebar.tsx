@@ -39,15 +39,21 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
   ];
 
   return (
-    <aside className={cn("flex flex-col border-r w-full md:w-80", className)}>
+    <aside className={cn("flex w-full flex-col md:w-80 md:border-r", className)}>
       <div className="space-y-3 border-b p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Messages</h2>
+          <h2 className="text-lg font-semibold">Discussions</h2>
           <NewConversationDialog myId={myId} onCreated={onSelect} />
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher..." value={search} />
+          <Input
+            aria-label="Rechercher une conversation"
+            className="pl-9"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher"
+            value={search}
+          />
         </div>
       </div>
 
@@ -62,7 +68,7 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
                 return (
                   <button
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors",
+                      "flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                       c.id === selectedId ? "bg-primary/10" : "hover:bg-accent",
                     )}
                     key={c.id}
@@ -84,7 +90,10 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
                       </p>
                     </div>
                     {c.unreadCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-green-500 px-1 text-[10px] font-bold text-white">
+                      <span
+                        aria-label={`${c.unreadCount} non lu${c.unreadCount > 1 ? "s" : ""}`}
+                        className="flex h-5 min-w-5 items-center justify-center rounded-full bg-success px-1 text-[10px] font-bold text-success-foreground"
+                      >
                         {c.unreadCount > 99 ? "99+" : c.unreadCount}
                       </span>
                     )}

@@ -34,5 +34,11 @@ export function useSendMessage(conversationId: string) {
         }),
     },
     onSuccess: (message) => setMessages(queryClient, conversationId, (data) => insertMessage(data, message)),
+    // Sent before the conversation finished loading: the optimistic update cancelled that first load
+    // (and had nothing to add the message to), so load it now, the new message included.
+    onSettled: () => {
+      const key = queryKeys.chat.messages(conversationId);
+      if (queryClient.getQueryData(key) === undefined) void queryClient.invalidateQueries({ queryKey: key });
+    },
   });
 }
