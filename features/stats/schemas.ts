@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Competition, MatchResult, PlayerPosition } from "@/generated/prisma/browser";
+import { MAX_MINUTES } from "./playing-time";
 
 const count = (label: string) =>
   z
@@ -62,11 +63,9 @@ export const playerStatsSchema = z.object({
     .number({ error: "Indique les minutes jouées" })
     .int("Nombre entier attendu")
     .min(0, "Minimum 0")
-    .max(90, "Maximum 90 minutes"),
-  rating: z
-    .number({ error: "Indique une note" })
-    .min(0, "Minimum 0")
-    .max(10, "La note maximale est 10"),
+    .max(MAX_MINUTES, `Maximum ${MAX_MINUTES} minutes (prolongations comprises)`),
+  /** Optional: empty = not rated (left out of the average rating). */
+  rating: z.number().min(0, "Minimum 0").max(10, "La note maximale est 10").optional(),
   isStarter: z.boolean(),
 });
 
@@ -76,3 +75,24 @@ export const playerStatsFormSchema = playerStatsSchema.extend({
 });
 
 export type PlayerStatsFormValues = z.input<typeof playerStatsFormSchema>;
+
+/** The coach's playing-time sheet of a match (every present player at once). */
+export const playingTimeSchema = z.object({
+  eventId: z.string().min(1),
+  entries: z
+    .array(
+      z.object({
+        userId: z.string().min(1),
+        minutes: z
+          .number({ error: "Indique les minutes jouées" })
+          .int("Nombre entier attendu")
+          .min(0, "Minimum 0")
+          .max(MAX_MINUTES, `Maximum ${MAX_MINUTES} minutes`),
+        isStarter: z.boolean(),
+      }),
+    )
+    .min(1, "Aucun joueur")
+    .max(60, "Trop de joueurs"),
+});
+
+export type PlayingTimeInput = z.input<typeof playingTimeSchema>;

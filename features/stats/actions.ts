@@ -6,7 +6,8 @@ import { action } from "@/lib/actions/action";
 import { requireCoach } from "@/lib/auth/session";
 import { AppError, notFound } from "@/lib/errors";
 import { getStatsWindow } from "./compute";
-import { playerStatsSchema, teamStatsSchema } from "./schemas";
+import { playingTimeChanges, playingTimeError } from "./playing-time";
+import { playerStatsSchema, playingTimeSchema, teamStatsSchema } from "./schemas";
 
 const id = z.string().min(1);
 
@@ -141,7 +142,7 @@ export const createPlayerStats = action(
     if (existing) throw new AppError("Ce joueur a déjà des statistiques pour ce match");
     await assertPlayerTotals(event.id, event.teamStat.goalsFor, values);
 
-    await prisma.playerStat.create({ data: { ...values, userId, eventId: event.id } });
+    await prisma.playerStat.create({ data: { ...values, rating: values.rating ?? null, userId, eventId: event.id } });
     return { message: `Statistiques de ${player.user.name} ajoutées` };
   },
 );
@@ -166,7 +167,7 @@ export const updatePlayerStats = action(
     if (!event.teamStat) throw new AppError("Saisis d'abord le score du match");
     await assertPlayerTotals(event.id, event.teamStat.goalsFor, values, stat.id);
 
-    await prisma.playerStat.update({ where: { id: stat.id }, data: values });
+    await prisma.playerStat.update({ where: { id: stat.id }, data: { ...values, rating: values.rating ?? null } });
     return { message: `Statistiques de ${stat.user.name} modifiées` };
   },
 );
@@ -176,4 +177,48 @@ export const deletePlayerStats = action(id, async (statId) => {
   const stat = await findTeamPlayerStat(statId, membership.teamId);
   await prisma.playerStat.delete({ where: { id: stat.id } });
   return { message: `Statistiques de ${stat.user.name} supprimées` };
+});
+
+// -------------------------------------------------------------- playing time
+
+/**
+ * The playing-time sheet: minutes + starter for every present player of the match at once.
+ * Present = PLAYER of the section with a CONFIRMED call-up (ids from the client are checked against it).
+ * Rows are created without rating (rated later from the player stats form); 0 minutes removes the row.
+ */
+export const savePlayingTime = action(playingTimeSchema, async ({ eventId, entries }) => {
+  const { membership } = await requireCoach();
+  const event = await findTeamMatch(eventId, membership.teamId);
+  assertOpen(event.startDate);
+  assertEditable(event.startDate);
+  if (!event.teamStat) throw new AppError("Saisis d'abord le score du match");
+
+  const [present, existing] = await Promise.all([
+    prisma.teamMember.findMany({
+      where: { teamId: membership.teamId, role: "PLAYER", user: { callUps: { some: { eventId: event.id, status: "CONFIRMED" } } } },
+      select: { userId: true, position: true },
+    }),
+    prisma.playerStat.findMany({
+      where: { eventId: event.id },
+      select: { id: true, userId: true, goals: true, assists: true },
+    }),
+  ]);
+  const error = playingTimeError(entries, present.map((player) => player.userId));
+  if (error) throw new AppError(error);
+  const changes = playingTimeChanges(entries, existing);
+  if (changes.error) throw new AppError(changes.error);
+
+  const positionOf = new Map(present.map((player) => [player.userId, player.position]));
+  await prisma.$transaction([
+    prisma.playerStat.deleteMany({ where: { id: { in: changes.deletes }, eventId: event.id } }),
+    ...changes.upserts.map(({ userId, minutes, isStarter, statId }) =>
+      statId
+        ? prisma.playerStat.update({ where: { id: statId }, data: { minutesPlayed: minutes, isStarter } })
+        : prisma.playerStat.create({
+            data: { userId, eventId: event.id, minutesPlayed: minutes, isStarter, position: positionOf.get(userId) ?? null },
+          }),
+    ),
+  ]);
+  const played = changes.upserts.length;
+  return { message: `Temps de jeu enregistré (${played} joueur${played > 1 ? "s" : ""})` };
 });

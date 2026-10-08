@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { AttendanceAnswer, CallUpAnswer } from "@/features/call-ups/components/call-up-answer";
 import { CallUpTable } from "@/features/call-ups/components/call-up-table";
 import { PlayerStatsTable } from "@/features/stats/components/player-stats-table";
+import { PlayingTimeList } from "@/features/stats/components/playing-time-list";
 import { TeamStatsPanel } from "@/features/stats/components/team-stats-panel";
 import { useMyTeam } from "@/features/team/hooks/use-my-team";
 import { useDeleteEvent } from "../hooks/use-event-actions";
@@ -29,7 +30,7 @@ import { AttendanceSummary, CallUpSummary } from "./participation-summary";
 export function EventDetail({ eventId }: { eventId: string }) {
   const { data: event, isPending, error, refetch } = useEvent(eventId);
   const { data: myTeam } = useMyTeam();
-  const [tab, setTab] = useState<"players" | "stats">("players");
+  const [tab, setTab] = useState<"players" | "stats" | "minutes">("players");
 
   if (isPending) return <LoadingState variant="detail" className="mx-auto max-w-3xl" />;
   if (error) return <ErrorState error={error} onRetry={refetch} title="Événement introuvable" className="mx-auto max-w-3xl" />;
@@ -85,12 +86,20 @@ export function EventDetail({ eventId }: { eventId: string }) {
             label="Afficher"
             value={tab}
             onChange={setTab}
+            className="w-full md:w-auto"
             options={[
               { value: "players", label: "Effectif" },
               { value: "stats", label: "Statistiques" },
+              { value: "minutes", label: "Temps de jeu" },
             ]}
           />
-          {tab === "players" ? <CallUpTable eventId={eventId} isCoach={isCoach} /> : <PlayerStatsTable eventId={eventId} />}
+          {tab === "players" ? (
+            <CallUpTable eventId={eventId} isCoach={isCoach} />
+          ) : tab === "stats" ? (
+            <PlayerStatsTable eventId={eventId} />
+          ) : (
+            <PlayingTimeList eventId={eventId} />
+          )}
         </section>
       )}
     </div>

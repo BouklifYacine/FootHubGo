@@ -180,8 +180,9 @@ async function main() {
         goals: index === 0 ? Math.min(match.goalsFor, 2) : index === 7 && match.goalsFor > 2 ? 1 : 0,
         assists: index === 6 && match.goalsFor > 0 ? 1 : 0,
         rating: 6 + (index % 4) * 0.5,
-        minutesPlayed: 90,
-        isStarter: true,
+        // Playing time: 8 starters (one replaced at 70'), 2 substitutes.
+        minutesPlayed: index < 8 ? (index === 5 ? 70 : 90) : index === 8 ? 20 + match.goalsFor * 5 : 15,
+        isStarter: index < 8,
         position: index === 0 ? "STRIKER" : squad[index - 1][2],
       })),
     });

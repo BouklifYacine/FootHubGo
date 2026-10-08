@@ -46,6 +46,9 @@ export const queryKeys = {
     all: ["stats"] as const,
     teams: ["stats", "teams"] as const,
     team: (teamId: string) => ["stats", "teams", teamId] as const,
+    /** Season playing time (and man-of-the-match awards) of the section's players. */
+    teamPlayers: (teamId: string) => ["stats", "teams", teamId, "players"] as const,
+    event: (eventId: string) => ["stats", "events", eventId] as const,
     players: ["stats", "players"] as const,
   },
 

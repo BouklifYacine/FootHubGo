@@ -347,18 +347,21 @@ model Attendance {
 }
 
 model PlayerStat {
-  id            String         @id @default(cuid())
-  goals         Int            @default(0) @map("buts")
-  assists       Int            @default(0) @map("passesdecisive")
-  rating        Float          @default(6.0) @map("note")
-  minutesPlayed Int            @default(0) @map("minutesJouees")
-  isStarter     Boolean        @default(false) @map("titulaire")
-  position      PlayerPosition @map("poste")
-  createdAt     DateTime       @default(now()) @map("dateCreation")
+  id            String          @id @default(cuid())
+  goals         Int             @default(0) @map("buts")
+  assists       Int             @default(0) @map("passesdecisive")
+  /// null = not rated yet (a row created from the playing-time sheet).
+  rating        Float?          @map("note")
+  /// 0..130 (extra time included), see features/stats/playing-time.ts.
+  minutesPlayed Int             @default(0) @map("minutesJouees")
+  isStarter     Boolean         @default(false) @map("titulaire")
+  /// null = not set (playing-time sheet for a member without a usual position).
+  position      PlayerPosition? @map("poste")
+  createdAt     DateTime        @default(now()) @map("dateCreation")
   userId        String
-  eventId       String         @map("evenementId")
-  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId       String          @map("evenementId")
+  event         Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@map("statistique_joueur")

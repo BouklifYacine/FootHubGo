@@ -69,9 +69,11 @@ export function PlayerStatsTable({ eventId }: { eventId: string }) {
                     {stat.isStarter ? " · titulaire" : ""}
                   </p>
                 </div>
-                <span className="rounded-md bg-muted px-2 py-1 text-sm font-semibold tabular-nums" aria-label={`Note ${stat.rating}`}>
-                  {stat.rating}
-                </span>
+                {stat.rating !== null && (
+                  <span className="rounded-md bg-muted px-2 py-1 text-sm font-semibold tabular-nums" aria-label={`Note ${stat.rating}`}>
+                    {stat.rating}
+                  </span>
+                )}
                 {actions(stat)}
               </li>
             ))}
@@ -103,12 +105,12 @@ export function PlayerStatsTable({ eventId }: { eventId: string }) {
                         <span className="font-medium">{stat.user.name}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{playerPositionLabels[stat.position]}</TableCell>
+                    <TableCell className="text-muted-foreground">{stat.position ? playerPositionLabels[stat.position] : "—"}</TableCell>
                     <TableCell className="text-right tabular-nums">{stat.goals}</TableCell>
                     <TableCell className="text-right tabular-nums">{stat.assists}</TableCell>
                     <TableCell className="text-right tabular-nums">{stat.minutesPlayed}</TableCell>
                     <TableCell>{stat.isStarter ? "Oui" : "Non"}</TableCell>
-                    <TableCell className="text-right font-semibold tabular-nums">{stat.rating}</TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">{stat.rating ?? "—"}</TableCell>
                     {isCoach && <TableCell>{actions(stat)}</TableCell>}
                   </TableRow>
                 ))}
