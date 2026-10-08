@@ -71,6 +71,7 @@ export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ..
     type: "JOIN_REQUEST",
     title: "Nouvelle demande d'adhésion",
     message: `${user.name} souhaite rejoindre ${name} au poste de ${playerPositionLabels[input.position]}.`,
+    url: "/app/join-requests",
     fromUserName: user.name,
     fromUserImage: user.image,
   });
@@ -139,10 +140,11 @@ export const reviewJoinRequest = action(reviewJoinRequestSchema, async ({ reques
   await notifyUser({
     userId: request.userId,
     type: accepted ? "JOINED_TEAM" : "JOIN_REQUEST",
-    title: accepted ? "Bienvenue dans l'équipe !" : "Réponse à votre demande",
+    title: accepted ? "Bienvenue dans l'équipe !" : "Réponse à ta demande",
     message: accepted
-      ? `Votre demande pour rejoindre ${name} a été acceptée.`
-      : `${name} n'a pas retenu votre candidature pour le moment.`,
+      ? `Ta demande pour rejoindre ${name} a été acceptée.`
+      : `${name} n'a pas retenu ta candidature pour le moment.`,
+    url: accepted ? "/app" : "/app/join-requests",
     fromUserName: membership.club.name,
     fromUserImage: membership.club.logoUrl,
   });

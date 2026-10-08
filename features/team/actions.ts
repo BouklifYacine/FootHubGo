@@ -87,7 +87,8 @@ export const joinTeamWithCode = action(inviteCodeSchema, async ({ inviteCode }) 
   await notifyUsers(await sectionManagerIds(section.id, section.clubId, user.id), {
     type: "JOINED_TEAM",
     title: "Nouveau membre !",
-    message: `${user.name} a rejoint ${name} avec le code d'invitation.`,
+    message: `${user.name} a rejoint ${name} avec le lien d'invitation.`,
+    url: "/app/squad",
     fromUserName: user.name,
     fromUserImage: user.image,
   });

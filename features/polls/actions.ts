@@ -35,7 +35,7 @@ export const createPoll = action(createPollSchema, async ({ question, options, i
   });
   await notifyUsers(
     members.map((m) => m.userId),
-    { type: "NEW_POLL", title: "Nouveau sondage", message: question, fromUserName: user.name, fromUserImage: user.image },
+    { type: "NEW_POLL", title: "Nouveau sondage", message: question, fromUserName: user.name, fromUserImage: user.image, url: "/app/polls" },
   );
   return { message: "Sondage publié" };
 });

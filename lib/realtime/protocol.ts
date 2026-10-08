@@ -57,6 +57,8 @@ export type NotificationDto = {
   createdAt: string;
   fromUserName: string | null;
   fromUserImage: string | null;
+  /** Page the notification opens (a path of the app, e.g. /app/events/<id>), null for none. */
+  url: string | null;
 };
 
 // ---------------------------------------------------------------------------

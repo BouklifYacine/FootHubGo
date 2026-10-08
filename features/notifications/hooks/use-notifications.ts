@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { fetchJson } from "@/lib/api/fetch-json";
 import { queryKeys } from "@/lib/query/keys";
@@ -12,16 +13,29 @@ import type { NotificationList } from "../server/queries";
 /** Same as NOTIFICATION_LIMIT on the server (not imported: server-only module). */
 const LIMIT = 10;
 
-/** Latest notifications, kept live by the realtime socket. */
-export function useNotifications() {
-  const queryClient = useQueryClient();
-  const query = useQuery({
+/** Latest notifications (cache only: mount `useNotifications` once to keep it live). */
+export function useNotificationsQuery() {
+  return useQuery({
     queryKey: queryKeys.notifications.all,
     queryFn: () => fetchJson<NotificationList>("/api/notifications"),
   });
+}
+
+/** Latest notifications, kept live by the realtime socket (+ a toast). Mounted once, by the bell. */
+export function useNotifications() {
+  const queryClient = useQueryClient();
+  const router = useRouter();
+  const query = useNotificationsQuery();
 
   useSocketEvent("notification:new", (notification) => {
-    toast(notification.title, { description: notification.message });
+    const url = notification.url;
+    toast(notification.title, {
+      description: notification.message,
+      action: url ? { label: "Voir", onClick: () => router.push(url) } : undefined,
+    });
+    // What the notification is about changed: call-ups, requests, badges.
+    void queryClient.invalidateQueries({ queryKey: queryKeys.me.badges });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.home });
     // Not loaded yet (or a fetch is in flight): refetch so the notification can't be lost.
     const key = queryKeys.notifications.all;
     if (!queryClient.getQueryData(key) || queryClient.isFetching({ queryKey: key })) {
