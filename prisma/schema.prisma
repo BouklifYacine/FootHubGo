@@ -297,11 +297,14 @@ model Subscription {
   @@map("abonnement")
 }
 
-/// Stripe webhook events already handled: Stripe retries deliveries, each event is processed once.
+/// Stripe webhook events: Stripe retries deliveries, each event is processed once.
+/// `processedAt` is when a delivery claimed it, `handledAt` when its handler finished: a claim left
+/// without `handledAt` (process crashed mid-way) can be taken over by a later retry.
 model StripeEvent {
-  id          String   @id
+  id          String    @id
   type        String
-  processedAt DateTime @default(now())
+  processedAt DateTime  @default(now())
+  handledAt   DateTime?
 
   @@map("stripe_event")
 }

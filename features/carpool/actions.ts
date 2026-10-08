@@ -70,6 +70,10 @@ export const offerRide = action(offerRideSchema, async ({ eventId, ...values }) 
   try {
     await prisma.$transaction(async (tx) => {
       await lockUserOnEvent(tx, event.id, user.id);
+      // Re-read under a share lock: the coach may be switching the match to "home" (updateEvent).
+      const [current] = await tx.$queryRaw<{ isHome: boolean }[]>`
+        SELECT "isHome" FROM "evenement" WHERE "id" = ${event.id} FOR SHARE`;
+      if (!current || current.isHome) throw new AppError("Ce match se joue à domicile : pas de covoiturage", 409);
       const error = offerRideError(await myCarpool(tx, event.id, user.id));
       if (error) throw new AppError(error, 409);
       await tx.ride.create({ data: { ...rideData(values), eventId: event.id, driverId: user.id } });

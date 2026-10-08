@@ -48,6 +48,24 @@ describe("playingTimeError", () => {
     const ids = Array.from({ length: 12 }, (_, i) => `p${i}`);
     expect(playingTimeError(ids.map((userId) => ({ userId, minutes: 90, isStarter: true })), ids)).toBe("11 titulaires maximum");
   });
+  test("starters already saved count when the sheet only lists some players", () => {
+    const ids = Array.from({ length: 12 }, (_, i) => `p${i}`);
+    const saved = ids.slice(0, 10);
+    // 10 saved starters + 2 new ones = 12.
+    expect(
+      playingTimeError([{ userId: "p10", minutes: 90, isStarter: true }, { userId: "p11", minutes: 90, isStarter: true }], ids, saved),
+    ).toBe("11 titulaires maximum");
+    // 10 saved + 1 new = 11.
+    expect(playingTimeError([{ userId: "p10", minutes: 90, isStarter: true }], ids, saved)).toBeNull();
+    // A saved starter turned substitute on this sheet no longer counts.
+    expect(
+      playingTimeError(
+        [{ userId: "p0", minutes: 30, isStarter: false }, { userId: "p10", minutes: 90, isStarter: true }, { userId: "p11", minutes: 90, isStarter: true }],
+        ids,
+        saved,
+      ),
+    ).toBeNull();
+  });
 });
 
 describe("playingTimeChanges", () => {

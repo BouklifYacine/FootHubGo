@@ -23,8 +23,15 @@ export function minutesError(minutes: number) {
   return null;
 }
 
-/** The whole sheet: returns the message to show, or null when it can be saved. */
-export function playingTimeError(entries: PlayingTimeEntry[], eligibleUserIds: Iterable<string>) {
+/**
+ * The whole sheet: returns the message to show, or null when it can be saved. The sheet may list only
+ * some players: `savedStarterIds` (starters already saved) count too unless the sheet changes them.
+ */
+export function playingTimeError(
+  entries: PlayingTimeEntry[],
+  eligibleUserIds: Iterable<string>,
+  savedStarterIds: Iterable<string> = [],
+) {
   const eligible = new Set(eligibleUserIds);
   const seen = new Set<string>();
   for (const entry of entries) {
@@ -35,7 +42,8 @@ export function playingTimeError(entries: PlayingTimeEntry[], eligibleUserIds: I
     if (error) return error;
     if (entry.isStarter && entry.minutes === 0) return "Un titulaire a forcément joué : indique ses minutes";
   }
-  if (entries.filter((entry) => entry.isStarter).length > MAX_STARTERS) {
+  const keptStarters = [...new Set(savedStarterIds)].filter((userId) => !seen.has(userId)).length;
+  if (entries.filter((entry) => entry.isStarter).length + keptStarters > MAX_STARTERS) {
     return `${MAX_STARTERS} titulaires maximum`;
   }
   return null;

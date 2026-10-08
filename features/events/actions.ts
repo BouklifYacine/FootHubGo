@@ -7,7 +7,10 @@ import { action } from "@/lib/actions/action";
 import { requireMember, type Membership } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
 import { canManageSection } from "@/features/clubs/rules";
-import { weeklyOccurrences } from "./recurrence";
+import { notifyUsers } from "@/features/notifications/server/notify-user";
+import { formatDateTime } from "@/lib/format";
+import { TEAM_TIME_ZONE, weeklyOccurrences } from "./recurrence";
+import { rescheduleOutcome } from "./reschedule";
 import { attendanceSchema, deleteEventSchema, eventSchema, moveEventSchema, updateEventSchema } from "./schemas";
 
 type EventData = Omit<z.output<typeof eventSchema>, "repeatUntil" | "scope">;
@@ -59,7 +62,19 @@ function toEventColumns({ title, type, startDate, location, opponent, descriptio
 async function findEditableEvent(eventId: string, membership: Membership) {
   const event = await prisma.event.findFirst({
     where: { id: eventId, clubId: membership.clubId, OR: [{ teamId: membership.teamId }, { teamId: null }] },
-    select: { id: true, clubId: true, teamId: true, seriesId: true, startDate: true, teamStat: { select: { id: true } } },
+    select: {
+      id: true,
+      clubId: true,
+      teamId: true,
+      seriesId: true,
+      title: true,
+      opponent: true,
+      startDate: true,
+      motmOpenNotifiedAt: true,
+      motmClosedAt: true,
+      teamStat: { select: { id: true } },
+      _count: { select: { motmVotes: true } },
+    },
   });
   if (!event) throw notFound("Événement introuvable");
   if (!canManageSection(membership, event.teamId)) {
@@ -77,6 +92,32 @@ async function assertNoEventAt(scope: EventScope, startDate: Date, ignoreEventId
     select: { id: true },
   });
   if (existing) throw new AppError("Un événement existe déjà à cette date et heure", 409);
+}
+
+type EditableEvent = Awaited<ReturnType<typeof findEditableEvent>>;
+
+/** Job flags to reset when the start date changes (throws once the man-of-the-match vote has started). */
+function rescheduleColumns(event: EditableEvent, startDate: Date) {
+  const outcome = rescheduleOutcome({ ...event, motmVoteCount: event._count.motmVotes }, startDate);
+  if ("error" in outcome) throw new AppError(outcome.error, 409);
+  return outcome.reset ?? {};
+}
+
+/** Drivers and passengers of a moved match: their departure time is probably wrong now. */
+async function notifyCarpoolOfMove(event: EditableEvent, startDate: Date) {
+  if (event.startDate.getTime() === startDate.getTime()) return;
+  const rides = await prisma.ride.findMany({
+    where: { eventId: event.id },
+    select: { driverId: true, passengers: { select: { userId: true } } },
+  });
+  const userIds = [...new Set(rides.flatMap((ride) => [ride.driverId, ...ride.passengers.map((p) => p.userId)]))];
+  if (userIds.length === 0) return;
+  await notifyUsers(userIds, {
+    type: "CARPOOL",
+    title: "Match déplacé",
+    message: `Le match ${event.opponent ? `contre ${event.opponent}` : event.title} a lieu le ${formatDateTime(startDate, { timeZone: TEAM_TIME_ZONE })}. Vérifiez l'heure de départ du covoiturage.`,
+    url: `/app/events/${event.id}`,
+  });
 }
 
 /** One event, or a weekly series of trainings; dates already taken by another event are skipped. */
@@ -113,12 +154,17 @@ export const updateEvent = action(updateEventSchema, async ({ eventId, ...input 
   const { membership } = await requireMember();
   const event = await findEditableEvent(eventId, membership);
   await assertNoEventAt(event, input.startDate, event.id);
-  const columns = toEventColumns(input);
+  const columns = { ...toEventColumns(input), ...rescheduleColumns(event, input.startDate) };
   // Rides only exist for away matches: they are cancelled by their drivers, never silently dropped.
-  if (columns.isHome && (await prisma.ride.count({ where: { eventId: event.id } })) > 0) {
-    throw new AppError("Des covoiturages sont proposés pour ce match : les conducteurs doivent d'abord les annuler", 409);
-  }
-  await prisma.event.update({ where: { id: event.id }, data: columns });
+  // Checked under the event row lock that `offerRide` also takes, so a ride can't slip in meanwhile.
+  await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT "id" FROM "evenement" WHERE "id" = ${event.id} FOR UPDATE`;
+    if (columns.isHome && (await tx.ride.count({ where: { eventId: event.id } })) > 0) {
+      throw new AppError("Des covoiturages sont proposés pour ce match : les conducteurs doivent d'abord les annuler", 409);
+    }
+    await tx.event.update({ where: { id: event.id }, data: columns });
+  });
+  await notifyCarpoolOfMove(event, input.startDate);
   return { message: "Événement modifié" };
 });
 
@@ -127,7 +173,8 @@ export const moveEvent = action(moveEventSchema, async ({ eventId, startDate }) 
   const { membership } = await requireMember();
   const event = await findEditableEvent(eventId, membership);
   await assertNoEventAt(event, startDate, event.id);
-  await prisma.event.update({ where: { id: event.id }, data: { startDate } });
+  await prisma.event.update({ where: { id: event.id }, data: { startDate, ...rescheduleColumns(event, startDate) } });
+  await notifyCarpoolOfMove(event, startDate);
   return { message: "Événement déplacé" };
 });
 

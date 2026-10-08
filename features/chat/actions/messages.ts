@@ -30,17 +30,17 @@ export const sendMessage = action(sendMessageSchema, async ({ conversationId, co
         otherIds.length;
     if (!stillTeammates) throw forbidden("Tu ne fais plus partie du même club que ce joueur");
   }
-  await assertCanSendMessage(user.id);
-
-  const now = new Date();
-  const [message] = await prisma.$transaction([
-    prisma.message.create({
+  const message = await prisma.$transaction(async (tx) => {
+    await assertCanSendMessage(tx, user.id);
+    const now = new Date();
+    const created = await tx.message.create({
       data: { content, senderId: user.id, conversationId },
       include: messageInclude,
-    }),
-    prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: now } }),
-    prisma.conversationParticipant.update({ where: { id: participant.id }, data: { lastReadAt: now } }),
-  ]);
+    });
+    await tx.conversation.update({ where: { id: conversationId }, data: { updatedAt: now } });
+    await tx.conversationParticipant.update({ where: { id: participant.id }, data: { lastReadAt: now } });
+    return created;
+  });
 
   const dto = toMessageDto(message);
   await emitToConversation(conversationId, "chat:message", dto);

@@ -3,6 +3,7 @@ import type Stripe from "stripe";
 import { prisma } from "@/prisma";
 import type { Plan, SubscriptionPeriod } from "@/generated/prisma/client";
 import { getStripe } from "@/lib/stripe";
+import { cancellationJustScheduled, planOfStatus } from "../subscription-status";
 import { sendEmail } from "@/emails/send-email";
 import {
   SubscriptionCanceledEmail,
@@ -19,6 +20,7 @@ import {
  */
 
 const planLabel = (period: SubscriptionPeriod) => (period === "YEAR" ? "Pro Annuel" : "Pro Mensuel");
+const planName = (plan: Plan, period: SubscriptionPeriod) => (plan === "free" ? "Gratuit" : planLabel(period));
 
 function periodOf(priceId: string): SubscriptionPeriod {
   return priceId === process.env.STRIPE_YEARLY_PRICE_ID ? "YEAR" : "MONTH";
@@ -132,6 +134,10 @@ export async function handleCheckoutCompleted(event: Stripe.CheckoutSessionCompl
   });
 }
 
+/**
+ * Every change of the subscription: renewal (new period end), plan change, failed payments,
+ * cancellation scheduled or undone. The stored end date always follows Stripe's.
+ */
 export async function handleSubscriptionUpdated(event: Stripe.CustomerSubscriptionUpdatedEvent) {
   const stripeSubscription = event.data.object;
   const item = stripeSubscription.items.data[0];
@@ -139,46 +145,49 @@ export async function handleSubscriptionUpdated(event: Stripe.CustomerSubscripti
 
   const payer = await payerOfCustomer(customerIdOf(stripeSubscription.customer));
   if (!payer) return;
+  const previous = await prisma.subscription.findFirst({ where: subscriptionWhere(payer) });
+  if (!previous) return;
 
-  // Cancellation scheduled: the subscription stays active until the end of the paid period.
-  if (stripeSubscription.cancel_at || stripeSubscription.status === "canceled") {
-    const endDate = new Date((stripeSubscription.cancel_at ?? item.current_period_end) * 1000);
-    await prisma.subscription.updateMany({ where: subscriptionWhere(payer), data: { endDate } });
+  // A scheduled cancellation keeps the subscription active until `cancel_at` (end of the paid period).
+  const endDate = new Date((stripeSubscription.cancel_at ?? item.current_period_end) * 1000);
+  const period = periodOf(item.price.id);
+  const plan = planOfStatus(stripeSubscription.status);
+
+  await prisma.$transaction([
+    prisma.subscription.update({ where: { id: previous.id }, data: { plan, period, endDate } }),
+    ...(previous.plan !== plan ? [setPlan(payer, plan)] : []),
+  ]);
+
+  const previousAttributes = event.data.previous_attributes as Partial<Stripe.Subscription> | undefined;
+  if (cancellationJustScheduled(stripeSubscription, previousAttributes)) {
     await sendEmail({
       to: payer.email,
       subject: "Confirmation de résiliation de ton abonnement",
       email: createElement(SubscriptionCanceledEmail, { name: payer.name, endDate }),
     });
-    return;
+  } else if (previous.plan !== plan || previous.period !== period) {
+    await sendEmail({
+      to: payer.email,
+      subject: "Confirmation du changement de ton abonnement",
+      email: createElement(SubscriptionChangedEmail, {
+        name: payer.name,
+        oldPlan: planName(previous.plan, previous.period),
+        plan: planName(plan, period),
+      }),
+    });
   }
-
-  const period = periodOf(item.price.id);
-  const plan = stripeSubscription.status === "active" ? "pro" : "free";
-  const previous = await prisma.subscription.findFirst({ where: subscriptionWhere(payer) });
-  if (!previous || (previous.plan === plan && previous.period === period)) return;
-
-  await prisma.$transaction([
-    prisma.subscription.update({
-      where: { id: previous.id },
-      data: { plan, period, endDate: endOfPeriod(period) },
-    }),
-    setPlan(payer, plan),
-  ]);
-
-  await sendEmail({
-    to: payer.email,
-    subject: "Confirmation du changement de ton abonnement",
-    email: createElement(SubscriptionChangedEmail, {
-      name: payer.name,
-      oldPlan: planLabel(previous.period),
-      plan: planLabel(period),
-    }),
-  });
 }
 
 export async function handleSubscriptionDeleted(event: Stripe.CustomerSubscriptionDeletedEvent) {
-  const payer = await payerOfCustomer(customerIdOf(event.data.object.customer));
+  const customerId = customerIdOf(event.data.object.customer);
+  const payer = await payerOfCustomer(customerId);
   if (!payer) return;
+
+  // Two checkouts finished for the same customer: the end of one of them is not the end of Pro.
+  if (customerId) {
+    const others = await getStripe().subscriptions.list({ customer: customerId, status: "active", limit: 1 });
+    if (others.data.some((subscription) => subscription.id !== event.data.object.id)) return;
+  }
 
   await prisma.$transaction([
     prisma.subscription.deleteMany({ where: subscriptionWhere(payer) }),
