@@ -1,8 +1,7 @@
 "use client";
 
+import { formatDayLabel, formatTime } from "@/lib/format";
 import { useState } from "react";
-import { differenceInCalendarDays, format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -10,13 +9,10 @@ import type { ConversationDto } from "../types";
 import { ChatAvatar } from "./chat-avatar";
 import { NewConversationDialog } from "./new-conversation-dialog";
 
-function formatTime(iso: string) {
-  const date = new Date(iso);
-  const days = differenceInCalendarDays(new Date(), date);
-  if (days === 0) return format(date, "HH:mm");
-  if (days === 1) return "Hier";
-  if (days < 7) return format(date, "EEEE", { locale: fr });
-  return format(date, "dd/MM/yyyy");
+/** "15h00" today, "Hier", otherwise the short date. */
+function formatActivity(iso: string) {
+  const label = formatDayLabel(iso);
+  return label === "Aujourd'hui" ? formatTime(iso) : label;
 }
 
 const byActivity = (a: ConversationDto, b: ConversationDto) => b.updatedAt.localeCompare(a.updatedAt);
@@ -43,15 +39,21 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
   ];
 
   return (
-    <aside className={cn("flex flex-col border-r w-full md:w-80", className)}>
+    <aside className={cn("flex w-full flex-col md:w-80 md:border-r", className)}>
       <div className="space-y-3 border-b p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Messages</h2>
+          <h2 className="text-lg font-semibold">Discussions</h2>
           <NewConversationDialog myId={myId} onCreated={onSelect} />
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input className="pl-9" onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher..." value={search} />
+          <Input
+            aria-label="Rechercher une conversation"
+            className="pl-9"
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher"
+            value={search}
+          />
         </div>
       </div>
 
@@ -66,7 +68,7 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
                 return (
                   <button
                     className={cn(
-                      "flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors",
+                      "flex w-full items-center gap-3 rounded-xl p-3 text-left transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50",
                       c.id === selectedId ? "bg-primary/10" : "hover:bg-accent",
                     )}
                     key={c.id}
@@ -77,7 +79,7 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate text-sm font-semibold">{c.name}</span>
-                        <span className="shrink-0 text-xs text-muted-foreground">{formatTime(c.updatedAt)}</span>
+                        <span className="shrink-0 text-xs text-muted-foreground">{formatActivity(c.updatedAt)}</span>
                       </div>
                       <p className="truncate text-xs text-muted-foreground">
                         {c.lastMessage
@@ -88,7 +90,10 @@ export function ConversationSidebar({ conversations, myId, selectedId, onSelect,
                       </p>
                     </div>
                     {c.unreadCount > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-green-500 px-1 text-[10px] font-bold text-white">
+                      <span
+                        aria-label={`${c.unreadCount} non lu${c.unreadCount > 1 ? "s" : ""}`}
+                        className="flex h-5 min-w-5 items-center justify-center rounded-full bg-success px-1 text-[10px] font-bold text-success-foreground"
+                      >
                         {c.unreadCount > 99 ? "99+" : c.unreadCount}
                       </span>
                     )}

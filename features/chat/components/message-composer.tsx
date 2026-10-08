@@ -27,9 +27,10 @@ export function MessageComposer({ conversationId, disabledReason, onTyping }: Pr
   };
 
   return (
-    <form className="flex items-end gap-2 border-t p-3" onSubmit={submit}>
+    <form className="flex items-end gap-2 border-t bg-background p-2 md:p-3" onSubmit={submit}>
       <Textarea
-        className="max-h-32 min-h-10 resize-none"
+        aria-label="Message"
+        className="max-h-32 min-h-11 resize-none text-base md:min-h-10 md:text-sm"
         maxLength={MESSAGE_MAX_LENGTH}
         onChange={(e) => {
           setContent(e.target.value);
@@ -38,12 +39,12 @@ export function MessageComposer({ conversationId, disabledReason, onTyping }: Pr
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) submit(e);
         }}
-        placeholder="Écrire un message..."
+        placeholder="Écris un message…"
         rows={1}
         value={content}
       />
       <Button aria-label="Envoyer" disabled={!content.trim()} size="icon" type="submit">
-        <SendHorizontal className="size-4" />
+        <SendHorizontal className="size-5" />
       </Button>
     </form>
   );

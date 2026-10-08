@@ -1,6 +1,6 @@
 /// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
-import { cancelCallUpError, isInjuredOn, replyCallUpError, sendCallUpError } from "./rules";
+import { callUpAnswerState, cancelCallUpError, isInjuredOn, replyCallUpError, sendCallUpError } from "./rules";
 
 const now = new Date("2026-10-10T12:00:00Z");
 const inHours = (hours: number) => new Date(now.getTime() + hours * 3600 * 1000);
@@ -20,6 +20,19 @@ describe("call-up time rules", () => {
   test("a player answers until 3h before", () => {
     expect(replyCallUpError(inHours(4), now)).toBeNull();
     expect(replyCallUpError(inHours(2), now)).toContain("3h");
+  });
+});
+
+describe("callUpAnswerState", () => {
+  test("the answer can be given or changed until 3h before the match", () => {
+    expect(callUpAnswerState("PENDING", inHours(4), now).canReply).toBe(true);
+    expect(callUpAnswerState("CONFIRMED", inHours(4), now).canReply).toBe(true);
+    expect(callUpAnswerState("DECLINED", inHours(2), now).canReply).toBe(false);
+    expect(callUpAnswerState("EXPIRED", inHours(48), now).canReply).toBe(false);
+  });
+
+  test("the deadline is 3h before the match", () => {
+    expect(callUpAnswerState("PENDING", inHours(10), now).deadline).toEqual(inHours(7));
   });
 });
 

@@ -87,3 +87,25 @@ export function getPublicClubs() {
     orderBy: { name: "asc" },
   });
 }
+
+/**
+ * Every member of the caller's club (name, picture, sections): the people a member can start a
+ * private conversation or a group with (the chat actions allow any member of the same club).
+ */
+export async function getClubMembers(clubId: string) {
+  const members = await prisma.clubMember.findMany({
+    where: { clubId },
+    select: {
+      userId: true,
+      user: { select: { name: true, image: true } },
+      sectionMemberships: { select: { role: true, team: { select: { name: true } } }, orderBy: { joinedAt: "asc" } },
+    },
+    orderBy: { user: { name: "asc" } },
+  });
+  return members.map((member) => ({
+    userId: member.userId,
+    name: member.user.name,
+    image: member.user.image,
+    sections: member.sectionMemberships.map((section) => ({ name: section.team.name, role: section.role })),
+  }));
+}

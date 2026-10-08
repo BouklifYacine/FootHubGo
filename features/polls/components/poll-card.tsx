@@ -1,7 +1,7 @@
 "use client";
 
-import { formatDistanceToNow } from "date-fns";
-import { fr } from "date-fns/locale";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { formatRelative } from "@/lib/format";
 import { Check, Lock, MoreVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ export function PollCard({ poll, isCoach }: { poll: Poll; isCoach: boolean }) {
   const vote = useVote();
   const close = useClosePoll();
   const remove = useDeletePoll();
+  const confirm = useConfirm();
   const total = Math.max(1, poll.results.reduce((sum, r) => sum + r.count, 0));
 
   const choose = (option: string) => {
@@ -40,7 +41,7 @@ export function PollCard({ poll, isCoach }: { poll: Poll; isCoach: boolean }) {
           <p className="text-xs text-muted-foreground">
             {poll.creatorName} · {poll.voterCount} votant{poll.voterCount > 1 ? "s" : ""}
             {poll.isMulti && " · plusieurs choix possibles"}
-            {poll.expiresAt && !poll.isClosed && ` · se termine ${formatDistanceToNow(poll.expiresAt, { addSuffix: true, locale: fr })}`}
+            {poll.expiresAt && !poll.isClosed && ` · se termine ${formatRelative(poll.expiresAt)}`}
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -57,10 +58,28 @@ export function PollCard({ poll, isCoach }: { poll: Poll; isCoach: boolean }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {!poll.isClosed && <DropdownMenuItem onClick={() => close.mutate(poll.id)}>Clôturer</DropdownMenuItem>}
+                {!poll.isClosed && (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      const ok = await confirm({
+                        title: "Clôturer ce sondage ?",
+                        description: "Plus personne ne pourra voter. Les résultats restent visibles.",
+                        confirmLabel: "Clôturer",
+                        destructive: false,
+                      });
+                      if (ok) close.mutate(poll.id);
+                    }}
+                  >
+                    Clôturer
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
-                  className="text-destructive"
-                  onClick={() => confirm("Supprimer ce sondage ?") && remove.mutate(poll.id)}
+                  variant="destructive"
+                  onClick={async () => {
+                    if (await confirm({ title: "Supprimer ce sondage ?", description: "Les votes seront perdus.", confirmLabel: "Supprimer" })) {
+                      remove.mutate(poll.id);
+                    }
+                  }}
                 >
                   Supprimer
                 </DropdownMenuItem>
@@ -76,10 +95,11 @@ export function PollCard({ poll, isCoach }: { poll: Poll; isCoach: boolean }) {
           return (
             <button
               className={cn(
-                "relative w-full overflow-hidden rounded-md border p-2 text-left text-sm transition-colors enabled:hover:border-primary disabled:cursor-default",
+                "relative min-h-11 w-full overflow-hidden rounded-md border p-2 text-left text-sm transition-colors outline-none enabled:hover:border-primary focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-default",
                 mine && "border-primary",
               )}
               disabled={poll.isClosed || vote.isPending}
+              aria-pressed={mine}
               key={option}
               onClick={() => choose(option)}
               type="button"

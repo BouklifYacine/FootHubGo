@@ -1,15 +1,22 @@
 "use client";
 
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { useState } from "react";
 import { Check, UserMinus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  ResponsiveDialog as Dialog,
+  ResponsiveDialogContent as DialogContent,
+  ResponsiveDialogDescription as DialogDescription,
+  ResponsiveDialogHeader as DialogHeader,
+  ResponsiveDialogTitle as DialogTitle,
+} from "@/components/app/responsive-dialog";
 import { Input } from "@/components/ui/input";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { cn } from "@/lib/utils";
-import { useMyTeam } from "@/features/team/hooks/use-my-team";
+import { useClubMembers } from "@/features/clubs/hooks/use-club-members";
 import { addGroupMembers, removeGroupMember, renameGroup } from "../actions/groups";
 import { GROUP_MAX_MEMBERS } from "../schemas";
 import type { ConversationDto } from "../types";
@@ -24,13 +31,14 @@ export function GroupSettingsDialog({ conversation: c, myId, open, onOpenChange 
   const isAdmin = c.myRole === "ADMIN";
   const [name, setName] = useState(c.name);
   const [toAdd, setToAdd] = useState<string[]>([]);
-  const { data: team } = useMyTeam();
+  const { data: clubMembers } = useClubMembers(open && isAdmin);
   const rename = useActionMutation(renameGroup, { invalidate });
   const add = useActionMutation(addGroupMembers, { invalidate, onSuccess: () => setToAdd([]) });
   const remove = useActionMutation(removeGroupMember, { invalidate });
+  const confirm = useConfirm();
 
   const memberIds = new Set(c.participants.map((p) => p.id));
-  const candidates = (team?.members ?? []).filter((m) => !memberIds.has(m.userId));
+  const candidates = (clubMembers ?? []).filter((m) => !memberIds.has(m.userId));
   const freeSlots = GROUP_MAX_MEMBERS - c.participants.length;
   const toggle = (userId: string) =>
     setToAdd((ids) =>
@@ -39,7 +47,7 @@ export function GroupSettingsDialog({ conversation: c, myId, open, onOpenChange 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
           <DialogTitle>Paramètres du groupe</DialogTitle>
           <DialogDescription>
@@ -69,14 +77,18 @@ export function GroupSettingsDialog({ conversation: c, myId, open, onOpenChange 
               <ChatAvatar image={p.image} isOnline={p.isOnline} name={p.name} />
               <span className="flex-1 truncate text-sm font-medium">
                 {p.name}
-                {p.id === myId && " (vous)"}
+                {p.id === myId && " (toi)"}
               </span>
               {p.role === "ADMIN" && <Badge variant="secondary">Admin</Badge>}
               {isAdmin && p.id !== myId && (
                 <Button
                   aria-label={`Retirer ${p.name}`}
                   disabled={remove.isPending}
-                  onClick={() => confirm(`Retirer ${p.name} du groupe ?`) && remove.mutate({ conversationId: c.id, userId: p.id })}
+                  onClick={async () => {
+                    if (await confirm({ title: `Retirer ${p.name} du groupe ?`, confirmLabel: "Retirer" })) {
+                      remove.mutate({ conversationId: c.id, userId: p.id });
+                    }
+                  }}
                   size="icon"
                   variant="ghost"
                 >
@@ -91,20 +103,24 @@ export function GroupSettingsDialog({ conversation: c, myId, open, onOpenChange 
           <section className="space-y-1">
             <h3 className="text-sm font-semibold">Ajouter des membres</h3>
             {candidates.length === 0 && (
-              <p className="text-sm text-muted-foreground">Tous les membres de l&apos;équipe sont déjà dans le groupe.</p>
+              <p className="text-sm text-muted-foreground">Tous les membres du club sont déjà dans le groupe.</p>
             )}
             <div className="max-h-48 space-y-1 overflow-y-auto">
               {candidates.map((m) => {
                 const selected = toAdd.includes(m.userId);
                 return (
                   <button
-                    className={cn("flex w-full items-center gap-3 rounded-lg p-2 text-left hover:bg-accent", selected && "bg-primary/10")}
+                    className={cn(
+                      "flex min-h-12 w-full items-center gap-3 rounded-lg p-2 text-left outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50",
+                      selected && "bg-primary/10",
+                    )}
+                    aria-pressed={selected}
                     key={m.userId}
                     onClick={() => toggle(m.userId)}
                     type="button"
                   >
-                    <ChatAvatar image={m.user.image} name={m.user.name} />
-                    <span className="flex-1 truncate text-sm font-medium">{m.user.name}</span>
+                    <ChatAvatar image={m.image} name={m.name} />
+                    <span className="flex-1 truncate text-sm font-medium">{m.name}</span>
                     {selected && <Check className="size-4 text-primary" />}
                   </button>
                 );

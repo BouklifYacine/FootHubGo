@@ -5,6 +5,12 @@ import type { NotificationDto } from "@/lib/realtime/protocol";
 /** How many notifications the bell shows. */
 export const NOTIFICATION_LIMIT = 10;
 
+/** The stored link, only when it is a path of the app (never an external URL). */
+function notificationUrl(data: unknown) {
+  const url = (data as { url?: unknown } | null)?.url;
+  return typeof url === "string" && url.startsWith("/app") ? url : null;
+}
+
 export function toNotificationDto(notification: Notification): NotificationDto {
   return {
     id: notification.id,
@@ -15,6 +21,7 @@ export function toNotificationDto(notification: Notification): NotificationDto {
     createdAt: notification.createdAt.toISOString(),
     fromUserName: notification.fromUserName,
     fromUserImage: notification.fromUserImage,
+    url: notificationUrl(notification.data),
   };
 }
 

@@ -7,8 +7,8 @@ import { createEvent, deleteEvent, moveEvent, updateEvent } from "../actions";
 // Events also feed the home page (next events), so both are refreshed.
 const invalidate = [queryKeys.events.all, queryKeys.home];
 
-export const useCreateEvent = (onSuccess?: () => void) =>
-  useActionMutation(createEvent, { invalidate, onSuccess });
+export const useCreateEvent = (onSuccess?: (created: { eventId: string; type: string; title: string }) => void) =>
+  useActionMutation(createEvent, { invalidate, onSuccess: (data) => onSuccess?.(data) });
 
 export const useUpdateEvent = (onSuccess?: () => void) =>
   useActionMutation(updateEvent, { invalidate, onSuccess });

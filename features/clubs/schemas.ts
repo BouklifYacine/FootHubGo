@@ -23,23 +23,23 @@ export const clubSchema = z.object({
     .refine((value) => value === "" || value.length >= 10, {
       message: "La description doit faire au moins 10 caractères",
     }),
-  visibility: z.enum(ClubVisibility, { error: "Choisissez une visibilité" }),
+  visibility: z.enum(ClubVisibility, { error: "Choisis une visibilité" }),
 });
 export type ClubInput = z.infer<typeof clubSchema>;
 
 /** A section: name ("Seniors A"), category and level. */
 export const sectionSchema = z.object({
   name: sectionName,
-  category: z.enum(SectionCategory, { error: "Choisissez une catégorie" }),
-  level: z.enum(TeamLevel, { error: "Choisissez un niveau" }),
+  category: z.enum(SectionCategory, { error: "Choisis une catégorie" }),
+  level: z.enum(TeamLevel, { error: "Choisis un niveau" }),
 });
 export type SectionInput = z.infer<typeof sectionSchema>;
 
 /** Create-club form: the club and its first section (the creator becomes OWNER and coach). */
 export const createClubSchema = clubSchema.extend({
   sectionName,
-  category: z.enum(SectionCategory, { error: "Choisissez une catégorie" }),
-  level: z.enum(TeamLevel, { error: "Choisissez un niveau" }),
+  category: z.enum(SectionCategory, { error: "Choisis une catégorie" }),
+  level: z.enum(TeamLevel, { error: "Choisis un niveau" }),
 });
 export type CreateClubInput = z.infer<typeof createClubSchema>;
 

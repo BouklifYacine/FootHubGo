@@ -16,7 +16,7 @@ export function VerificationCodeEmail({
   return (
     <EmailLayout title={title}>
       <Greeting name={name} />
-      <Text style={textStyle}>Voici votre code de vérification :</Text>
+      <Text style={textStyle}>Voici ton code de vérification :</Text>
       <Text
         style={{
           fontWeight: "bold",
@@ -30,7 +30,7 @@ export function VerificationCodeEmail({
         {code}
       </Text>
       <Text style={mutedStyle}>
-        Ce code expire dans {expiresInMinutes} minutes. Si vous n&apos;êtes pas à l&apos;origine de
+        Ce code expire dans {expiresInMinutes} minutes. Si tu n&apos;es pas à l&apos;origine de
         cette demande, ignorez cet email.
       </Text>
     </EmailLayout>

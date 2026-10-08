@@ -15,6 +15,7 @@ export async function getProfile(userId: string) {
       plan: true,
       image: true,
       emailReminders: true,
+      onboardingSeen: true,
       subscription: { select: { period: true, startDate: true, endDate: true } },
       accounts: { select: { providerId: true } },
       clubMembership: {

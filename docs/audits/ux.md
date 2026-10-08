@@ -13,6 +13,28 @@ Measured during the run (Playwright, `getComputedStyle`):
 - On `/app/call-ups` the call-up card to answer is **below the fold**: four stacked counter cards fill the first screen.
 - On `/app/events` the first card is a **past** match (default filter "Toutes les dates", ascending order).
 
+## Status (lot 3, branch `feat/ux-mobile-and-onboarding`)
+
+Implemented in lot 3, one commit per step. Decisions taken for the lot override the plan where they differ.
+
+| Item | Status | Notes |
+|---|---|---|
+| 1. Navigation + page title | Done | Bottom tabs under `md` (Accueil, Agenda, Équipe, Messages, Plus; Accueil / Clubs / Plus without a club), badges (unread messages, call-ups to answer, join requests: `GET /api/me/badges`), top bar = back button + title + club/section switcher + bell, sidebar on `md+` from the same `lib/navigation.ts`, `/app/more`, settings in the shell (`/app/settings`). |
+| 2. Home per role | Done | Next event (answer / call-up summary on it), À faire, coach checklist (dismissible, `User.onboardingSeen`), season blocks; no-club home with the two choice cards. Player-side checklist (avatar, position) not added: the player tour covers it. |
+| 3. Call-up answer | Done | "Je suis dispo / Pas dispo" on the home, the agenda and the event page; the answer can be changed until 3h before (server rule changed); notifications deep-link. |
+| 4. Coach event flow | Done | Agenda (list by default, calendar toggle), "Nouvel événement" in the header (`?new=1`), "Convoquer maintenant" after a match is created, event page as the hub, one scoreboard. No floating "+" button: the header button is visible on mobile. The calendar view keeps the month grid on mobile (the list view is already the default). |
+| 5. Wide tables | Done | Squad, call-ups (grouped by answer), player stats, attendance, team injuries, club directory, join requests as cards under `md`. Admin users table unchanged (desktop-only screen). |
+| 6. Theme tokens | Done | One HSL token set + status tokens (success / warning / info), sonner, theme toggle (`resolvedTheme`), `ThemeSelector`. |
+| 7. First-run journey | Done | `/join/<code>` + share / copy, "J'ai un code" (landing + `/join`), `autoSignIn` (no email verification yet, security L2 deferred), land on `/app` after create / join. The display name stays unique (explained in the sign-up field). |
+| 8. Destructive actions | Done | `useConfirm()` everywhere, no `window.confirm`. Decision: confirmation dialogs instead of "Annuler" toasts (cancel a call-up, refuse a request, close a poll). |
+| 9. Touch | Done | 44px targets (button / input / select / menu items under `md`), bottom sheets (`ResponsiveDialog`), native date / time inputs on phones, visible message menu, `dvh` chat. Long-press on messages not added (visible "⋯" instead). |
+| 10. Consistency | Done | `PageHeader`, `EmptyState`, `LoadingState`, `ErrorState`, `lib/format.ts`, tutoiement everywhere (emails included), per-page titles. The pricing section of the landing was already handled in lot 1. |
+| Onboarding tour | Done | driver.js 1.8.0, coach / player tours (`features/onboarding/tours.ts`), once per user (DB), replay from Plus and the user menu. iPhone push hint not shown (lot 6 not done). |
+| Accessibility basics | Done (partly) | Labels on placeholder-only inputs, focus rings on custom buttons, status = icon + text, `h1` on every page. Admin table checkboxes and the OTP field label not reviewed (admin / password reset screens unchanged). |
+
+Deferred: the admin users table as cards (desktop tool), long-press on messages, a player first-run checklist,
+"Annuler" toasts (replaced by confirmations), contrast measurements beyond the token values chosen.
+
 ---
 
 ## Top 10 problems (ranked by impact on "intuitive on mobile")

@@ -4,15 +4,15 @@ import { useState } from "react";
 import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ResponsiveDialog as Dialog,
+  ResponsiveDialogClose as DialogClose,
+  ResponsiveDialogContent as DialogContent,
+  ResponsiveDialogDescription as DialogDescription,
+  ResponsiveDialogFooter as DialogFooter,
+  ResponsiveDialogHeader as DialogHeader,
+  ResponsiveDialogTitle as DialogTitle,
+  ResponsiveDialogTrigger as DialogTrigger,
+} from "@/components/app/responsive-dialog";
 import { useAppForm } from "@/lib/form";
 import { playerPositionLabels, toOptions } from "@/lib/enum-labels";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
@@ -44,12 +44,12 @@ export function PlayerStatsDialog(props: Props) {
           {isEdit ? <Pencil size={16} strokeWidth={2} /> : <Plus size={16} strokeWidth={2} />}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {props.stat ? `Modifier les stats de ${props.stat.user.name}` : "Ajouter les stats joueur"}
           </DialogTitle>
-          <DialogDescription>Renseignez la performance du joueur sur ce match</DialogDescription>
+          <DialogDescription>Les statistiques du joueur sur ce match.</DialogDescription>
         </DialogHeader>
         {/* Mounted only while open: the form always starts from fresh values */}
         <PlayerStatsForm {...props} onSuccess={() => setOpen(false)} />

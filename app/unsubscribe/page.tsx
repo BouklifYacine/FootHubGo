@@ -16,10 +16,10 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
       {ok ? (
         <>
           <BellOff className="size-10 text-muted-foreground" aria-hidden />
-          <h1 className="text-2xl font-bold">Vous êtes désabonné</h1>
+          <h1 className="text-2xl font-bold">Tu es désabonné</h1>
           <p className="text-muted-foreground">
-            Vous ne recevrez plus les rappels d&apos;événements par email. Les notifications dans l&apos;application
-            continuent. Vous pouvez les réactiver à tout moment dans vos paramètres.
+            Tu ne recevras plus les rappels d&apos;événements par email. Les notifications dans l&apos;application
+            continuent. Tu peux les réactiver à tout moment dans tes paramètres.
           </p>
         </>
       ) : (
@@ -27,12 +27,12 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
           <TriangleAlert className="size-10 text-destructive" aria-hidden />
           <h1 className="text-2xl font-bold">Lien invalide</h1>
           <p className="text-muted-foreground">
-            Ce lien de désabonnement n&apos;est pas valide. Vous pouvez gérer vos emails dans vos paramètres.
+            Ce lien de désabonnement n&apos;est pas valide. Tu peux gérer tes emails dans tes paramètres.
           </p>
         </>
       )}
       <Button asChild variant="outline">
-        <Link href="/settings">Gérer mes notifications</Link>
+        <Link href="/app/settings">Gérer mes notifications</Link>
       </Button>
     </main>
   );

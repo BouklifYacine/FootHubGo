@@ -40,7 +40,7 @@ export async function requireGroupAdmin(userId: string, conversationId: string) 
 export async function assertTeammates(clubId: string, userIds: string[]) {
   const unique = [...new Set(userIds)];
   const count = await prisma.clubMember.count({ where: { clubId, userId: { in: unique } } });
-  if (count !== unique.length) throw forbidden("Vous ne pouvez discuter qu'avec les membres de votre club");
+  if (count !== unique.length) throw forbidden("Tu ne peux discuter qu'avec les membres de ton club");
 }
 
 /** Throws if a block exists in either direction between `userId` and one of `otherIds`. */

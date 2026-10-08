@@ -1,21 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import {
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
-  ResponsiveContainer,
-  Tooltip,
-} from "recharts";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { PolarAngleAxis, PolarGrid, PolarRadiusAxis, Radar, RadarChart, ResponsiveContainer, Tooltip } from "recharts";
+import { LoadingState } from "@/components/app/loading-state";
+import { InitialsAvatar } from "@/features/team/components/initials-avatar";
 
-/** Building blocks shared by the team and player stats pages. */
-
-const initials = (name: string) => name.slice(0, 2).toUpperCase();
+/** Building blocks shared by the team and player stats pages (design tokens: light and dark). */
 
 type HeaderProps = {
   name: string;
@@ -27,34 +17,24 @@ type HeaderProps = {
 
 export function StatsHeader({ name, image, caption, highlights }: HeaderProps) {
   return (
-    <div className="flex flex-col justify-center items-center">
-      <div className="relative flex flex-col justify-center items-center">
-        <Avatar className="size-[170px]">
-          <AvatarImage src={image ?? undefined} alt={name} className="object-cover" />
-          <AvatarFallback className="text-4xl font-semibold">{initials(name)}</AvatarFallback>
-        </Avatar>
-        <Badge className="absolute left-1/2 -translate-x-1/2 -bottom-5 w-54 rounded-xl flex flex-col items-center">
-          <p className="font-light text-base tracking-tighter">{name}</p>
-        </Badge>
+    <section className="flex flex-col items-center gap-3 rounded-2xl border bg-card p-5 text-center">
+      <InitialsAvatar name={name} src={image} className="size-24 text-2xl" />
+      <div>
+        <p className="text-lg font-semibold">{name}</p>
+        <p className="flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
+          <InitialsAvatar name={caption.name} src={caption.image} className="size-5 text-[9px]" />
+          {caption.name}
+        </p>
       </div>
-
-      <div className="flex gap-2 items-center justify-center mt-6">
-        <Avatar className="size-[22px]">
-          <AvatarImage src={caption.image ?? undefined} alt={caption.name} />
-          <AvatarFallback className="text-[10px]">{initials(caption.name)}</AvatarFallback>
-        </Avatar>
-        <p className="tracking-tighter">{caption.name}</p>
-      </div>
-
-      <div className="flex gap-10 mt-4">
+      <dl className="grid w-full grid-cols-3 gap-2">
         {highlights.map((item) => (
-          <div key={item.label} className="flex flex-col gap-2 items-center">
-            <p className="text-3xl font-bold">{item.value}</p>
-            <p className="text-md tracking-tighter font-lighter">{item.label}</p>
+          <div key={item.label} className="rounded-xl bg-muted/60 p-2">
+            <dd className="text-2xl font-semibold tabular-nums">{item.value}</dd>
+            <dt className="text-xs text-muted-foreground">{item.label}</dt>
           </div>
         ))}
-      </div>
-    </div>
+      </dl>
+    </section>
   );
 }
 
@@ -65,85 +45,59 @@ export const normalize = (value: number, max: number) => Math.max(0, Math.min(va
 
 export function StatsRadar({ title, data }: { title: string; data: RadarPoint[] }) {
   return (
-    <div className="flex flex-col items-center justify-center p-4">
-      <h2 className="md:text-3xl text-xl font-semibold mb-4">{title}</h2>
-      <ResponsiveContainer width={500} height={400}>
-        <RadarChart cx="50%" cy="50%" outerRadius="80%" data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey="subject" tick={{ fontSize: 14, fill: "#374151" }} />
-          <PolarRadiusAxis domain={[0, 1]} tick={{ fontSize: 10, fill: "#6B7280" }} tickCount={6} />
-          <Tooltip
-            formatter={(_value, name, item) => [(item.payload as RadarPoint).label, name]}
-            contentStyle={{
-              backgroundColor: "#1F2937",
-              borderRadius: 8,
-              border: "none",
-              color: "#F9FAFB",
-              fontSize: "14px",
-            }}
-          />
-          <Radar
-            name="Performance"
-            dataKey="value"
-            stroke="#2563EB"
-            fill="#2563EB"
-            fillOpacity={0.6}
-            strokeWidth={3}
-          />
-        </RadarChart>
-      </ResponsiveContainer>
-    </div>
+    <section className="rounded-2xl border bg-card p-4">
+      <h2 className="font-semibold">{title}</h2>
+      <div className="h-72 w-full md:h-80">
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart cx="50%" cy="50%" outerRadius="62%" data={data}>
+            <PolarGrid stroke="hsl(var(--border))" />
+            <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} />
+            <PolarRadiusAxis domain={[0, 1]} tick={false} axisLine={false} />
+            <Tooltip
+              formatter={(_value, name, item) => [(item.payload as RadarPoint).label, name]}
+              contentStyle={{
+                backgroundColor: "hsl(var(--popover))",
+                borderRadius: 8,
+                border: "1px solid hsl(var(--border))",
+                color: "hsl(var(--popover-foreground))",
+                fontSize: "13px",
+              }}
+            />
+            <Radar name="Performance" dataKey="value" stroke="hsl(var(--info))" fill="hsl(var(--info))" fillOpacity={0.35} strokeWidth={2} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+      {/* The values in plain text (the chart alone is not accessible). */}
+      <ul className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        {data.map((point) => (
+          <li key={point.subject}>
+            {point.subject} : <span className="font-medium text-foreground">{point.label}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
 export type StatItem = { label: string; value: ReactNode };
 
-/** Columns of "value badge + label" rows. */
+/** Every number of the season, as label / value rows. */
 export function StatList({ columns }: { columns: StatItem[][] }) {
   return (
-    <div className="flex gap-10">
-      {columns.map((items, index) => (
-        <div key={index} className="flex flex-col gap-4">
-          {items.map((item) => (
-            <div key={item.label} className="flex gap-2 items-center">
-              <Badge className="bg-zinc-800 rounded-sm text-white text-sm w-12 h-6 flex items-center justify-center">
-                {item.value}
-              </Badge>
-              <p className="tracking-tight">{item.label}</p>
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
+    <section className="rounded-2xl border bg-card p-4">
+      <h2 className="mb-2 font-semibold">En détail</h2>
+      <dl className="divide-y">
+        {columns.flat().map((item) => (
+          <div key={item.label} className="flex items-center justify-between gap-4 py-2 text-sm">
+            <dt className="text-muted-foreground">{item.label}</dt>
+            <dd className="font-semibold tabular-nums">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 
 export function StatsSkeleton() {
-  const bar = "bg-gray-300 rounded";
-  return (
-    <div className="min-h-screen flex flex-col lg:flex-row justify-evenly gap-4 items-center animate-pulse">
-      <div className="flex flex-col items-center gap-6">
-        <div className="size-[170px] bg-gray-300 rounded-full" />
-        <div className={`w-32 h-4 ${bar}`} />
-        <div className="flex gap-10">
-          {[0, 1, 2].map((i) => (
-            <div key={i} className={`w-12 h-8 ${bar}`} />
-          ))}
-        </div>
-      </div>
-      <div className="w-[500px] max-w-full h-[400px] bg-gray-300 rounded-lg" />
-      <div className="flex gap-10">
-        {[0, 1].map((column) => (
-          <div key={column} className="flex flex-col gap-4">
-            {Array.from({ length: 9 }, (_, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <div className="w-12 h-6 bg-gray-300 rounded-sm" />
-                <div className={`w-32 h-4 ${bar}`} />
-              </div>
-            ))}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  return <LoadingState variant="cards" rows={3} className="mx-auto max-w-5xl" />;
 }

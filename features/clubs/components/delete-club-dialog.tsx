@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { buttonVariants } from "@/components/ui/button";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { deleteClub } from "../actions";
 import { useRefreshAll } from "../hooks/use-refresh-all";
@@ -30,7 +31,7 @@ export function DeleteClubDialog({ open, onOpenChange }: Props) {
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Voulez-vous supprimer votre club ?</AlertDialogTitle>
+          <AlertDialogTitle>Supprimer ton club ?</AlertDialogTitle>
           <AlertDialogDescription>
             Le club, toutes ses sections et leurs données (événements, statistiques, messages) seront
             supprimés définitivement et l&apos;abonnement sera résilié. Aucune récupération ne sera possible.
@@ -44,7 +45,7 @@ export function DeleteClubDialog({ open, onOpenChange }: Props) {
               remove.mutate();
             }}
             disabled={remove.isPending}
-            className="bg-red-500 text-white hover:bg-red-600"
+            className={buttonVariants({ variant: "destructive" })}
           >
             {remove.isPending ? "Suppression..." : "Confirmer la suppression"}
           </AlertDialogAction>

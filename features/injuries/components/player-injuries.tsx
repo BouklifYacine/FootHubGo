@@ -1,8 +1,7 @@
 "use client";
 
+import { formatDate } from "@/lib/format";
 import { useState } from "react";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Activity, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,16 +10,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/error-state";
+import { LoadingState } from "@/components/app/loading-state";
 import {
   Timeline,
   TimelineContent,
@@ -37,24 +30,21 @@ import { injuryInvalidation, usePlayerInjuries } from "../hooks/use-injuries";
 import type { PlayerInjury } from "../types";
 import { InjuryFormDialog } from "./injury-form-dialog";
 
-const formatDate = (date: string) => format(date, "dd MMM yyyy", { locale: fr });
 
 /** The player's own injury history, as a timeline. */
 export function PlayerInjuries({ userId }: { userId: string }) {
-  const { data: injuries, isLoading, error } = usePlayerInjuries(userId);
+  const { data: injuries, isLoading, error, refetch } = usePlayerInjuries(userId);
 
-  if (isLoading) return <div>Chargement...</div>;
-  if (error) return <p className="text-red-500">{error.message}</p>;
+  if (isLoading) return <LoadingState rows={2} />;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
 
   if (!injuries?.length) {
     return (
-      <div className="rounded-xl border border-dashed dark:border-zinc-800 p-12 text-center">
-        <div className="mx-auto h-12 w-12 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center mb-4">
-          <Activity className="h-6 w-6 text-muted-foreground" />
-        </div>
-        <h3 className="text-lg font-semibold mb-1">Aucune blessure</h3>
-        <p className="text-muted-foreground">L&apos;historique de vos blessures apparaîtra ici.</p>
-      </div>
+      <EmptyState
+        icon={Activity}
+        title="Aucune blessure"
+        description="Ton historique de blessures apparaîtra ici. Déclare une blessure pour prévenir ton coach."
+      />
     );
   }
 
@@ -79,7 +69,7 @@ export function PlayerInjuries({ userId }: { userId: string }) {
           </TimelineHeader>
           <TimelineContent>
             <div className="text-sm font-medium mb-1">Retour : {formatDate(injury.endDate)}</div>
-            {injury.description && <div className="opacity-45">{injury.description}</div>}
+            {injury.description && <div className="text-muted-foreground">{injury.description}</div>}
           </TimelineContent>
         </TimelineItem>
       ))}
@@ -89,7 +79,7 @@ export function PlayerInjuries({ userId }: { userId: string }) {
 
 function InjuryActionsMenu({ injury }: { injury: PlayerInjury }) {
   const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const confirm = useConfirm();
   const remove = useActionMutation(deleteInjury, { invalidate: injuryInvalidation });
 
   return (
@@ -99,22 +89,29 @@ function InjuryActionsMenu({ injury }: { injury: PlayerInjury }) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-primary transition-colors"
+            className="text-muted-foreground"
             aria-label="Actions"
           >
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontal />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
-            <Pencil className="mr-2 h-4 w-4" />
+            <Pencil />
             Modifier
           </DropdownMenuItem>
           <DropdownMenuItem
-            onClick={() => setIsDeleteOpen(true)}
-            className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950/50"
+            variant="destructive"
+            onClick={async () => {
+              const ok = await confirm({
+                title: "Supprimer cette blessure ?",
+                description: "Elle disparaîtra définitivement de ton historique.",
+                confirmLabel: "Supprimer",
+              });
+              if (ok) remove.mutate(injury.id);
+            }}
           >
-            <Trash2 className="mr-2 h-4 w-4" />
+            <Trash2 />
             Supprimer
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -122,26 +119,6 @@ function InjuryActionsMenu({ injury }: { injury: PlayerInjury }) {
 
       <InjuryFormDialog injury={injury} open={isEditOpen} onOpenChange={setIsEditOpen} />
 
-      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. Cela supprimera définitivement cette blessure de votre
-              historique.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => remove.mutate(injury.id)}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

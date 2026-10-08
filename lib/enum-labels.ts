@@ -83,11 +83,12 @@ export const attendanceStatusLabels: Record<AttendanceStatus, string> = {
   ABSENT: "Absent",
 };
 
+/** Coach side of a call-up (glossary: Présent / Absent / En attente). The player answers "Je suis dispo" / "Pas dispo". */
 export const callUpStatusLabels: Record<CallUpStatus, string> = {
   PENDING: "En attente",
-  CONFIRMED: "Confirmé",
-  DECLINED: "Refusé",
-  EXPIRED: "Expiré",
+  CONFIRMED: "Présent",
+  DECLINED: "Absent",
+  EXPIRED: "Sans réponse",
 };
 
 export const matchResultLabels: Record<MatchResult, string> = {

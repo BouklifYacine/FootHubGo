@@ -96,7 +96,7 @@ function UserMenu({ name }: { name: string }) {
           </DropdownMenuItem>
         )}
         <DropdownMenuItem asChild>
-          <Link href="/settings">
+          <Link href="/app/settings">
             <Settings /> Paramètres
           </Link>
         </DropdownMenuItem>

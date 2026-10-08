@@ -66,7 +66,7 @@ export const joinTeamWithCode = action(inviteCodeSchema, async ({ inviteCode }) 
       [joinAttemptsPerUser, user.id],
       [joinAttemptsPerIp, clientIpFrom(await headers())],
     ],
-    "Trop de tentatives. Réessayez dans 10 minutes.",
+    "Trop de tentatives. Réessaie dans 10 minutes.",
   );
 
   const section = await prisma.team.findFirst({
@@ -79,7 +79,7 @@ export const joinTeamWithCode = action(inviteCodeSchema, async ({ inviteCode }) 
     userId: user.id,
     section: { id: section.id, clubId: section.clubId },
     role: "PLAYER",
-    conflictMessage: "Vous êtes déjà dans cette section, ou membre d'un autre club (quittez-le d'abord).",
+    conflictMessage: "Tu es déjà dans cette section, ou membre d'un autre club (quitte-le d'abord).",
   });
   await setActiveSection(section.id);
 
@@ -87,12 +87,13 @@ export const joinTeamWithCode = action(inviteCodeSchema, async ({ inviteCode }) 
   await notifyUsers(await sectionManagerIds(section.id, section.clubId, user.id), {
     type: "JOINED_TEAM",
     title: "Nouveau membre !",
-    message: `${user.name} a rejoint ${name} avec le code d'invitation.`,
+    message: `${user.name} a rejoint ${name} avec le lien d'invitation.`,
+    url: "/app/squad",
     fromUserName: user.name,
     fromUserImage: user.image,
   });
 
-  return { message: `Bienvenue ! Vous avez rejoint ${name}`, data: { teamId: section.id } };
+  return { message: `Bienvenue ! Tu as rejoint ${name}`, data: { teamId: section.id } };
 });
 
 /**
@@ -126,7 +127,7 @@ export const leaveTeam = action(z.void(), async () => {
     fromUserImage: user.image,
   });
 
-  return { message: leftClub ? "Vous avez quitté le club." : `Vous avez quitté la section ${membership.team.name}.` };
+  return { message: leftClub ? "Tu as quitté le club." : `Tu as quitté la section ${membership.team.name}.` };
 });
 
 /**
@@ -151,8 +152,8 @@ export const removeMember = action(z.string().min(1), async (memberId) => {
   await notifyUser({
     userId: member.userId,
     type: "LEFT_TEAM",
-    title: leftClub ? "Vous avez été retiré du club" : "Vous avez été retiré d'une section",
-    message: `Vous avez été retiré de ${name}.`,
+    title: leftClub ? "Tu as été retiré du club" : "Tu as été retiré d'une section",
+    message: `Tu as été retiré de ${name}.`,
     fromUserName: membership.club.name,
     fromUserImage: membership.club.logoUrl,
   });

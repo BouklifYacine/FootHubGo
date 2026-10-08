@@ -23,17 +23,25 @@ const nextConfig: NextConfig = {
         ["/connexion/motdepasseoublie/:path*", "/forgot-password/:path*"],
         ["/connexion", "/sign-in"],
         ["/inscription", "/sign-up"],
-        ["/parametres/:path*", "/settings"],
+        ["/parametres/:path*", "/app/settings"],
         // Settings always use the session user: the old per-user URL is dropped.
-        ["/settings/:id", "/settings"],
+        ["/settings/:id", "/app/settings"],
         ["/app/blessures", "/app/injuries"],
-        ["/app/calendrier", "/app/calendar"],
-        ["/app/convocations", "/app/call-ups"],
+        ["/app/calendrier", "/app/events?view=calendar"],
+        ["/app/convocations", "/app/events"],
         ["/app/effectif", "/app/squad"],
         ["/app/evenements/:path*", "/app/events/:path*"],
         ["/app/statistiques", "/app/stats"],
-        ["/app/transfert", "/app/transfers"],
+        ["/app/transfert", "/app/join-requests"],
       ].map(([source, destination]) => ({ source, destination, permanent: true })),
+      // Lot 3 (UX): settings moved inside the app shell, Événements + Calendrier merged into the
+      // Agenda (call-ups are answered there and on the event page), "Transfert" renamed.
+      ...[
+        ["/settings", "/app/settings"],
+        ["/app/calendar", "/app/events?view=calendar"],
+        ["/app/call-ups", "/app/events"],
+        ["/app/transfers", "/app/join-requests"],
+      ].map(([source, destination]) => ({ source, destination, permanent: false })),
     ];
   },
   // Only the hosts of real avatars: the image optimizer must not proxy arbitrary sites.

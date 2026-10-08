@@ -10,6 +10,8 @@ export type NotifyUserInput = {
   message: string;
   fromUserName?: string | null;
   fromUserImage?: string | null;
+  /** Page the notification opens: a path of the app (e.g. `/app/events/<id>`). Push (lot 6) reuses it. */
+  url?: string;
 };
 
 /**
@@ -26,6 +28,7 @@ export async function notifyUser(input: NotifyUserInput) {
       message: input.message,
       fromUserName: input.fromUserName ?? undefined,
       fromUserImage: input.fromUserImage ?? undefined,
+      data: input.url ? { url: input.url } : undefined,
     },
   });
   const dto = toNotificationDto(notification);

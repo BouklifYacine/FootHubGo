@@ -24,7 +24,7 @@ export function NameForm({ currentName, hasPassword }: { currentName: string; ha
   });
 
   return (
-    <SettingsCard title="Pseudo" description="Le nom affiché à votre club">
+    <SettingsCard title="Pseudo" description="Le nom que voit ton club">
       <form
         className="grid gap-4"
         onSubmit={(e) => {
@@ -55,7 +55,7 @@ export function EmailForm() {
       title="Email"
       description={
         pendingEmail
-          ? `Saisissez le code envoyé à ${pendingEmail}. Vous serez ensuite déconnecté de tous vos appareils.`
+          ? `Saisis le code envoyé à ${pendingEmail}. Tu seras ensuite déconnecté de tous tes appareils.`
           : "Un code de confirmation sera envoyé à la nouvelle adresse"
       }
     >
@@ -85,7 +85,7 @@ function RequestEmailForm({ onSent }: { onSent: (email: string) => void }) {
       }}
     >
       <form.AppField name="email">
-        {(field) => <field.TextField label="Nouvel email" type="email" placeholder="votre@email.com" />}
+        {(field) => <field.TextField label="Nouvel email" type="email" placeholder="ton@email.com" />}
       </form.AppField>
       <form.AppField name="password">
         {() => <PasswordField label="Mot de passe actuel" autoComplete="current-password" />}
@@ -141,7 +141,7 @@ export function PasswordForm() {
   return (
     <SettingsCard
       title="Mot de passe"
-      description="Vous serez déconnecté de tous vos appareils après le changement"
+      description="Tu seras déconnecté de tous tes appareils après le changement"
     >
       <form
         className="grid gap-4"

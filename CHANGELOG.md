@@ -13,6 +13,29 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 
 ### Ajouté
 
+- **Navigation mobile** : barre d'onglets en bas de l'écran (Accueil, Agenda, Équipe, Messages, Plus) avec
+  pastilles (messages non lus, convocations à répondre, demandes d'adhésion), barre du haut avec le titre de la
+  page, le club et la section (changement de section d'un geste) et la cloche. Sur ordinateur, le menu latéral
+  reprend les mêmes entrées. Nouvelle page « Plus » : statistiques, blessures, sondages, demandes d'adhésion,
+  gestion du club, paramètres, thème (Clair / Sombre / Auto), « Revoir le tutoriel », déconnexion.
+- **Accueil selon le rôle** : le prochain rendez-vous avec, pour le joueur, les boutons « Je suis dispo /
+  Pas dispo » (ou « Je viens / Je ne viens pas » pour un entraînement) et, pour l'entraîneur, qui a répondu et
+  le bouton « Convoquer » ; une liste « À faire » (convocations, présences, demandes d'adhésion, matchs sans
+  convocation, scores à saisir) ; une liste « Bien démarrer » pour l'entraîneur (inviter les joueurs, premier
+  événement, premières convocations, premier message). Sans club : « J'ai un code d'invitation » et
+  « Créer mon club ».
+- **Agenda** : Événements et Calendrier fusionnés. Liste des événements à venir par défaut (par semaine,
+  filtres Matchs / Entraînements, passés), calendrier en option, bouton « Nouvel événement » visible ; après
+  la création d'un match, « Convoquer maintenant ».
+- **Lien d'invitation** (`/join/<code>`) avec « Partager le lien » (WhatsApp, SMS... via le partage du
+  téléphone) et « Copier le lien » ; la personne invitée crée son compte ou se connecte puis rejoint la section
+  d'un geste, le code est déjà rempli. Page « J'ai un code » et second bouton sur la page d'accueil du site.
+- **Tutoriel guidé** (driver.js) pour l'entraîneur et pour le joueur, 6 étapes maximum, affiché une fois à
+  la première arrivée (mémorisé par compte, sur tous les appareils), à revoir depuis « Plus ».
+- Les notifications ouvrent leur page (convocation et rappel : l'événement, demande d'adhésion, sondage) ;
+  la notification en direct propose « Voir ».
+- Script de données de démonstration pour le développement local : `bun run db:seed` (jamais en production).
+
 - **Clubs et sections** : un club regroupe des sections (Seniors, Vétérans, Loisir, par ex. « Seniors A »).
   Rôles du club : propriétaire (un seul, il paie l'abonnement), administrateurs, membres ; rôles de section :
   entraîneur ou joueur. On peut être dans plusieurs sections du même club (entraîneur dans l'une, joueur dans
@@ -39,6 +62,24 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
   de l'IP, type d'image, en-têtes de sécurité, règles de groupe et d'administration.
 
 ### Modifié
+
+- **Interface pensée pour le téléphone** : boutons et champs d'au moins 44 px, formulaires dans des panneaux
+  qui montent du bas de l'écran, dates et heures avec le sélecteur du téléphone, menu des messages toujours
+  visible, tableaux remplacés par des listes de cartes sur mobile (effectif, convocations, statistiques des
+  joueurs, présences, blessures), statuts écrits en toutes lettres avec une icône.
+- **Réponse à une convocation modifiable** jusqu'à 3 h avant le match (avant : réponse définitive), depuis
+  l'accueil, l'agenda ou la page du match ; l'entraîneur est prévenu du changement.
+- **Page d'un événement** : un seul tableau d'affichage du score, « Ma convocation » pour le joueur, résumé
+  des réponses et « Convoquer » pour l'entraîneur, « Modifier » et « Supprimer » sur la page.
+- **Tutoiement partout** (écrans, messages, emails) et vocabulaire unifié : Agenda, « Je suis dispo / Pas dispo »,
+  Présent / Absent / En attente, Demandes d'adhésion (au lieu de « Transfert »).
+- Paramètres dans l'application (`/app/settings`) ; après l'inscription on est connecté directement ; après
+  la création d'un club ou l'arrivée dans une section on arrive sur l'accueil.
+- Confirmation avant toute action destructrice (quitter le club, supprimer un événement, retirer une
+  convocation, supprimer le lien d'invitation, refuser une demande, clôturer un sondage, « Supprimer pour
+  tous »...) dans une fenêtre unique au lieu de la fenêtre du navigateur.
+- Couleurs corrigées en mode clair et sombre (textes secondaires, fonds, notifications), le bouton de thème
+  suit le thème réellement affiché ; une seule façon d'écrire les dates ; titre de l'onglet propre à chaque page.
 
 - **Migration des données** : chaque équipe devient un club (même nom, logo, description, visibilité) avec une
   section « Seniors » portant son nom ; son plus ancien entraîneur devient propriétaire, les autres entraîneurs
@@ -68,6 +109,12 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 - Docker Compose : l'application n'est publiée que sur `127.0.0.1:3000` (à placer derrière un reverse proxy).
 
 ### Corrigé
+
+- Un message envoyé avant la fin du chargement d'une conversation n'apparaissait pas pour son auteur avant
+  un rechargement.
+- « Nouvelle conversation » ne proposait que les membres de la section active : elle liste tout le club.
+- Le menu mobile restait ouvert après avoir choisi une page.
+- La zone de saisie du chat pouvait passer sous la barre du navigateur sur iPhone.
 
 - Webhook Stripe : chaque événement n'est traité qu'une fois (table `stripe_event`), plus de double email
   de confirmation lors des renvois de Stripe.

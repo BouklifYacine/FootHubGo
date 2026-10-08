@@ -8,8 +8,8 @@ export const joinRequestSchema = z.object({
   motivation: z
     .string()
     .trim()
-    .min(15, "Votre message doit contenir au moins 15 caractères")
-    .max(100, "Votre message ne peut pas dépasser 100 caractères"),
+    .min(15, "Ton message doit contenir au moins 15 caractères")
+    .max(100, "Ton message ne peut pas dépasser 100 caractères"),
 });
 
 export type JoinRequestInput = z.infer<typeof joinRequestSchema>;

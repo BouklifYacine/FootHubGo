@@ -1,150 +1,173 @@
 "use client";
 
-import { format } from "date-fns";
-import { Send, X } from "lucide-react";
-import type { CallUpStatus } from "@/generated/prisma/browser";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { CircleAlert, Send, UsersRound, X } from "lucide-react";
+import { useConfirm } from "@/components/app/confirm-dialog";
+import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/error-state";
+import { LoadingState } from "@/components/app/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { callUpStatusLabels, playerPositionLabels } from "@/lib/enum-labels";
+import { formatDateTime } from "@/lib/format";
+import { playerPositionLabels } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
-import { cn } from "@/lib/utils";
+import { InitialsAvatar } from "@/features/team/components/initials-avatar";
 import { cancelCallUp, sendCallUps } from "../actions";
 import { useEventCallUps } from "../hooks/use-event-call-ups";
+import { participationInvalidation } from "../invalidation";
+import { CALL_UP_RULES } from "../server/rules";
 import type { EventCallUpPlayer } from "../types";
+import { CallUpStatusBadge } from "./call-up-answer";
 
-const statusClass: Record<CallUpStatus, string> = {
-  PENDING: "border-orange-500 bg-orange-100 text-orange-700",
-  CONFIRMED: "border-green-500 bg-green-100 text-green-700",
-  DECLINED: "border-red-500 bg-red-100 text-red-700",
-  EXPIRED: "border-gray-400 bg-gray-100 text-gray-600",
-};
+type Group = { key: string; title: string; players: EventCallUpPlayer[] };
 
-const formatDate = (date: string | null) => (date ? format(date, "dd/MM/yyyy 'à' HH:mm") : "-");
-
-function YesNo({ value, good = true }: { value: boolean; good?: boolean }) {
-  const positive = value === good;
-  return (
-    <Badge
-      variant="outline"
-      className={positive ? "border-emerald-700 bg-emerald-100 text-emerald-800" : "border-red-700 bg-red-100 text-red-800"}
-    >
-      {value ? "Oui" : "Non"}
-    </Badge>
-  );
+/** Coach: players grouped by answer. Players: the squad of the match. */
+function groupPlayers(players: EventCallUpPlayer[], isCoach: boolean): Group[] {
+  if (!isCoach) return [{ key: "all", title: `Effectif (${players.length})`, players }];
+  const by = (test: (player: EventCallUpPlayer) => boolean) => players.filter(test);
+  return [
+    { key: "confirmed", title: "Présents", players: by((p) => p.callUp?.status === "CONFIRMED") },
+    { key: "pending", title: "En attente", players: by((p) => p.callUp?.status === "PENDING") },
+    { key: "declined", title: "Absents", players: by((p) => p.callUp?.status === "DECLINED" || p.callUp?.status === "EXPIRED") },
+    { key: "none", title: "Non convoqués", players: by((p) => !p.callUp) },
+  ].filter((group) => group.players.length > 0);
 }
 
-/** Players of the team for a match. The coach also sees and manages the call-ups. */
+/** Players of the section for a match; the coach also sees and manages the call-ups. */
 export function CallUpTable({ eventId, isCoach }: { eventId: string; isCoach: boolean }) {
-  const { data, isPending, error } = useEventCallUps(eventId);
-  const invalidate = [queryKeys.events.callUps(eventId), queryKeys.me.callUps];
+  const { data, isPending, error, refetch } = useEventCallUps(eventId);
+  const confirm = useConfirm();
+  const invalidate = [queryKeys.events.callUps(eventId), ...participationInvalidation];
   const send = useActionMutation(sendCallUps, { invalidate });
   const cancel = useActionMutation(cancelCallUp, { invalidate });
 
-  if (isPending) return <p className="p-4 text-muted-foreground">Chargement des joueurs...</p>;
-  if (error) return <p className="p-4 text-destructive">{error.message}</p>;
-  if (data.players.length === 0) return <p className="p-4 text-center">Aucun joueur dans l&apos;équipe</p>;
+  if (isPending) return <LoadingState />;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
+  if (data.players.length === 0) {
+    return <EmptyState icon={UsersRound} title="Aucun joueur dans la section" description="Invite tes joueurs depuis l'onglet Équipe." />;
+  }
 
-  const renderAction = (player: EventCallUpPlayer) => {
+  const action = (player: EventCallUpPlayer) => {
+    if (!isCoach) return null;
     if (player.callUp) {
-      return (
-        data.canCancel && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="icon"
-                variant="outline"
-                aria-label="Annuler la convocation"
-                disabled={cancel.isPending}
-                onClick={() => cancel.mutate(player.callUp!.id)}
-              >
-                <X className="text-destructive" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Annuler la convocation</TooltipContent>
-          </Tooltip>
-        )
-      );
+      return data.canCancel ? (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive"
+          disabled={cancel.isPending}
+          onClick={async () => {
+            const ok = await confirm({
+              title: `Annuler la convocation de ${player.name} ?`,
+              description: `Il sera retiré de la liste. Possible jusqu'à ${CALL_UP_RULES.cancelMinHours}h avant le match.`,
+              confirmLabel: "Annuler la convocation",
+              cancelLabel: "Garder",
+            });
+            if (ok) cancel.mutate(player.callUp!.id);
+          }}
+        >
+          <X /> Retirer
+        </Button>
+      ) : null;
     }
-    return (
-      data.canSend && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="icon"
-              variant="outline"
-              aria-label="Convoquer le joueur"
-              disabled={player.isInjured || send.isPending}
-              onClick={() => send.mutate({ eventId, playerIds: [player.userId] })}
-            >
-              <Send />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{player.isInjured ? "Joueur blessé" : "Envoyer une convocation"}</TooltipContent>
-        </Tooltip>
-      )
-    );
+    if (player.isInjured) return <span className="text-xs text-muted-foreground">Blessé ce jour-là</span>;
+    return data.canSend ? (
+      <Button variant="outline" size="sm" disabled={send.isPending} onClick={() => send.mutate({ eventId, playerIds: [player.userId] })}>
+        <Send /> Convoquer
+      </Button>
+    ) : null;
   };
 
+  const chips = (player: EventCallUpPlayer) => (
+    <>
+      {isCoach && player.callUp && <CallUpStatusBadge status={player.callUp.status} playerView={false} />}
+      {player.isInjured && (
+        <Badge variant="danger">
+          <CircleAlert aria-hidden /> Blessé
+        </Badge>
+      )}
+      {!player.isLicensed && <Badge variant="muted">Non licencié</Badge>}
+    </>
+  );
+
+  const groups = groupPlayers(data.players, isCoach);
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Joueur</TableHead>
-          <TableHead>Poste</TableHead>
-          <TableHead>Licencié</TableHead>
-          <TableHead>Blessé</TableHead>
-          {isCoach && (
-            <>
-              <TableHead>Convocation</TableHead>
-              <TableHead>Envoyée le</TableHead>
-              <TableHead>Réponse le</TableHead>
-              <TableHead>Action</TableHead>
-            </>
-          )}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {data.players.map((player) => (
-          <TableRow key={player.userId}>
-            <TableCell>
-              <div className="flex items-center gap-3">
-                <Avatar className="size-9">
-                  <AvatarImage src={player.image ?? undefined} alt={player.name} />
-                  <AvatarFallback>{player.name.charAt(0).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <span className="font-medium">{player.name}</span>
-              </div>
-            </TableCell>
-            <TableCell>{player.position ? playerPositionLabels[player.position] : "-"}</TableCell>
-            <TableCell>
-              <YesNo value={player.isLicensed} />
-            </TableCell>
-            <TableCell>
-              <YesNo value={player.isInjured} good={false} />
-            </TableCell>
-            {isCoach && (
-              <>
-                <TableCell>
-                  {player.callUp ? (
-                    <Badge variant="outline" className={cn(statusClass[player.callUp.status])}>
-                      {callUpStatusLabels[player.callUp.status]}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted-foreground">Non convoqué</span>
-                  )}
-                </TableCell>
-                <TableCell>{formatDate(player.callUp?.sentAt ?? null)}</TableCell>
-                <TableCell>{formatDate(player.callUp?.respondedAt ?? null)}</TableCell>
-                <TableCell>{renderAction(player)}</TableCell>
-              </>
-            )}
-          </TableRow>
+    <>
+      {isCoach && !data.canSend && (
+        <p className="text-xs text-muted-foreground">
+          Les convocations s&apos;envoient jusqu&apos;à {CALL_UP_RULES.sendMinHours}h avant le match.
+        </p>
+      )}
+      <div className="space-y-4 md:hidden">
+        {groups.map((group) => (
+          <section key={group.key} className="space-y-2">
+            <h3 className="px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+              {group.title} {isCoach && `(${group.players.length})`}
+            </h3>
+            <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+              {group.players.map((player) => (
+                <li key={player.userId} className="flex items-center gap-3 px-4 py-2.5">
+                  <InitialsAvatar name={player.name} src={player.image} className="size-10" />
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <p className="truncate text-sm font-medium">{player.name}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {player.position ? playerPositionLabels[player.position] : "Poste non renseigné"}
+                    </p>
+                    <div className="flex flex-wrap gap-1 empty:hidden">{chips(player)}</div>
+                  </div>
+                  {action(player)}
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+
+      <div className="hidden overflow-hidden rounded-xl border bg-card md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Joueur</TableHead>
+              <TableHead>Poste</TableHead>
+              <TableHead>Statut</TableHead>
+              {isCoach && <TableHead>Réponse</TableHead>}
+              {isCoach && (
+                <TableHead>
+                  <span className="sr-only">Action</span>
+                </TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groups.flatMap((group) => group.players).map((player) => (
+              <TableRow key={player.userId}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <InitialsAvatar name={player.name} src={player.image} className="size-9" />
+                    <span className="font-medium">{player.name}</span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {player.position ? playerPositionLabels[player.position] : "-"}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {chips(player)}
+                    {isCoach && !player.callUp && <span className="text-sm text-muted-foreground">Non convoqué</span>}
+                  </div>
+                </TableCell>
+                {isCoach && (
+                  <TableCell className="text-sm text-muted-foreground">
+                    {player.callUp?.respondedAt ? formatDateTime(player.callUp.respondedAt) : "-"}
+                  </TableCell>
+                )}
+                {isCoach && <TableCell className="text-right">{action(player)}</TableCell>}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

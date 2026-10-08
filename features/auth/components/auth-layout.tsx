@@ -22,7 +22,7 @@ export function AuthLayout({ children }: { children: ReactNode }) {
 export function TermsNotice({ action }: { action: string }) {
   return (
     <p className="text-muted-foreground text-center text-xs text-balance">
-      En cliquant sur {action}, vous acceptez nos{" "}
+      En cliquant sur « {action} », tu acceptes nos{" "}
       <a href="#" className="underline underline-offset-4 hover:text-primary">
         Conditions d&apos;utilisation
       </a>{" "}
@@ -38,7 +38,7 @@ export function TermsNotice({ action }: { action: string }) {
 export function OrSeparator() {
   return (
     <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-      <span className="bg-card text-muted-foreground relative z-10 px-2">Ou continuer avec</span>
+      <span className="bg-card text-muted-foreground relative z-10 px-2">Ou avec ton email</span>
     </div>
   );
 }

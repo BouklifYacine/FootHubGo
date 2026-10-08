@@ -27,7 +27,7 @@ export function Hero() {
            Arrêtez de perdre 3 heures chaque semaine à relancer les joueurs <br></br> Votre club mérite mieux.
           </p>
 
-          <div className="flex justify-center items-center pb-2 pt-3">
+          <div className="flex flex-col items-center justify-center gap-3 pb-2 pt-3 sm:flex-row">
             <Link href="/sign-up" className="relative inline-block">
               <GlowEffect
                 colors={["#FF5733", "#33FF57", "#3357FF", "#F1C40F"]}
@@ -40,6 +40,13 @@ export function Hero() {
                 Créer mon club
                 <ArrowRight className="size-4 md:size-6" />
               </span>
+            </Link>
+            {/* Players invited by their coach: the code (or the invite link) brings them to their team. */}
+            <Link
+              href="/join"
+              className="inline-flex min-h-11 items-center gap-2 rounded-3xl border px-4 py-2 text-base font-medium transition-colors hover:bg-accent md:px-8 md:py-4 md:text-xl"
+            >
+              J&apos;ai un code d&apos;invitation
             </Link>
           </div>
 

@@ -21,7 +21,7 @@ export const startClubCheckout = action(checkoutSchema, async ({ period }) => {
   if (!priceId || !process.env.STRIPE_SECRET_KEY) {
     throw new AppError("Le paiement en ligne n'est pas encore disponible");
   }
-  if (membership.club.plan === "pro") throw new AppError("Votre club est déjà abonné");
+  if (membership.club.plan === "pro") throw new AppError("Ton club est déjà abonné");
 
   const appUrl = process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_URL ?? "http://localhost:3000";
   const session = await getStripe().checkout.sessions.create({
@@ -37,6 +37,6 @@ export const startClubCheckout = action(checkoutSchema, async ({ period }) => {
     success_url: `${appUrl}/app/club?abonnement=ok`,
     cancel_url: `${appUrl}/app/club`,
   });
-  if (!session.url) throw new AppError("Le paiement n'a pas pu démarrer, réessayez");
+  if (!session.url) throw new AppError("Le paiement n'a pas pu démarrer, réessaie");
   return { message: "Redirection vers le paiement sécurisé", data: { url: session.url } };
 });

@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog as Dialog,
+  ResponsiveDialogContent as DialogContent,
+  ResponsiveDialogDescription as DialogDescription,
+  ResponsiveDialogFooter as DialogFooter,
+  ResponsiveDialogHeader as DialogHeader,
+  ResponsiveDialogTitle as DialogTitle,
+} from "@/components/app/responsive-dialog";
 import { useAppForm } from "@/lib/form";
 import { clubVisibilityLabels, sectionCategoryLabels, teamLevelLabels, toOptions } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
@@ -31,13 +31,13 @@ type Props = {
 export function ClubFormDialog({ open, onOpenChange, club }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[95vw] max-w-md overflow-y-auto sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{club ? "Modifier le club" : "Créer un club"}</DialogTitle>
           <DialogDescription>
             {club
-              ? "Mettez à jour les informations de votre club."
-              : "Créez votre club et sa première section. Vous en serez le propriétaire et l'entraîneur."}
+              ? "Mets à jour les informations de ton club."
+              : "Crée ton club et sa première équipe (section). Tu en seras le propriétaire et l'entraîneur."}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so the form starts fresh every time. */}
@@ -56,7 +56,8 @@ function CreateClubForm({ onDone }: { onDone: () => void }) {
   const create = useActionMutation(createClub, {
     onSuccess: () => {
       onDone();
-      refreshAll("/app/squad");
+      // The home shows the coach's next steps (checklist: invite players, first event...).
+      refreshAll("/app");
     },
   });
 
@@ -96,7 +97,7 @@ function CreateClubForm({ onDone }: { onDone: () => void }) {
         )}
       </form.AppField>
       <form.AppField name="description">
-        {(field) => <field.TextareaField label="Description" placeholder="Présentez votre club" rows={2} />}
+        {(field) => <field.TextareaField label="Description" placeholder="Présente ton club en quelques mots" rows={2} />}
       </form.AppField>
       <p className="pt-2 text-sm font-medium">Première section</p>
       <form.AppField name="sectionName">
@@ -152,7 +153,7 @@ function EditClubForm({ club, onDone }: { club: ClubInput; onDone: () => void })
         )}
       </form.AppField>
       <form.AppField name="description">
-        {(field) => <field.TextareaField label="Description" placeholder="Présentez votre club" rows={3} />}
+        {(field) => <field.TextareaField label="Description" placeholder="Présente ton club en quelques mots" rows={3} />}
       </form.AppField>
       <DialogFooter>
         <form.AppForm>

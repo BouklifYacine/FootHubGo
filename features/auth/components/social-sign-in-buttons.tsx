@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 
 const providers = [
-  { id: "github", label: "Github", icon: GithubIcon },
+  { id: "github", label: "GitHub", icon: GithubIcon },
   { id: "google", label: "Google", icon: GoogleIcon },
 ] as const;
 
-export function SocialSignInButtons() {
+export function SocialSignInButtons({ mode, next = "/app" }: { mode: "sign-in" | "sign-up"; next?: string }) {
   return (
     <div className="flex flex-col gap-4">
       {providers.map((provider) => (
@@ -20,10 +20,10 @@ export function SocialSignInButtons() {
           type="button"
           variant="outline"
           className="w-full cursor-pointer"
-          onClick={() => authClient.signIn.social({ provider: provider.id, callbackURL: "/app" })}
+          onClick={() => authClient.signIn.social({ provider: provider.id, callbackURL: next })}
         >
           <Image src={provider.icon} alt="" width={25} height={25} />
-          Connexion avec {provider.label}
+          {mode === "sign-up" ? "S'inscrire" : "Se connecter"} avec {provider.label}
         </Button>
       ))}
     </div>

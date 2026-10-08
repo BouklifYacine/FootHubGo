@@ -1,5 +1,6 @@
 "use client";
 
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { useEffect, useState } from "react";
 import { ArrowLeft, MoreVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
   const block = useSetUserBlocked();
   const leave = useLeaveGroup();
   const remove = useDeleteConversation();
+  const confirm = useConfirm();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const other = c.type === "PRIVATE" ? c.participants.find((p) => p.id !== myId) : undefined;
   const canDelete = c.type === "PRIVATE" || (c.type === "GROUP" && c.myRole === "ADMIN");
@@ -38,16 +40,16 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
   }, [c.id, c.unreadCount, markRead]);
 
   const disabledReason = c.blocked?.byMe
-    ? "Vous avez bloqué cet utilisateur."
+    ? "Tu as bloqué cet utilisateur."
     : c.blocked?.byThem
-      ? "Vous ne pouvez pas répondre à cette conversation."
+      ? "Tu ne peux pas répondre à cette conversation."
       : undefined;
 
   return (
     <section className="flex min-w-0 flex-1 flex-col">
       <header className="flex items-center gap-3 border-b p-3">
         <Button aria-label="Retour" className="md:hidden" onClick={onClose} size="icon" variant="ghost">
-          <ArrowLeft className="size-4" />
+          <ArrowLeft className="size-5" />
         </Button>
         <ChatAvatar image={other?.image} isOnline={other?.isOnline} name={c.name} />
         <div className="min-w-0 flex-1">
@@ -59,7 +61,7 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button aria-label="Options de la conversation" size="icon" variant="ghost">
-              <MoreVertical className="size-4" />
+              <MoreVertical className="size-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -83,8 +85,15 @@ export function ConversationView({ conversation: c, myId, onClose }: Props) {
             )}
             {canDelete && (
               <DropdownMenuItem
-                className="text-destructive"
-                onClick={() => confirm("Supprimer cette conversation ?") && remove.mutate(c.id, { onSuccess: onClose })}
+                variant="destructive"
+                onClick={async () => {
+                  const ok = await confirm({
+                    title: "Supprimer cette conversation ?",
+                    description: "Les messages seront supprimés pour tous les participants.",
+                    confirmLabel: "Supprimer",
+                  });
+                  if (ok) remove.mutate(c.id, { onSuccess: onClose });
+                }}
               >
                 Supprimer
               </DropdownMenuItem>

@@ -6,9 +6,10 @@ import { queryKeys } from "@/lib/query/keys";
 import type { HomeData } from "../types";
 
 /** Home dashboard data, or null when the user has no team. */
-export function useHome() {
+export function useHome({ enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: queryKeys.home,
     queryFn: () => fetchJson<HomeData | null>("/api/home"),
+    enabled,
   });
 }

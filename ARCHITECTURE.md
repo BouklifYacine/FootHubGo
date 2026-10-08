@@ -36,7 +36,52 @@ but Next.js queues them one at a time, so reads go through cacheable, parallel `
 | `lib/rate-limit.ts` | `rateLimiter(name, { max, windowMs })` + `enforceRateLimit(...)`: in-memory, one process only. |
 | `lib/client-ip.ts` | `clientIpFrom(headers)`: the client IP resolved by `server.ts` (`TRUSTED_IP_HEADER`). |
 | `lib/signed-token.ts` | Purpose-bound HMAC tokens (unsubscribe links, hashed one-time codes). |
+| `lib/format.ts` | The only date formatting of the UI (French, `Intl`): `formatDate`, `formatDateTime`, `formatTime` ("15h00"), `formatDayLabel`, `formatRelative`... Server code passes `TEAM_TIME_ZONE`. |
+| `lib/navigation.ts` | The navigation config (bottom tabs, sidebar, Plus page, top bar titles and back targets), per role. |
 | `lib/security-headers.ts` | CSP and other security headers set in `next.config.ts`. |
+
+## UI building blocks and navigation
+
+**Shell** (`components/app-shell`): under `md`, a top bar (back button on detail pages and the pages opened
+from Plus, page title + "Club · Section" switcher, bell) and the bottom tab bar (`bottom-nav.tsx`: Accueil,
+Agenda, Équipe, Messages, Plus; badges from `useNavigation()`: unread messages + `GET /api/me/badges`). On `md+`
+the sidebar, built from the same `lib/navigation.ts`. Page content gets the bottom padding of the tab bar and
+the safe areas; full-height pages (chat) are listed in `FULL_HEIGHT_PAGES` and sized in `dvh`. Add a page:
+an entry in `PRIMARY_NAV` (tab) or `MORE_NAV` (Plus + sidebar) with its `visible(context)` rule.
+
+**Shared blocks** (`components/app`), use them instead of ad-hoc markup:
+
+| Component | Use |
+|---|---|
+| `Page`, `PageHeader`, `SectionTitle` | Page layout and title (`h1`; under `md` the visible title is the top bar's, the description and actions stay). One primary action in `actions`. |
+| `EmptyState` | Icon + title + text + the next step (`action: { label, href \| onClick }`). |
+| `LoadingState` | Skeletons (`list`, `cards`, `detail`): no spinners, no "Chargement...". |
+| `ErrorState` | The API message + "Réessayer" (`onRetry={refetch}`). |
+| `useConfirm()` (`ConfirmProvider` in the root layout) | `if (await confirm({ title, description, confirmLabel })) mutate()`: every destructive action, never `window.confirm`. |
+| `ResponsiveDialog*` | Same API as `Dialog`; a bottom sheet under `md`. Every form dialog uses it. |
+| `SegmentedControl` | 2 to 4 exclusive views (Liste / Calendrier, Buteurs / Passeurs). |
+
+**Design rules**: colors only from the tokens of `app/globals.css` (HSL triplets; `success` / `warning` / `info`
+for statuses, always icon + text: `Badge` variants `success`, `warning`, `danger`, `info`, `muted`), so dark mode
+follows. Tap targets are 44px under `md` (the `Button` / `Input` / `Select` sizes already are). Tables are for
+`md+` only: under `md`, render a card list. Copy is French with "tu"; glossary: Agenda, Événement, Match,
+Entraînement, Convocation, "Je suis dispo / Pas dispo" (player), Présent / Absent / En attente (coach), Effectif,
+Demande d'adhésion, Section.
+
+**Participation** (`features/events/server/participation.ts`): "who is coming" for a set of events from the
+caller's point of view (my call-up and whether I can still answer, my training answer, the coach's answers
+summary). The home, the agenda list and the event page all read it, and share `CallUpAnswer`,
+`AttendanceAnswer` and `CallUpSummary` (+ `participationInvalidation` after a write).
+
+**Onboarding** (`features/onboarding`): `tours.ts` holds the coach and player tours (driver.js, 6 steps max)
+anchored on `data-tour` attributes; `buildTour()` drops the steps whose element is missing. `TourLauncher`
+(mounted by the shell) starts the tour on the home the first time, or on `/app?tour=1` (replay from Plus / the
+user menu). Seen tours and the dismissed coach checklist are stored per user in `User.onboardingSeen`
+(`markOnboardingSeen`), so they follow the user across devices. Bump a key (`coach-v2`) to show a reworked
+tour again.
+
+**Invites**: `/join/<code>` shows the club and section of an invite code (rate limited per IP); signed-out
+visitors sign up / in with `?next=` (`safeNextPath`, no open redirect) and come back to join in one tap.
 
 ## Clubs and sections
 
@@ -147,6 +192,8 @@ update before doing the work). `DISABLE_JOBS=1` turns them off on an instance.
 - Unit tests sit next to the code (`*.test.ts`, `bun test`) and target pure functions
   (rules, recurrence, recipients). Keep business rules pure so they stay testable without a database.
 - `.github/workflows/ci.yml`: typecheck, lint, tests, migrations on an empty PostgreSQL, build — on every PR.
+- Local data: `bun run db:seed` (`scripts/seed.ts`) wipes and recreates demo accounts `*@foothub.test`
+  (password `motdepasse123`). Never in production (it refuses `NODE_ENV=production`).
 - `.github/workflows/release.yml`: when `main` gets a `package.json` version without a release, it creates
   the tag `vX.Y.Z`, the GitHub Release (notes from `CHANGELOG.md`) and the image `ghcr.io/bouklifyacine/foothubgo:X.Y.Z`.
 - Every PR updates the "Non publié" section of `CHANGELOG.md`.

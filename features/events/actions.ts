@@ -29,7 +29,7 @@ async function resolveScope(membership: Membership, scope: string | undefined): 
     throw forbidden(
       teamId === null
         ? "Seuls le propriétaire et les administrateurs créent des événements pour tout le club"
-        : "Vous devez être entraîneur de la section",
+        : "Tu dois être entraîneur de la section",
     );
   }
   return { clubId: membership.clubId, teamId };
@@ -61,7 +61,7 @@ async function findEditableEvent(eventId: string, membership: Membership) {
   });
   if (!event) throw notFound("Événement introuvable");
   if (!canManageSection(membership, event.teamId)) {
-    throw forbidden(event.teamId ? "Vous devez être entraîneur de la section" : "Réservé au propriétaire et aux administrateurs du club");
+    throw forbidden(event.teamId ? "Tu dois être entraîneur de la section" : "Réservé au propriétaire et aux administrateurs du club");
   }
   if (event.teamStat) {
     throw new AppError("Cet événement a des statistiques enregistrées : il ne peut plus être modifié ni supprimé", 409);
@@ -92,14 +92,18 @@ export const createEvent = action(eventSchema, async ({ repeatUntil, scope: requ
   if (free.length === 0) throw new AppError("Un événement existe déjà à cette date et heure", 409);
 
   const seriesId = dates.length > 1 ? randomUUID() : null;
-  await prisma.event.createMany({
+  const created = await prisma.event.createManyAndReturn({
     data: free.map((startDate) => ({ ...toEventColumns({ ...input, startDate }), ...scope, seriesId })),
+    select: { id: true },
   });
+  // The form offers "Convoquer maintenant" right after a match is created.
+  const data = { eventId: created[0].id, type: input.type, title: input.title };
 
-  if (dates.length === 1) return { message: "Événement créé" };
+  if (dates.length === 1) return { message: "Événement créé", data };
   const skipped = dates.length - free.length;
   return {
     message: `${free.length} entraînements créés${skipped ? ` (${skipped} ignoré${skipped > 1 ? "s" : ""} : créneau déjà pris)` : ""}`,
+    data,
   };
 });
 

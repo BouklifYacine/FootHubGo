@@ -60,7 +60,7 @@ export function EventCalendar({ canEdit, scopeOptions }: { canEdit: boolean; sco
         controller={controller}
         types={types}
         onTypesChange={setTypes}
-        onCreate={canEdit ? () => setDialog({ mode: "create", start: setHours(new Date(), 18) }) : undefined}
+        // "Nouvel événement" is in the Agenda header; a click on a day also creates one.
       />
       <FullCalendar
         controller={controller}
@@ -76,6 +76,7 @@ export function EventCalendar({ canEdit, scopeOptions }: { canEdit: boolean; sco
         scrollTime="08:00"
         nowIndicator
         dayMaxEvents
+        eventDisplay="list-item"
         editable={canEdit}
         eventDurationEditable={false}
         eventClick={(info) => openEvent(info.event.id)}

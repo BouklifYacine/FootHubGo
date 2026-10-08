@@ -91,7 +91,7 @@ async function findClubMember(clubMemberId: string, clubId: string) {
 export const createClub = action(createClubSchema, async ({ sectionName, category, level, ...club }) => {
   const user = await requireUser();
   if (await prisma.clubMember.findUnique({ where: { userId: user.id }, select: { id: true } })) {
-    throw new AppError("Vous êtes déjà membre d'un club");
+    throw new AppError("Tu es déjà membre d'un club");
   }
   await assertClubNameAvailable(club.name);
 
@@ -122,7 +122,7 @@ export const createClub = action(createClubSchema, async ({ sectionName, categor
     });
   } catch (error) {
     // One club per user (unique index): a concurrent create / join loses here (audit L13).
-    if (isUniqueViolation(error)) throw new AppError("Vous êtes déjà membre d'un club", 409);
+    if (isUniqueViolation(error)) throw new AppError("Tu es déjà membre d'un club", 409);
     throw error;
   }
 
@@ -225,7 +225,7 @@ export const transferOwnership = action(clubMemberIdSchema, async (clubMemberId)
       where: { id: membership.clubMemberId, role: "OWNER" },
       data: { role: "ADMIN" },
     });
-    if (count === 0) throw new AppError("Vous n'êtes plus propriétaire du club", 409);
+    if (count === 0) throw new AppError("Tu n'es plus propriétaire du club", 409);
     await tx.clubMember.update({ where: { id: target.id }, data: { role: "OWNER" } });
   });
   await resyncClubChat(membership.clubId);
@@ -233,8 +233,8 @@ export const transferOwnership = action(clubMemberIdSchema, async (clubMemberId)
   await notifyUser({
     userId: target.userId,
     type: "JOINED_TEAM",
-    title: "Vous êtes propriétaire du club",
-    message: `${user.name} vous a transféré la propriété de ${membership.club.name} (et son abonnement).`,
+    title: "Tu es propriétaire du club",
+    message: `${user.name} t'a transféré la propriété de ${membership.club.name} (et son abonnement).`,
     fromUserName: user.name,
     fromUserImage: user.image,
   });
@@ -285,7 +285,7 @@ export const setSectionMembership = action(sectionMembershipSchema, async ({ clu
       userId: member.userId,
       type: "JOINED_TEAM",
       title: "Nouvelle section",
-      message: `Vous avez été ajouté à ${sectionDisplayName(membership.club.name, section.name)} (${role === "COACH" ? "entraîneur" : "joueur"}).`,
+      message: `Tu as été ajouté à ${sectionDisplayName(membership.club.name, section.name)} (${role === "COACH" ? "entraîneur" : "joueur"}).`,
       fromUserName: membership.club.name,
       fromUserImage: membership.club.logoUrl,
     });
@@ -312,8 +312,8 @@ export const removeClubMember = action(clubMemberIdSchema, async (clubMemberId) 
   await notifyUser({
     userId: member.userId,
     type: "LEFT_TEAM",
-    title: "Vous avez été retiré du club",
-    message: `Vous ne faites plus partie de ${membership.club.name}.`,
+    title: "Tu as été retiré du club",
+    message: `Tu ne fais plus partie de ${membership.club.name}.`,
     fromUserName: membership.club.name,
     fromUserImage: membership.club.logoUrl,
   });
@@ -326,7 +326,7 @@ export const removeClubMember = action(clubMemberIdSchema, async (clubMemberId) 
 export const switchSection = action(teamIdSchema, async (teamId) => {
   const { membership } = await requireMember();
   const section = membership.sections.find((s) => s.teamId === teamId);
-  if (!section) throw forbidden("Vous n'appartenez pas à cette section");
+  if (!section) throw forbidden("Tu n'appartiens pas à cette section");
   await setActiveSection(teamId);
   return { message: `Section active : ${section.name}` };
 });

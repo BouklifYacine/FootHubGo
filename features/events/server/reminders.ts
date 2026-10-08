@@ -99,6 +99,7 @@ export async function sendDueReminders(now = new Date()) {
             type: "EVENT_REMINDER",
             title: `Rappel : ${event.title}`,
             message: `${when}. ${r.action}`,
+            url: `/app/events/${event.id}`,
           }),
           ...(r.emailReminders
             ? [

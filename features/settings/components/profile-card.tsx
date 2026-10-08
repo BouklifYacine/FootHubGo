@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNumericDate as formatDate } from "@/lib/format";
 import { Calendar, Clock, CreditCard, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +8,6 @@ import { subscriptionPeriodLabels } from "@/lib/enum-labels";
 import type { Profile } from "../hooks/use-profile";
 import { AvatarUpload } from "./avatar-upload";
 
-const formatDate = (date: string) => new Date(date).toLocaleDateString("fr-FR");
 
 export function ProfileCard({ profile }: { profile: Profile }) {
   const { subscription } = profile;

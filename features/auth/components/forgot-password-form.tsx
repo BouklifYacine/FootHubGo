@@ -43,7 +43,7 @@ export function ForgotPasswordForm() {
       const { otp, password } = resetPasswordSchema.parse(value);
       const { error } = await authClient.emailOtp.resetPassword({ email, otp, password });
       if (error) return setError(authErrorMessage(error));
-      toast.success("Mot de passe modifié, vous pouvez vous connecter");
+      toast.success("Mot de passe modifié, tu peux te connecter");
       router.push("/sign-in");
     },
   });
@@ -55,7 +55,7 @@ export function ForgotPasswordForm() {
         <CardDescription>
           {email
             ? `Si un compte existe pour ${email}, un code à 6 chiffres vient d'y être envoyé.`
-            : "Entrez votre email pour recevoir un code de réinitialisation."}
+            : "Entre ton email pour recevoir un code de réinitialisation."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -99,7 +99,7 @@ export function ForgotPasswordForm() {
             }}
           >
             <emailForm.AppField name="email">
-              {(field) => <field.TextField label="Email" type="email" placeholder="votre@email.com" />}
+              {(field) => <field.TextField label="Email" type="email" placeholder="ton@email.com" />}
             </emailForm.AppField>
             <FormError message={error} />
             <emailForm.AppForm>
