@@ -11,6 +11,43 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 
 ## [Non publié]
 
+**Mettre à jour** : appliquer la migration `stripe_event_handled` (`bun run db:deploy`).
+
+### Sécurité
+
+- Un propriétaire ou administrateur de club ne pouvait pas seulement gérer les codes d'invitation de ses propres
+  sections : il pouvait régénérer (et donc obtenir) ou supprimer celui de la section de n'importe quel autre club,
+  puis y entrer sans validation. La section doit maintenant appartenir à son club.
+- Notifications push : seuls les services de notification des navigateurs (Google, Mozilla, Apple, Microsoft)
+  sont acceptés comme adresse d'envoi. Le serveur ne peut plus être utilisé pour envoyer des requêtes vers une
+  adresse choisie par un utilisateur.
+- Changer ou réinitialiser son mot de passe (ou son email) supprime aussi les appareils abonnés aux notifications
+  push : un téléphone perdu ne reçoit plus les messages.
+- Le verrouillage après 10 mots de passe faux vaut pour un compte depuis une adresse IP : quelqu'un qui connaît
+  seulement l'email ne peut plus bloquer son propriétaire. Un second seuil (100 par heure, toutes adresses
+  confondues) protège toujours contre les essais distribués.
+- Les journaux d'erreurs du chat, des tâches planifiées et du temps réel ne contiennent plus de données
+  personnelles.
+
+### Corrigé
+
+- Deux retraits simultanés ne peuvent plus laisser un club sans propriétaire, ni un membre sans aucune section.
+  Supprimer une section pendant qu'un joueur la rejoint ne laisse plus de membre orphelin.
+- Un match déplacé reçoit de nouveau son rappel de la veille ; le covoiturage est prévenu du nouvel horaire. Une
+  fois le vote de l'homme du match commencé, la date du match ne peut plus changer.
+- Covoiturage : une voiture ne peut plus être proposée au moment où le match passe à domicile.
+- Temps de jeu : plus de 11 titulaires ne sont plus possibles en enregistrant la feuille en plusieurs fois.
+- Le badge « vote homme du match » ne s'affiche plus pour un vote que le serveur refuserait.
+- Chat : la limite de 15 messages par minute ne se contourne plus en envoyant des messages en parallèle.
+- Désabonnement des rappels par email : la page demande une confirmation (les antivirus de messagerie qui ouvrent
+  les liens ne désabonnent plus personne).
+- Stripe :
+  - un paiement dont le traitement a été interrompu (redémarrage) est repris au prochain essai de Stripe ;
+  - un club en retard de paiement garde Pro pendant que Stripe retente le prélèvement ;
+  - la date de fin suit les renouvellements et l'annulation d'une résiliation ;
+  - l'email de résiliation n'est envoyé qu'une fois ;
+  - un club n'a qu'un client Stripe, même si deux paiements démarrent en même temps.
+
 ## [1.1.0] - 2026-10-08
 
 Clubs à plusieurs sections, application mobile repensée, jour de match (temps de jeu, homme du match,

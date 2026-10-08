@@ -6,7 +6,7 @@ import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 import { prisma } from "./prisma";
 import { hashPassword, verifyPassword } from "./lib/argon2";
-import { CLIENT_IP_HEADER } from "./lib/client-ip";
+import { CLIENT_IP_HEADER, clientIpFrom } from "./lib/client-ip";
 import { rateLimiter } from "./lib/rate-limit";
 import { disconnectUserSockets } from "./server/realtime/emitter";
 import { sendEmail } from "./emails/send-email";
@@ -18,12 +18,23 @@ export const PASSWORD_MIN_LENGTH = 8;
 export const PASSWORD_MAX_LENGTH = 128;
 
 /**
- * Per-account lockout: 10 password sign-ins in 15 minutes without a success lock the account for the
- * rest of the window. Counted before the check (parallel attempts can't exceed it), reset on success.
+ * Password sign-in lockout, counted before the check (parallel attempts can't exceed it) and reset
+ * on success:
+ * - 10 failures in 15 minutes for one account FROM ONE IP lock that pair: someone who only knows an
+ *   email can't lock its owner out of their own devices;
+ * - 100 failures in an hour for one account from anywhere lock it (distributed guessing).
  */
 const signInFailures = rateLimiter("sign-in-failures", { max: 10, windowMs: 15 * 60_000 });
-const signInEmailOf = (body: unknown) =>
-  String((body as { email?: unknown } | undefined)?.email ?? "").trim().toLowerCase();
+const signInFailuresPerAccount = rateLimiter("sign-in-failures-account", { max: 100, windowMs: 60 * 60_000 });
+
+/** The email of a sign-in, or null for anything that can't be one (the body is not validated yet). */
+function signInEmailOf(body: unknown) {
+  const email = (body as { email?: unknown } | undefined)?.email;
+  if (typeof email !== "string" || email.length > 254 || !email.includes("@")) return null;
+  return email.trim().toLowerCase();
+}
+
+const signInIpOf = (headers: Headers | undefined) => (headers ? clientIpFrom(headers) : "unknown");
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -35,6 +46,11 @@ export const auth = betterAuth({
     // (security audit L2, deferred): when it comes, sign-up will have to wait for it.
     autoSignIn: true,
     revokeSessionsOnPasswordReset: true,
+    // A reset signs out everywhere: open sockets and push devices (a lost phone) go with the sessions.
+    onPasswordReset: async ({ user }) => {
+      await prisma.pushSubscription.deleteMany({ where: { userId: user.id } });
+      await disconnectUserSockets(user.id).catch(() => undefined);
+    },
     password: { hash: hashPassword, verify: verifyPassword },
   },
   socialProviders: {
@@ -59,7 +75,10 @@ export const auth = betterAuth({
     before: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-in/email") return;
       const email = signInEmailOf(ctx.body);
-      if (email && !signInFailures.hit(email).ok) {
+      if (!email) return;
+      const perIp = signInFailures.hit(`${email}|${signInIpOf(ctx.headers)}`);
+      const perAccount = signInFailuresPerAccount.hit(email);
+      if (!perIp.ok || !perAccount.ok) {
         throw APIError.from("TOO_MANY_REQUESTS", {
           code: "ACCOUNT_LOCKED",
           message: "Trop de tentatives sur ce compte, réessaie dans 15 minutes",
@@ -69,7 +88,9 @@ export const auth = betterAuth({
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path !== "/sign-in/email") return;
       const email = signInEmailOf(ctx.body);
-      if (email && !isAPIError(ctx.context.returned)) signInFailures.reset(email);
+      if (!email || isAPIError(ctx.context.returned)) return;
+      signInFailures.reset(`${email}|${signInIpOf(ctx.headers)}`);
+      signInFailuresPerAccount.reset(email);
     }),
   },
   // OAuth errors (e.g. account not linked) land on a French page instead of better-auth's default.

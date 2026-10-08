@@ -51,3 +51,23 @@ export function deviceLabel(userAgent: string | null | undefined) {
 
 /** Push services answer 404 / 410 when a subscription is gone: it is then deleted. */
 export const isGoneStatus = (status: number | undefined) => status === 404 || status === 410;
+
+/**
+ * Hosts of the browsers' push services (Chrome / Edge / Samsung / Opera via FCM, Firefox, Safari,
+ * legacy Edge). The server POSTs to the endpoint the browser gave: any other host is refused so a
+ * crafted subscription can't make it call an arbitrary URL (SSRF, origin IP disclosure).
+ */
+const PUSH_SERVICE_HOSTS = ["fcm.googleapis.com", "android.googleapis.com", "web.push.apple.com"];
+const PUSH_SERVICE_HOST_SUFFIXES = [".push.services.mozilla.com", ".push.apple.com", ".notify.windows.com"];
+
+export function isPushServiceEndpoint(endpoint: string) {
+  let url: URL;
+  try {
+    url = new URL(endpoint);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "https:" || url.port !== "" || url.username !== "" || url.password !== "") return false;
+  const host = url.hostname.toLowerCase();
+  return PUSH_SERVICE_HOSTS.includes(host) || PUSH_SERVICE_HOST_SUFFIXES.some((suffix) => host.endsWith(suffix));
+}

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { authClient } from "@/lib/auth-client";
+import { resetPushSync } from "@/features/push/client/pwa";
 import { useAppForm } from "@/lib/form";
 import { authErrorMessage } from "../auth-error";
 import { withNext } from "../next-url";
@@ -16,6 +17,7 @@ import { SocialSignInButtons } from "./social-sign-in-buttons";
 export function SignInForm({ next = "/app" }: { next?: string }) {
   const router = useRouter();
   const [error, setError] = useState("");
+  useEffect(resetPushSync, []);
 
   const form = useAppForm({
     defaultValues: { email: "", password: "" },

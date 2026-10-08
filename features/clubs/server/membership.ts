@@ -45,6 +45,10 @@ export async function addToSection(
     });
   } catch (error) {
     if (isUniqueViolation(error)) throw new AppError(conflictMessage, 409);
+    // The section was deleted meanwhile (`deleteSectionWithChat`).
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2003") {
+      throw new AppError("Cette section n'existe plus", 404);
+    }
     throw error;
   }
 
@@ -54,24 +58,49 @@ export async function addToSection(
 
 /**
  * Removes a user from one section. When it was their last section they leave the club
- * (club role, every channel and the club's groups). Callers check the rules first
- * (`leaveOutcome`, `removeMemberError`): the owner never leaves this way.
+ * (club role, every channel and the club's groups), unless `keepInClub` (then it refuses).
+ * Callers check the rules first (`leaveOutcome`, `removeMemberError`); the rules are checked again
+ * here under a row lock, so two concurrent removals can neither drop the owner nor leave a club
+ * member without any section.
  */
-export async function removeFromSection({ userId, teamId, clubId }: { userId: string; teamId: string; clubId: string }) {
-  const sections = await prisma.teamMember.findMany({ where: { userId, clubId }, select: { id: true, teamId: true } });
-  const membership = sections.find((section) => section.teamId === teamId);
-  if (!membership) return { leftClub: false };
+export async function removeFromSection({
+  userId,
+  teamId,
+  clubId,
+  keepInClub = false,
+}: {
+  userId: string;
+  teamId: string;
+  clubId: string;
+  keepInClub?: boolean;
+}) {
+  const leftClub = await prisma.$transaction(async (tx) => {
+    // Serializes every removal of this member: the next one re-reads the sections after this one.
+    const [clubMember] = await tx.$queryRaw<{ role: string }[]>`
+      SELECT "role" FROM "club_member" WHERE "userId" = ${userId} AND "clubId" = ${clubId} FOR UPDATE`;
+    if (!clubMember) return null;
 
-  if (sections.length > 1) {
-    await prisma.teamMember.delete({ where: { id: membership.id } });
-    await syncChatOnSectionLeft(teamId, userId);
-    return { leftClub: false };
-  }
+    const sections = await tx.teamMember.findMany({ where: { userId, clubId }, select: { id: true, teamId: true } });
+    const membership = sections.find((section) => section.teamId === teamId);
+    if (!membership) return null;
 
-  // The section memberships go with the club membership (composite FK, cascade).
-  await prisma.clubMember.delete({ where: { userId } });
-  await syncChatOnClubLeft(clubId, [teamId], userId);
-  return { leftClub: true };
+    if (sections.length > 1) {
+      await tx.teamMember.delete({ where: { id: membership.id } });
+      return false;
+    }
+    if (keepInClub) throw new AppError("C'est sa dernière section : retirez-le du club à la place");
+    if (clubMember.role === "OWNER") {
+      throw new AppError("Le propriétaire doit d'abord transmettre le club avant de le quitter");
+    }
+    // The section memberships go with the club membership (composite FK, cascade).
+    await tx.clubMember.delete({ where: { userId } });
+    return true;
+  });
+
+  if (leftClub === null) return { leftClub: false };
+  if (leftClub) await syncChatOnClubLeft(clubId, [teamId], userId);
+  else await syncChatOnSectionLeft(teamId, userId);
+  return { leftClub };
 }
 
 /** User ids of a section's coaches and of the club OWNER / ADMIN (who manage the section). */

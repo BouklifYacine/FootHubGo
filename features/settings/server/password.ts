@@ -8,9 +8,11 @@ import { disconnectUserSockets } from "@/server/realtime/emitter";
 /** 5 wrong current passwords in 15 minutes: signed out everywhere, then refused for the rest of the window. */
 const passwordFailures = rateLimiter("settings-password-failures", { max: 5, windowMs: 15 * 60_000 });
 
-/** Signs the user out everywhere: sessions in the DB and open sockets. */
+/** Signs the user out everywhere: sessions in the DB, push devices and open sockets. */
 export async function revokeSessions(userId: string) {
   await prisma.session.deleteMany({ where: { userId } });
+  // A lost or shared device must stop receiving the user's notifications too.
+  await prisma.pushSubscription.deleteMany({ where: { userId } });
   await disconnectUserSockets(userId);
 }
 

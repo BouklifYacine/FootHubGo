@@ -207,10 +207,11 @@ export const savePlayingTime = action(playingTimeSchema, async ({ eventId, entri
     }),
     prisma.playerStat.findMany({
       where: { eventId: event.id },
-      select: { id: true, userId: true, goals: true, assists: true },
+      select: { id: true, userId: true, goals: true, assists: true, isStarter: true },
     }),
   ]);
-  const error = playingTimeError(entries, present.map((player) => player.userId));
+  const savedStarters = existing.filter((row) => row.isStarter).map((row) => row.userId);
+  const error = playingTimeError(entries, present.map((player) => player.userId), savedStarters);
   if (error) throw new AppError(error);
   const changes = playingTimeChanges(entries, existing);
   if (changes.error) throw new AppError(changes.error);

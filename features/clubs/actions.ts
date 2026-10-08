@@ -264,7 +264,7 @@ export const setSectionMembership = action(sectionMembershipSchema, async ({ clu
     if (member.sectionMemberships.length === 1) {
       throw new AppError("C'est sa dernière section : retirez-le du club à la place");
     }
-    await removeFromSection({ userId: member.userId, teamId: section.id, clubId: membership.clubId });
+    await removeFromSection({ userId: member.userId, teamId: section.id, clubId: membership.clubId, keepInClub: true });
     return { message: `${member.user.name} a été retiré de la section ${section.name}` };
   }
 

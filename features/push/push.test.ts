@@ -2,7 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { pushCategoryOf, toggleMutedCategory, wantsPush } from "./categories";
 import { CHAT_PUSH_WINDOW_MS, chatPushDecision } from "./chat-throttle";
 import { chatPayload, notificationPayload, PUSH_BODY_MAX, safeAppUrl } from "./payload";
-import { deviceLabel, isGoneStatus, MAX_SUBSCRIPTIONS_PER_USER, subscriptionsToEvict } from "./subscriptions";
+import { deviceLabel, isGoneStatus, isPushServiceEndpoint, MAX_SUBSCRIPTIONS_PER_USER, subscriptionsToEvict } from "./subscriptions";
+import { pushSubscriptionSchema } from "./schemas";
 import { installMode, isIOSDevice, isIOSSafari, pushSupport, type BrowserFacts } from "./support";
 
 describe("push categories", () => {
@@ -171,5 +172,41 @@ describe("browser support", () => {
     expect(installMode({ standalone: false, canPrompt: true, isIOS: false })).toBe("prompt");
     expect(installMode({ standalone: false, canPrompt: false, isIOS: true })).toBe("ios");
     expect(installMode({ standalone: false, canPrompt: false, isIOS: false })).toBe("manual");
+  });
+});
+
+describe("push service endpoints", () => {
+  test("accepts the browsers' push services", () => {
+    for (const endpoint of [
+      "https://fcm.googleapis.com/fcm/send/abc:def",
+      "https://updates.push.services.mozilla.com/wpush/v2/gAAA",
+      "https://web.push.apple.com/QGuQyavXutnMZ",
+      "https://wns2-par02p.notify.windows.com/w/?token=abc",
+    ]) {
+      expect(isPushServiceEndpoint(endpoint)).toBe(true);
+    }
+  });
+
+  test("refuses any other host (SSRF)", () => {
+    for (const endpoint of [
+      "https://attacker.example/x",
+      "https://localhost/x",
+      "https://10.0.0.1/x",
+      "https://fcm.googleapis.com.attacker.example/x",
+      "https://evilpush.services.mozilla.com.attacker.example/x",
+      "https://notpush.services.mozilla.com/x",
+      "http://fcm.googleapis.com/fcm/send/abc",
+      "https://fcm.googleapis.com:8443/fcm/send/abc",
+      "https://user:pass@fcm.googleapis.com/fcm/send/abc",
+      "not a url",
+    ]) {
+      expect(isPushServiceEndpoint(endpoint)).toBe(false);
+    }
+  });
+
+  test("the subscription schema enforces it", () => {
+    const keys = { p256dh: "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u", auth: "tBHItJI5svbpez7KI4CCXg" };
+    expect(pushSubscriptionSchema.safeParse({ endpoint: "https://fcm.googleapis.com/fcm/send/abc", keys }).success).toBe(true);
+    expect(pushSubscriptionSchema.safeParse({ endpoint: "https://attacker.example/x", keys }).success).toBe(false);
   });
 });

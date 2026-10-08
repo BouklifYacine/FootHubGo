@@ -58,11 +58,12 @@ export async function participationOf(events: EventRef[], membership: Membership
     votingIds.length
       ? prisma.motmVote.findMany({ where: { voterId: userId, eventId: { in: votingIds } }, select: { eventId: true } })
       : [],
+    // Confirmed call-ups with the sections where the user is a PLAYER: a nominee must be a player of
+    // the MATCH's section (same rule as `presentPlayersWhere`), counted below.
     votingIds.length
-      ? prisma.callUp.groupBy({
-          by: ["eventId"],
-          where: { eventId: { in: votingIds }, status: "CONFIRMED", user: { memberships: { some: { role: "PLAYER" } } } },
-          _count: { _all: true },
+      ? prisma.callUp.findMany({
+          where: { eventId: { in: votingIds }, status: "CONFIRMED" },
+          select: { eventId: true, user: { select: { memberships: { where: { role: "PLAYER" }, select: { teamId: true } } } } },
         })
       : [],
     carpoolIds.length
@@ -86,7 +87,9 @@ export async function participationOf(events: EventRef[], membership: Membership
       const players = playerCounts.find((row) => row.teamId === event.teamId)?._count._all ?? 0;
       const canVote =
         votingIds.includes(event.id) &&
-        (presentCounts.find((row) => row.eventId === event.id)?._count._all ?? 0) >= MOTM_MIN_NOMINEES &&
+        presentCounts.filter(
+          (row) => row.eventId === event.id && row.user.memberships.some((member) => member.teamId === event.teamId),
+        ).length >= MOTM_MIN_NOMINEES &&
         isMotmVoter({ sectionRole: sectionRole(event.teamId), callUpStatus: callUp?.status ?? null });
       const eventRides = rides.filter((ride) => ride.eventId === event.id);
 

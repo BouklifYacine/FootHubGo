@@ -1,19 +1,33 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { BellOff, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { unsubscribeWithToken } from "@/features/notifications/server/preferences";
+import { readUnsubscribeToken } from "@/features/notifications/unsubscribe";
+import { appSecret } from "@/lib/signed-token";
 
 export const metadata: Metadata = { title: "Désabonnement - FootHubGo", robots: { index: false } };
 
-/** Opened from the link of a reminder email: one click, no sign-in, the reminder emails stop. */
-export default async function UnsubscribePage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
-  const { token } = await searchParams;
-  const { ok } = await unsubscribeWithToken(token);
+/** The confirmation button: a POST, so mail scanners and link previews that open the link change nothing. */
+async function confirmUnsubscribe(formData: FormData) {
+  "use server";
+  const { ok } = await unsubscribeWithToken(String(formData.get("token") ?? ""));
+  redirect(ok ? "/unsubscribe?done=1" : "/unsubscribe");
+}
+
+/** Opened from the link of a reminder email: one confirmation click, no sign-in, the reminder emails stop. */
+export default async function UnsubscribePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ token?: string; done?: string }>;
+}) {
+  const { token, done } = await searchParams;
+  const valid = token ? readUnsubscribeToken(token, appSecret()) !== null : false;
 
   return (
     <main className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
-      {ok ? (
+      {done ? (
         <>
           <BellOff className="size-10 text-muted-foreground" aria-hidden />
           <h1 className="text-2xl font-bold">Tu es désabonné</h1>
@@ -21,6 +35,19 @@ export default async function UnsubscribePage({ searchParams }: { searchParams: 
             Tu ne recevras plus les rappels d&apos;événements par email. Les notifications dans l&apos;application
             continuent. Tu peux les réactiver à tout moment dans tes paramètres.
           </p>
+        </>
+      ) : valid ? (
+        <>
+          <BellOff className="size-10 text-muted-foreground" aria-hidden />
+          <h1 className="text-2xl font-bold">Ne plus recevoir les rappels ?</h1>
+          <p className="text-muted-foreground">
+            Les rappels d&apos;événements ne te seront plus envoyés par email. Les notifications dans
+            l&apos;application continuent.
+          </p>
+          <form action={confirmUnsubscribe}>
+            <input type="hidden" name="token" value={token} />
+            <Button type="submit">Me désabonner</Button>
+          </form>
         </>
       ) : (
         <>

@@ -142,7 +142,7 @@ OK means the caller is authenticated, every id from the client is scoped to the 
 | clubs `setClubRole`, `transferOwnership` | OWNER only (`clubRoleChangeError`, `transferOwnershipError`); conditional demote-then-promote in a transaction | OK |
 | clubs `setSectionMembership`, `removeClubMember` | OWNER / ADMIN on lower ranks (`sectionRoleChangeError`, `removeMemberError`); ids looked up in the caller's club | OK |
 | clubs `switchSection` | `requireMember`; the section must be one of the caller's | OK |
-| team `regenerateInviteCode`, `removeInviteCode` | `requireSectionManager(teamId?)` (section coach or OWNER / ADMIN, section of the caller's club) | OK |
+| team `regenerateInviteCode`, `removeInviteCode` | `requireSectionManager(teamId?)` (section coach or OWNER / ADMIN, section of the caller's club) | **Was wrong in v1.1.0** (any OWNER / ADMIN could target another club's section: the club was not checked). Fixed in the next release: the section is looked up in the caller's club |
 | team `removeMember`, `updateMemberRole` | `removeMemberError` / `sectionRoleChangeError` (L6) | OK |
 | events `createEvent`, `updateEvent`, `moveEvent`, `deleteEvent` | `canManageSection(membership, event.teamId)`: section coach or OWNER / ADMIN; club-wide events OWNER / ADMIN only | OK |
 | join-requests `reviewJoinRequest` | request in the caller's club and `canManageSection` on its section; claim then `addToSection` (P2002 mapped, claim released on failure) | OK |

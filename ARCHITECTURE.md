@@ -143,7 +143,8 @@ Club (club)                       name, logo, description, visibility, plan + St
   `canManageSection`, `*Error` rules). Club-level actions (club info, sections, coach appointments, member
   removal, club-wide events) need OWNER / ADMIN; club roles, ownership transfer, billing and club deletion need
   the OWNER. Section-level actions (events, call-ups, stats, polls, invite code, join requests) need a coach of
-  the section **or** a club OWNER / ADMIN (`requireSectionManager`), except the existing coach-only screens
+  the section **or** a club OWNER / ADMIN (`requireSectionManager`, which also checks that a section id from
+  the client belongs to the caller's club: `canManageSection` alone trusts any id for an OWNER / ADMIN), except the existing coach-only screens
   that still use `requireCoach` (call-ups, stats, polls, injuries of the active section).
 - Scoping: section data is filtered by `membership.teamId`; club data by `membership.clubId`; events of a
   section are `sectionEventsWhere()` (its own + the club-wide ones). Never trust a section / member id from the
@@ -154,7 +155,10 @@ Club (club)                       name, logo, description, visibility, plan + St
   `features/team/server/team-chat.ts` (`resyncClubChat`, `syncChatOnMemberJoined`, `syncChatOnClubLeft`…).
   DMs and groups are between members of the same club.
 - **Billing**: the subscription belongs to the club and is paid by its OWNER (`startClubCheckout`, club id in the
-  Checkout metadata; webhook resolves the club by `stripeCustomerId`). Legacy per-user subscriptions of users who
+  Checkout metadata; webhook resolves the club by `stripeCustomerId`, created once per club before its first
+  checkout). `past_due` keeps Pro while Stripe retries the payment; every `customer.subscription.updated` syncs
+  the end date (renewals, cancellation scheduled or undone). A webhook event is claimed (`StripeEvent`) then marked
+  `handledAt`: a claim left unfinished for 5 minutes is taken over by Stripe's next retry. Legacy per-user subscriptions of users who
   owned no club at migration time stay on the user (`User.plan` / `User.clientId`, `Subscription.userId`) and are
   still handled by the webhook. A transfer of ownership keeps the club's Stripe customer (the new owner updates
   the payment method from the customer portal).
@@ -231,7 +235,10 @@ the client uses a single socket from `RealtimeProvider`.
   minutes (`chat-throttle.ts`, in memory), the next one says "N nouveaux messages", tag `chat:<conversation>`;
   it opens `/app/chat?c=<id>`.
 - **Subscriptions**: `PushSubscription` (endpoint unique, p256dh, auth, device label "Chrome · Android",
-  `createdAt`, `lastUsedAt`), cascade on user deletion. `subscribePush` (upsert on the endpoint, 10 devices max:
+  `createdAt`, `lastUsedAt`), cascade on user deletion. The endpoint must be a browser push service
+  (`isPushServiceEndpoint`: FCM, Mozilla, Apple, WNS; no SSRF), checked on subscribe and again before sending.
+  Every subscription of the user is deleted when they are signed out everywhere (password change / reset, email
+  change, lockout). `subscribePush` (upsert on the endpoint, 10 devices max:
   the least recently used goes, 20 per hour), `unsubscribePush` (settings switch off, sign-out),
   `setPushCategory`. `GET /api/push/config` gives the VAPID public key at runtime (`null` = push disabled), so
   the Docker image needs no key at build time. Keys: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`

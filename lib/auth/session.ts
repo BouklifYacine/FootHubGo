@@ -104,6 +104,14 @@ export async function requireSectionManager(teamId?: string) {
   if (!canManageSection(membership, target)) {
     throw forbidden("Réservé aux entraîneurs de la section et aux administrateurs du club");
   }
+  // `canManageSection` trusts any id for a club OWNER / ADMIN: the section must be one of THEIR club.
+  if (target !== membership.teamId) {
+    const section = await prisma.team.findFirst({
+      where: { id: target, clubId: membership.club.id },
+      select: { id: true },
+    });
+    if (!section) throw forbidden("Cette section n'appartient pas à ton club");
+  }
   return { user, membership, teamId: target };
 }
 

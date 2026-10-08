@@ -137,6 +137,21 @@ export async function unsubscribeBrowser() {
   }
 }
 
+/** sessionStorage flag: this tab already handed its subscription to the server. */
+export const PUSH_SYNCED_KEY = "fhg-push-synced";
+
+/**
+ * Called on the sign-in page: the next signed-in visit hands the subscription back to the server
+ * (a password change or reset deleted it there, along with the sessions).
+ */
+export function resetPushSync() {
+  try {
+    window.sessionStorage.removeItem(PUSH_SYNCED_KEY);
+  } catch {
+    // storage blocked: nothing was stored either
+  }
+}
+
 /**
  * On app start: when the user turned push on here and the permission is still granted, make sure
  * the subscription exists (it can expire, or the server key can change) and give it to the server.

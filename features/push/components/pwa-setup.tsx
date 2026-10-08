@@ -2,10 +2,8 @@
 
 import { useEffect } from "react";
 import { subscribePush } from "../actions";
-import { listenForInstallPrompt, registerServiceWorker, subscriptionToSync } from "../client/pwa";
+import { listenForInstallPrompt, PUSH_SYNCED_KEY, registerServiceWorker, subscriptionToSync } from "../client/pwa";
 import { usePushConfig } from "../hooks/use-push";
-
-const SYNCED_KEY = "fhg-push-synced";
 
 /**
  * Mounted once by the app shell (signed-in pages only): registers the service worker, keeps the
@@ -25,8 +23,8 @@ export function PwaSetup() {
   useEffect(() => {
     if (!publicKey) return;
     try {
-      if (window.sessionStorage.getItem(SYNCED_KEY) === publicKey) return;
-      window.sessionStorage.setItem(SYNCED_KEY, publicKey);
+      if (window.sessionStorage.getItem(PUSH_SYNCED_KEY) === publicKey) return;
+      window.sessionStorage.setItem(PUSH_SYNCED_KEY, publicKey);
     } catch {
       // storage blocked: sync anyway (cheap, rate limited server side)
     }
