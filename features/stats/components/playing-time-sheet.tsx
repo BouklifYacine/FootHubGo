@@ -63,7 +63,7 @@ export function PlayingTimeSheet({
           <Timer /> {hasMinutes ? "Modifier le temps de jeu" : "Saisir le temps de jeu"}
         </Button>
       </ResponsiveDialogTrigger>
-      <ResponsiveDialogContent className="max-h-[92dvh] sm:max-w-xl">
+      <ResponsiveDialogContent className="flex max-h-[92dvh] flex-col sm:max-w-xl">
         <ResponsiveDialogHeader>
           <ResponsiveDialogTitle>Temps de jeu</ResponsiveDialogTitle>
           <ResponsiveDialogDescription>
@@ -118,7 +118,7 @@ function SheetForm({
   };
 
   return (
-    <div className="flex min-h-0 flex-col gap-3">
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
       <p className="text-sm text-muted-foreground" aria-live="polite">
         {starters} titulaire{starters > 1 ? "s" : ""} · {substitutes} entré{substitutes > 1 ? "s" : ""} en jeu
       </p>
@@ -169,7 +169,7 @@ function SheetForm({
                   <span className="text-sm text-muted-foreground">min</span>
                   <MinutePresets
                     className="flex-nowrap overflow-x-auto"
-                    presets={role === "starter" ? MINUTE_PRESETS.slice(0, 4) : MINUTE_PRESETS.slice(2)}
+                    presets={role === "starter" ? MINUTE_PRESETS.slice(0, 3) : MINUTE_PRESETS.slice(3)}
                     value={entry.minutes}
                     onChange={(minutes) => update(player.userId, (current) => ({ ...current, minutes }))}
                   />

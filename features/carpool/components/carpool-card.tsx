@@ -7,7 +7,7 @@ import { ErrorState } from "@/components/app/error-state";
 import { LoadingState } from "@/components/app/loading-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDayLabel, formatTime } from "@/lib/format";
+import { dayKey, formatDayLabel, formatTime } from "@/lib/format";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { cn } from "@/lib/utils";
 import { InitialsAvatar } from "@/features/team/components/initials-avatar";
@@ -102,7 +102,9 @@ function RideItem({ ride, carpool, onEdit }: { ride: CarpoolRide; carpool: Event
             {isMine && <span className="font-normal text-muted-foreground"> (toi)</span>}
           </p>
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock className="size-3.5 shrink-0" aria-hidden /> Départ {when(ride.departureTime)}
+            <Clock className="size-3.5 shrink-0" aria-hidden /> Départ{" "}
+            {/* Same day as the match (the usual case): the time is enough */}
+            {dayKey(ride.departureTime) === dayKey(carpool.startDate) ? `à ${formatTime(ride.departureTime)}` : when(ride.departureTime)}
           </p>
           <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="size-3.5 shrink-0" aria-hidden /> <span className="truncate">{ride.departurePlace}</span>

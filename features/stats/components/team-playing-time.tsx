@@ -46,7 +46,7 @@ export function TeamPlayingTime({ teamId, className }: { teamId: string; classNa
                     )}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {player.matches} match{player.matches > 1 ? "s" : ""} · {player.starts} titulaire · {player.avgMinutes}&apos; / match
+                    {player.matches} match{player.matches > 1 ? "s" : ""} · {player.starts} titulaire{player.starts > 1 ? "s" : ""} · {player.avgMinutes}&apos; / match
                   </p>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted" aria-hidden>
                     <div className="h-full rounded-full bg-info" style={{ width: `${(player.minutes / longest) * 100}%` }} />
