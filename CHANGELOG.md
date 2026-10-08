@@ -11,6 +11,23 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 
 ## [Non publié]
 
+## [1.1.0] - 2026-10-08
+
+Clubs à plusieurs sections, application mobile repensée, jour de match (temps de jeu, homme du match,
+covoiturage), application installable et notifications push, corrections de sécurité.
+
+**Mettre à jour depuis la 1.0.0**
+
+- Appliquer les migrations : `bun run db:deploy` (11 migrations, dont la transformation de chaque équipe en club
+  avec une section : les données existantes sont conservées).
+- Nouvelles variables d'environnement (voir `env.exemple` et `README.Docker.md`) :
+  `STRIPE_MONTHLY_PRICE_ID`, `TRUSTED_IP_HEADER` (derrière un reverse proxy), `VAPID_PUBLIC_KEY`,
+  `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (notifications push, facultatives ; clés à générer une seule fois avec
+  `bunx web-push generate-vapid-keys`), `DISABLE_JOBS` (facultative).
+- Docker Compose : PostgreSQL 18 (nouveau volume `pg18_data`) et application publiée sur `127.0.0.1:3000`
+  (un reverse proxy HTTPS est nécessaire devant ; HTTPS est aussi requis pour les notifications push).
+- Les anciens codes d'invitation à 6 chiffres ne fonctionnent plus : les entraîneurs partagent le nouveau lien.
+
 ### Ajouté
 
 - **Application installable (PWA)** : FootHubGo s'installe sur l'écran d'accueil (bouton « Installer
@@ -173,7 +190,7 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 - Avatars : type vérifié sur le contenu du fichier. Journaux d'erreurs sans les arguments des requêtes Prisma.
 - Dépendances : `defu` et `mysql2` mis à jour via `overrides`.
 
-## [1.0.0] - 2026-10-10
+## [1.0.0] - 2026-10-07
 
 Première version stable : nouvelle architecture, corrections de sécurité et nouvelles fonctionnalités.
 
@@ -221,5 +238,6 @@ Première version stable : nouvelle architecture, corrections de sécurité et n
   blocages appliqués, aucun contenu de message dans les logs.
 - Upload d'avatar validé côté serveur (type et taille) ; vérification du rôle administrateur corrigée.
 
-[Non publié]: https://github.com/BouklifYacine/FootHubGo/compare/v1.0.0...HEAD
+[Non publié]: https://github.com/BouklifYacine/FootHubGo/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/BouklifYacine/FootHubGo/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/BouklifYacine/FootHubGo/releases/tag/v1.0.0
