@@ -59,6 +59,8 @@ model User {
   conversations            Conversation[]
   motmVotesCast            MotmVote[]                @relation("MotmVoter")
   motmVotesReceived        MotmVote[]                @relation("MotmNominee")
+  ridesOffered             Ride[]
+  rideSeats                RidePassenger[]
 
   @@map("user")
 }
@@ -206,31 +208,35 @@ model CallUp {
 }
 
 model Event {
-  id                 String       @id @default(cuid())
-  title              String       @map("titre")
+  id                 String          @id @default(cuid())
+  title              String          @map("titre")
   description        String?
-  location           String?      @map("lieu")
-  type               EventType    @default(TRAINING) @map("typeEvenement")
-  startDate          DateTime     @map("dateDebut")
-  createdAt          DateTime     @default(now()) @map("dateCreation")
-  opponent           String?      @map("adversaire")
+  location           String?         @map("lieu")
+  type               EventType       @default(TRAINING) @map("typeEvenement")
+  startDate          DateTime        @map("dateDebut")
+  createdAt          DateTime        @default(now()) @map("dateCreation")
+  opponent           String?         @map("adversaire")
   locationData       Json?
   weatherData        Json?
   clubId             String
   /// null = club-wide event (visible in every section, no call-ups / attendance / stats).
-  teamId             String?      @map("equipeId")
+  teamId             String?         @map("equipeId")
   /// Shared by the occurrences of a weekly repeated training (null for a single event).
   seriesId           String?
   /// Set when the reminder (notification + email, 24h before) has been sent: never sent twice.
   reminderSentAt     DateTime?
+  /// Home or away match (carpool is offered for away matches only). Trainings stay "home".
+  isHome             Boolean         @default(true)
   /// Man of the match: set when the vote-open notification has been sent (claimed by the job).
   motmOpenNotifiedAt DateTime?
   /// Man of the match: set when the vote has been closed and the winner(s) notified (claimed by the job).
   motmClosedAt       DateTime?
   callUps            CallUp[]
   motmVotes          MotmVote[]
-  club               Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  team               Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  rides              Ride[]
+  ridePassengers     RidePassenger[]
+  club               Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  team               Team?           @relation(fields: [teamId], references: [id], onDelete: Cascade)
   attendances        Attendance[]
   teamStat           TeamStat?
   playerStats        PlayerStat[]
@@ -393,6 +399,40 @@ model MotmVote {
   @@map("motm_vote")
 }
 
+/// A car going to an away match: one per driver and per match (features/carpool/rules.ts).
+model Ride {
+  id             String          @id @default(cuid())
+  eventId        String
+  driverId       String
+  seats          Int
+  departurePlace String
+  departureTime  DateTime
+  note           String?
+  createdAt      DateTime        @default(now())
+  event          Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  driver         User            @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  passengers     RidePassenger[]
+
+  @@unique([eventId, driverId])
+  @@map("ride")
+}
+
+/// A booked seat. `eventId` is denormalized so that a user holds at most one seat per match.
+model RidePassenger {
+  id        String   @id @default(cuid())
+  rideId    String
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([rideId])
+  @@map("ride_passenger")
+}
+
 model TeamStat {
   id            String      @id @default(cuid())
   result        MatchResult @map("resultatMatch")
@@ -533,6 +573,7 @@ enum NotificationType {
   LEFT_TEAM        @map("QUITTER_CLUB")
   MESSAGE
   MAN_OF_THE_MATCH
+  CARPOOL
 
   @@map("TypeNotification")
 }

@@ -11,6 +11,7 @@ import { SegmentedControl } from "@/components/app/segmented-control";
 import { Button } from "@/components/ui/button";
 import { AttendanceAnswer, CallUpAnswer } from "@/features/call-ups/components/call-up-answer";
 import { CallUpTable } from "@/features/call-ups/components/call-up-table";
+import { CarpoolCard } from "@/features/carpool/components/carpool-card";
 import { MotmCard } from "@/features/motm/components/motm-card";
 import { PlayerStatsTable } from "@/features/stats/components/player-stats-table";
 import { PlayingTimeList } from "@/features/stats/components/playing-time-list";
@@ -70,6 +71,8 @@ export function EventDetail({ eventId }: { eventId: string }) {
       )}
 
       {event.canEdit && <ManageEvent event={event} />}
+
+      {isMatch && !event.isClubEvent && !event.isHome && <CarpoolCard eventId={eventId} />}
 
       {event.isClubEvent ? (
         <p className="text-sm text-muted-foreground">

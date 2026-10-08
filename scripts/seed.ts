@@ -1,6 +1,7 @@
 /**
  * Local development seed: a demo club with two sections, players, events (past and upcoming),
- * call-ups, stats, messages, a poll, an injury and a pending join request.
+ * call-ups, stats with playing time, man-of-the-match votes (closed and open), a carpool to an away
+ * match, messages, a poll, an injury and a pending join request.
  *
  *   bun run db:seed            # wipes the demo accounts (@foothub.test) then recreates them
  *
@@ -161,6 +162,7 @@ async function main() {
         clubId: club.id,
         teamId: seniors.id,
         reminderSentAt: at(match.days - 1, 15),
+        isHome: match.days !== -14,
         // The vote of yesterday's match is open (notification sent), the older ones are closed.
         motmOpenNotifiedAt: at(match.days, 18),
         motmClosedAt: match.motmWinner === null ? null : at(match.days + 2, 18),
@@ -172,6 +174,7 @@ async function main() {
         goalsFor: match.goalsFor,
         goalsAgainst: match.goalsAgainst,
         cleanSheet: match.goalsAgainst === 0,
+        isHome: match.days !== -14,
         opponent: match.opponent,
         teamId: seniors.id,
         eventId: event.id,
@@ -220,6 +223,8 @@ async function main() {
       startDate: at(3, 15),
       location: "Stade des Pins, 12 rue du Stade",
       opponent: "FC Les Pins",
+      // Away: the carpool is open on the match page.
+      isHome: false,
       clubId: club.id,
       teamId: seniors.id,
     },
@@ -234,6 +239,29 @@ async function main() {
         respondedAt: index < 5 || index >= 7 ? new Date() : null,
       })),
     ],
+  });
+  // Carpool to the away match: Théo has 2 free seats out of 3, Nathan's car is full.
+  const departure = new Date(nextMatch.startDate.getTime() - 75 * 60_000);
+  await prisma.ride.create({
+    data: {
+      eventId: nextMatch.id,
+      driverId: others[1].id,
+      seats: 3,
+      departurePlace: "Parking du stade municipal",
+      departureTime: departure,
+      note: "Je peux passer par la gare si besoin.",
+      passengers: { create: { eventId: nextMatch.id, userId: others[0].id } },
+    },
+  });
+  await prisma.ride.create({
+    data: {
+      eventId: nextMatch.id,
+      driverId: others[2].id,
+      seats: 1,
+      departurePlace: "Place de la mairie",
+      departureTime: departure,
+      passengers: { create: { eventId: nextMatch.id, userId: others[4].id } },
+    },
   });
   await prisma.event.create({
     data: { title: "Coupe : FC Montagne", type: "CUP", startDate: at(10, 14), location: "Stade de la Montagne", opponent: "FC Montagne", clubId: club.id, teamId: seniors.id },

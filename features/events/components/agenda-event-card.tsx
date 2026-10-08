@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, MapPin, Repeat, Trophy } from "lucide-react";
+import { Car, ChevronRight, MapPin, Repeat, Trophy } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -50,6 +50,18 @@ export function AgendaEventCard({ event, isPast }: { event: EventListItem; isPas
             {event.motmVote && !event.motmVote.hasVoted && (
               <Badge variant="warning">
                 <Trophy aria-hidden /> Vote homme du match
+              </Badge>
+            )}
+            {event.carpool && (
+              <Badge variant={event.carpool.myPlace ? "success" : "muted"}>
+                <Car aria-hidden />
+                {event.carpool.myPlace === "driver"
+                  ? "Tu conduis"
+                  : event.carpool.myPlace === "passenger"
+                    ? "Place réservée"
+                    : event.carpool.rides === 0
+                      ? "Covoiturage"
+                      : `${event.carpool.seatsLeft} place${event.carpool.seatsLeft > 1 ? "s" : ""}`}
               </Badge>
             )}
             {event.seriesId && (

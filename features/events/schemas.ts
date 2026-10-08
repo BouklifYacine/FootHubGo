@@ -13,6 +13,8 @@ const eventFields = z.object({
   location: z.string().trim().max(100, "Le lieu ne peut pas dépasser 100 caractères").optional(),
   opponent: z.string().trim().max(50, "Le nom de l'adversaire est trop long").optional(),
   description: z.string().trim().max(500, "La description ne peut pas dépasser 500 caractères").optional(),
+  /** Matches only: home (default) or away (away matches get a carpool). Ignored for a training. */
+  isHome: z.boolean().optional(),
 });
 
 /** A match (league / cup) needs an opponent; a training ignores it. */

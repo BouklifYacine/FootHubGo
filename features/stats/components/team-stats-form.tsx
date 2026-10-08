@@ -27,6 +27,8 @@ type Props = {
   /** Edit mode when set. */
   teamStat?: EventTeamStat | null;
   defaultCompetition: Competition;
+  /** Home / away of the event (the form's default for a new score). */
+  defaultIsHome?: boolean;
 };
 
 /** "Add" or "Edit" button opening the team stats form of a match. */
@@ -61,7 +63,7 @@ export function TeamStatsDialog(props: Props) {
   );
 }
 
-function TeamStatsForm({ eventId, teamStat, defaultCompetition, onSuccess }: Props & { onSuccess: () => void }) {
+function TeamStatsForm({ eventId, teamStat, defaultCompetition, defaultIsHome = true, onSuccess }: Props & { onSuccess: () => void }) {
   const mutation = useActionMutation(teamStat ? updateTeamStats : createTeamStats, {
     invalidate: statsInvalidation,
     onSuccess,
@@ -83,7 +85,7 @@ function TeamStatsForm({ eventId, teamStat, defaultCompetition, onSuccess }: Pro
         goalsAgainst: 0,
         totalShots: undefined,
         shotsOnTarget: undefined,
-        isHome: true,
+        isHome: defaultIsHome,
         competition: defaultCompetition,
       };
 

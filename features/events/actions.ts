@@ -39,7 +39,7 @@ async function resolveScope(membership: Membership, scope: string | undefined): 
 const scopeWhere = ({ clubId, teamId }: EventScope) => ({ clubId, teamId });
 
 /** Normalizes form values into DB columns (a training has no opponent). */
-function toEventColumns({ title, type, startDate, location, opponent, description }: EventData) {
+function toEventColumns({ title, type, startDate, location, opponent, description, isHome }: EventData) {
   return {
     title,
     type,
@@ -47,6 +47,8 @@ function toEventColumns({ title, type, startDate, location, opponent, descriptio
     location: location || null,
     description: description || null,
     opponent: type === "TRAINING" ? null : opponent || null,
+    // A training (and a club-wide event) is never "away": no carpool.
+    isHome: type === "TRAINING" ? true : (isHome ?? true),
   };
 }
 
@@ -111,7 +113,12 @@ export const updateEvent = action(updateEventSchema, async ({ eventId, ...input 
   const { membership } = await requireMember();
   const event = await findEditableEvent(eventId, membership);
   await assertNoEventAt(event, input.startDate, event.id);
-  await prisma.event.update({ where: { id: event.id }, data: toEventColumns(input) });
+  const columns = toEventColumns(input);
+  // Rides only exist for away matches: they are cancelled by their drivers, never silently dropped.
+  if (columns.isHome && (await prisma.ride.count({ where: { eventId: event.id } })) > 0) {
+    throw new AppError("Des covoiturages sont proposés pour ce match : les conducteurs doivent d'abord les annuler", 409);
+  }
+  await prisma.event.update({ where: { id: event.id }, data: columns });
   return { message: "Événement modifié" };
 });
 

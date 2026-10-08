@@ -117,6 +117,7 @@ export async function getEventStats(eventId: string, teamId: string, isCoach: bo
       type: true,
       startDate: true,
       opponent: true,
+      isHome: true,
       team: { select: { name: true, club: { select: { name: true, logoUrl: true } } } },
       teamStat: true,
       playerStats: {

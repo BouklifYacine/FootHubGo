@@ -82,14 +82,18 @@ export const createTeamStats = action(teamStatsInput, async ({ eventId, values }
   assertOpen(event.startDate);
   if (event.teamStat) throw new AppError("Les statistiques de ce match existent déjà");
 
-  await prisma.teamStat.create({
-    data: {
-      ...toTeamStatData(values),
-      opponent: event.opponent ?? "",
-      teamId: membership.teamId,
-      eventId: event.id,
-    },
-  });
+  // The score's home / away is the event's too (one source for the carpool and the stats).
+  await prisma.$transaction([
+    prisma.teamStat.create({
+      data: {
+        ...toTeamStatData(values),
+        opponent: event.opponent ?? "",
+        teamId: membership.teamId,
+        eventId: event.id,
+      },
+    }),
+    prisma.event.update({ where: { id: event.id }, data: { isHome: values.isHome } }),
+  ]);
   return { message: `Statistiques du match « ${event.title} » ajoutées` };
 });
 
@@ -100,7 +104,10 @@ export const updateTeamStats = action(teamStatsInput, async ({ eventId, values }
   assertEditable(event.startDate);
   await assertPlayerTotals(event.id, values.goalsFor, { goals: 0, assists: 0 });
 
-  await prisma.teamStat.update({ where: { id: event.teamStat.id }, data: toTeamStatData(values) });
+  await prisma.$transaction([
+    prisma.teamStat.update({ where: { id: event.teamStat.id }, data: toTeamStatData(values) }),
+    prisma.event.update({ where: { id: event.id }, data: { isHome: values.isHome } }),
+  ]);
   return { message: `Statistiques du match « ${event.title} » modifiées` };
 });
 

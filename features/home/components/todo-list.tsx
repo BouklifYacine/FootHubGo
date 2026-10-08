@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, CalendarCheck, ChevronRight, Dumbbell, Send, Trophy, UserPlus, type LucideIcon } from "lucide-react";
+import { BarChart3, CalendarCheck, Car, ChevronRight, Dumbbell, Send, Trophy, UserPlus, type LucideIcon } from "lucide-react";
 import { SectionTitle } from "@/components/app/page-header";
 import { formatDayLabel, formatTime } from "@/lib/format";
 import type { HomeData } from "../types";
@@ -28,6 +28,17 @@ export function TodoList({ todo }: { todo: HomeData["todo"] }) {
       title: `Homme du match : ${nameOf(event)}`,
       detail: `Vote avant ${formatDayLabel(event.closesAt).toLowerCase()} à ${formatTime(event.closesAt)}`,
       tone: "warning" as const,
+    })),
+    ...todo.carpools.map((event) => ({
+      key: `carpool-${event.id}`,
+      href: `/app/events/${event.id}`,
+      icon: Car,
+      title: `Covoiturage : ${nameOf(event)}`,
+      detail:
+        event.seatsLeft > 0
+          ? `${when(event.startDate)} · ${event.seatsLeft} place${event.seatsLeft > 1 ? "s" : ""} libre${event.seatsLeft > 1 ? "s" : ""}`
+          : `${when(event.startDate)} · Propose ta voiture ou trouve une place`,
+      tone: "info" as const,
     })),
     ...todo.trainingsToAnswer.map((event) => ({
       key: `training-${event.id}`,

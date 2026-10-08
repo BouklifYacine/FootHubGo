@@ -21,6 +21,9 @@ export function EventHeader({ event }: { event: EventDetail }) {
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge className={type.badgeClass}>{type.label}</Badge>
         {event.isClubEvent && <Badge variant="outline">Tout le club</Badge>}
+        {event.type !== "TRAINING" && !event.isClubEvent && (
+          <Badge variant="outline">{event.isHome ? "Domicile" : "Extérieur"}</Badge>
+        )}
         {event.seriesId && (
           <Badge variant="muted">
             <Repeat aria-hidden /> Chaque semaine
