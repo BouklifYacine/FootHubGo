@@ -49,4 +49,5 @@ green CI required. Release: PR `dev` -> `main`, tag `v1.1.0`.
    when the recipient has no open tab; per-device switch and 5 categories in the settings, opt-in card on the
    home (never asks on page load), `player-v2` tour with the home screen hint for iPhone Safari. Details in
    `ARCHITECTURE.md` ("PWA and Web Push").
-7. Release v1.1.0.
+7. Release v1.1.0. **Done**: version 1.1.0 in `package.json`, `CHANGELOG.md` section with the upgrade steps,
+   `dev` merged into `main` (the Release workflow creates the tag, the GitHub Release and the image).
