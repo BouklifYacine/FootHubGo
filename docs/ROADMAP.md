@@ -29,7 +29,11 @@ green CI required. Release: PR `dev` -> `main`, tag `v1.1.0`.
    `ClubMember` (OWNER / ADMIN / MEMBER) above sections (`Team`, categories SENIOR / VETERAN / LEISURE), active
    section cookie + switcher, club management page, invite code and join requests per section, club-wide
    events, club chat channel, club subscription. One club per user for now. Audit L6 and L13 fixed.
-3. UX refactor (mobile first) + onboarding tour.
+3. UX refactor (mobile first) + onboarding tour. **Done** (branch `feat/ux-mobile-and-onboarding`): bottom tabs +
+   top bar + Plus page, home per role (next event, à faire, coach checklist), Agenda (list + calendar) and the
+   event page as the hub, call-up answer changeable until 3h before, notifications deep-link, card lists on
+   phones, invite links with share sheet, auto sign-in, shared page building blocks and confirmations,
+   tutoiement, driver.js tours (seen flags per user). Status per audit item in `docs/audits/ux.md`.
 4. Playing time + man of the match.
 5. Carpool for away matches.
 6. PWA + push notifications.
