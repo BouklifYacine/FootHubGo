@@ -57,8 +57,8 @@ export function PushOptInCard() {
           {ios ? (
             <p className="text-sm text-muted-foreground">
               Sur iPhone, ajoute d&apos;abord FootHubGo à ton écran d&apos;accueil : touche{" "}
-              <Share className="inline size-4 align-text-bottom" aria-label="Partager" /> Partager puis « Sur l&apos;écran
-              d&apos;accueil », et ouvre l&apos;app depuis son icône.
+              <Share className="inline size-4 align-text-bottom" aria-label="Partager" /> Partager puis «&nbsp;Sur l&apos;écran
+              d&apos;accueil&nbsp;», et ouvre l&apos;app depuis son icône.
             </p>
           ) : (
             <p className="text-sm text-muted-foreground">

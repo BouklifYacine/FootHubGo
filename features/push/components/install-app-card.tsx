@@ -51,7 +51,7 @@ export function InstallAppCard({ showInstalled = false }: { showInstalled?: bool
       )}
       {mode === "manual" && (
         <p className="text-sm text-muted-foreground">
-          Depuis le menu de ton navigateur : « Installer l&apos;application » ou « Ajouter à l&apos;écran d&apos;accueil ».
+          Depuis le menu de ton navigateur : «&nbsp;Installer l&apos;application&nbsp;» ou «&nbsp;Ajouter à l&apos;écran d&apos;accueil&nbsp;».
         </p>
       )}
     </div>
