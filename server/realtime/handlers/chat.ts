@@ -1,5 +1,6 @@
 import type { Socket } from "socket.io";
 import { requireParticipant } from "@/features/chat/server/access";
+import { rateLimiter } from "@/lib/rate-limit";
 import {
   conversationIdSchema,
   conversationRoom,
@@ -10,6 +11,9 @@ import {
 } from "@/lib/realtime/protocol";
 
 type ChatSocket = Socket<ClientToServerEvents, ServerToClientEvents, Record<string, never>, SocketData>;
+
+/** Each join is a DB query: 30 per 10 seconds per socket. */
+const joinBudget = rateLimiter("socket-chat-join", { max: 30, windowMs: 10_000 });
 
 /** Minimum delay between two relayed "is typing" events of one socket in one conversation. */
 const TYPING_THROTTLE_MS = 1500;
@@ -33,7 +37,7 @@ export function registerChatHandlers(socket: ChatSocket) {
   socket.on("chat:join", async (rawConversationId, ack) => {
     const reply = typeof ack === "function" ? ack : () => {};
     const parsed = conversationIdSchema.safeParse(rawConversationId);
-    if (!parsed.success) return reply({ ok: false });
+    if (!parsed.success || !joinBudget.hit(socket.id).ok) return reply({ ok: false });
 
     try {
       // Throws (404) unless the user participates (team channel: is still in the team).

@@ -1,6 +1,7 @@
 import { prisma } from "@/prisma";
 import { notFound } from "@/lib/errors";
 import type { MatchResult } from "@/generated/prisma/client";
+import { sectionDisplayName } from "@/features/clubs/rules";
 import {
   buildStanding,
   compareStandings,
@@ -8,15 +9,23 @@ import {
   summarizePlayerStats,
   summarizeTeamStats,
 } from "../compute";
+import { summarizePlayingTime } from "../playing-time";
+import { countMotmAwards, getSectionMotmAwards } from "@/features/motm/server/queries";
 
-/** League table of every team (aggregated by the database) + last 5 results. */
-export async function getLeaderboard() {
+/**
+ * League table of the sections (aggregated by the database) + last 5 results. Sections of private
+ * clubs are not listed, except the viewer's own section.
+ */
+export async function getLeaderboard(viewerTeamId?: string | null) {
   const [teams, results, goals] = await Promise.all([
     prisma.team.findMany({
+      where: {
+        OR: [{ club: { visibility: { not: "PRIVATE" } } }, ...(viewerTeamId ? [{ id: viewerTeamId }] : [])],
+      },
       select: {
         id: true,
         name: true,
-        logoUrl: true,
+        club: { select: { name: true, logoUrl: true } },
         teamStats: { select: { result: true }, orderBy: { createdAt: "desc" }, take: 5 },
       },
     }),
@@ -30,9 +39,9 @@ export async function getLeaderboard() {
   const countOf = (teamId: string, result: MatchResult) => resultCounts.get(`${teamId}:${result}`) ?? 0;
 
   return teams
-    .map(({ teamStats, ...team }) =>
+    .map(({ teamStats, club, ...team }) =>
       buildStanding(
-        team,
+        { id: team.id, name: sectionDisplayName(club.name, team.name), logoUrl: club.logoUrl },
         {
           wins: countOf(team.id, "WIN"),
           draws: countOf(team.id, "DRAW"),
@@ -55,16 +64,49 @@ export async function getTeamStatsSummary(teamId: string) {
 }
 
 export async function getPlayerStatsSummary(userId: string) {
-  const matches = await prisma.playerStat.findMany({
-    where: { userId },
-    select: { goals: true, assists: true, rating: true, minutesPlayed: true, isStarter: true },
-  });
-  return summarizePlayerStats(matches);
+  const [matches, motmAwards] = await Promise.all([
+    prisma.playerStat.findMany({
+      where: { userId },
+      select: { goals: true, assists: true, rating: true, minutesPlayed: true, isStarter: true },
+    }),
+    countMotmAwards(userId),
+  ]);
+  return { ...summarizePlayerStats(matches), motmAwards };
+}
+
+/**
+ * Season playing time of the section's players (every player of the section, even without minutes)
+ * and their man-of-the-match awards, most minutes first.
+ */
+export async function getTeamPlayingTime(teamId: string) {
+  const [players, rows, awards] = await Promise.all([
+    prisma.teamMember.findMany({
+      where: { teamId, role: "PLAYER" },
+      select: { userId: true, position: true, user: { select: { name: true, image: true } } },
+    }),
+    prisma.playerStat.findMany({
+      where: { event: { teamId } },
+      select: { userId: true, minutesPlayed: true, isStarter: true },
+    }),
+    getSectionMotmAwards(teamId),
+  ]);
+  const totals = new Map(summarizePlayingTime(rows).map((row) => [row.userId, row]));
+  return players
+    .map((player) => ({
+      userId: player.userId,
+      name: player.user.name,
+      image: player.user.image,
+      position: player.position,
+      ...(totals.get(player.userId) ?? { matches: 0, minutes: 0, starts: 0, avgMinutes: 0 }),
+      motmAwards: awards.get(player.userId) ?? 0,
+    }))
+    .sort((a, b) => b.minutes - a.minutes || a.name.localeCompare(b.name, "fr"));
 }
 
 /**
  * Team + player stats of one event of `teamId`. The coach also gets the players
- * who can still receive stats (confirmed call-up, no stats yet).
+ * who can still receive stats (confirmed call-up, no stats yet) and every present player
+ * (confirmed call-up) for the playing-time sheet.
  */
 export async function getEventStats(eventId: string, teamId: string, isCoach: boolean) {
   const event = await prisma.event.findFirst({
@@ -75,7 +117,8 @@ export async function getEventStats(eventId: string, teamId: string, isCoach: bo
       type: true,
       startDate: true,
       opponent: true,
-      team: { select: { name: true, logoUrl: true } },
+      isHome: true,
+      team: { select: { name: true, club: { select: { name: true, logoUrl: true } } } },
       teamStat: true,
       playerStats: {
         orderBy: { createdAt: "asc" },
@@ -85,21 +128,26 @@ export async function getEventStats(eventId: string, teamId: string, isCoach: bo
   });
   if (!event) throw notFound("Événement introuvable");
 
-  const eligiblePlayers = isCoach
+  const presentPlayers = isCoach
     ? await prisma.teamMember.findMany({
-        where: {
-          teamId,
-          role: "PLAYER",
-          user: {
-            callUps: { some: { eventId, status: "CONFIRMED" } },
-            playerStats: { none: { eventId } },
-          },
-        },
-        select: { userId: true, position: true, user: { select: { name: true } } },
+        where: { teamId, role: "PLAYER", user: { callUps: { some: { eventId, status: "CONFIRMED" } } } },
+        select: { userId: true, position: true, user: { select: { name: true, image: true } } },
         orderBy: { user: { name: "asc" } },
       })
     : [];
+  const withStats = new Set(event.playerStats.map((stat) => stat.userId));
+  const eligiblePlayers = presentPlayers.filter((player) => !withStats.has(player.userId));
 
-  const { teamStat, playerStats, ...rest } = event;
-  return { event: rest, teamStat, playerStats, eligiblePlayers, window: getStatsWindow(event.startDate) };
+  const { teamStat, playerStats, team, ...rest } = event;
+  const teamInfo = team
+    ? { name: sectionDisplayName(team.club.name, team.name), logoUrl: team.club.logoUrl }
+    : { name: "", logoUrl: null };
+  return {
+    event: { ...rest, team: teamInfo },
+    teamStat,
+    playerStats,
+    eligiblePlayers,
+    presentPlayers,
+    window: getStatsWindow(event.startDate),
+  };
 }

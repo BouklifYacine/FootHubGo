@@ -1,7 +1,8 @@
 "use client";
 
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { useState } from "react";
-import { ChevronLeft, ChevronRight, CreditCard, Landmark, UserPlus, UserRound, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, CreditCard, Landmark, Shield, UserPlus, UserRound, Users } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -42,7 +43,8 @@ function StatsRow() {
   return (
     <div className="flex flex-col gap-4 md:flex-row">
       <StatCard icon={Users} title="Utilisateurs" value={stats.totalUsers} />
-      <StatCard icon={UserPlus} title="Abonnés" value={stats.proUsers} />
+      <StatCard icon={Shield} title="Clubs" value={stats.totalClubs} />
+      <StatCard icon={UserPlus} title="Abonnements" value={stats.proClubs + stats.proUsers} />
       <StatCard icon={Landmark} title="Revenus" value={`${stats.revenue}€`} />
       <StatCard icon={CreditCard} title="MRR" value={`${stats.mrr}€`} />
       <StatCard icon={UserRound} title="Revenus / utilisateur" value={`${stats.revenuePerUser}€`} />
@@ -55,6 +57,7 @@ export function AdminDashboard() {
   const [selected, setSelected] = useState<string[]>([]);
   const { data, isPending, error } = useAdminUsers(filters);
   const deleteUsers = useDeleteUsers(() => setSelected([]));
+  const confirm = useConfirm();
 
   const { page } = filters;
   const update = (patch: Partial<AdminUsersFilters>) => {
@@ -103,7 +106,14 @@ export function AdminDashboard() {
             <Button
               variant="destructive"
               disabled={!selected.length || deleteUsers.isPending}
-              onClick={() => confirm(`Supprimer définitivement ${selected.length} utilisateur(s) ?`) && deleteUsers.mutate(selected)}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: `Supprimer ${selected.length} utilisateur${selected.length > 1 ? "s" : ""} ?`,
+                  description: "Les comptes et leurs données seront supprimés définitivement.",
+                  confirmLabel: "Supprimer",
+                });
+                if (ok) deleteUsers.mutate(selected);
+              }}
             >
               {deleteUsers.isPending ? "Suppression..." : `Supprimer (${selected.length})`}
             </Button>

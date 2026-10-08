@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -17,6 +18,7 @@ model User {
   emailVerified            Boolean
   image                    String?
   role                     UserRole                  @default(USER)
+  /// Legacy per-user plan / Stripe customer: billing now belongs to the club (Club.plan).
   plan                     Plan                      @default(free)
   clientId                 String?                   @unique
   resetToken               String?
@@ -25,8 +27,18 @@ model User {
   updatedAt                DateTime
   isOnline                 Boolean                   @default(false)
   lastSeen                 DateTime?
+  /// Event reminder emails (the day before). Turned off from the settings or the unsubscribe link.
+  emailReminders           Boolean                   @default(true)
+  /// Onboarding steps already seen / dismissed, per user so they follow them across devices:
+  /// tours ("coach-v1", "player-v1") and the coach checklist ("coach-checklist").
+  onboardingSeen           String[]                  @default([])
+  /// Push categories the user turned off ("callUps", "motm", "carpool", "messages", "club"), see
+  /// features/push/categories.ts. Empty = every category on. Push itself is per device (PushSubscription).
+  pushMutedCategories      String[]                  @default([])
   callUps                  CallUp[]
   memberships              TeamMember[]
+  clubMembership           ClubMember?
+  /// Legacy: subscriptions bought before clubs existed, by users who own no club (see ARCHITECTURE.md).
   subscription             Subscription?
   accounts                 Account[]
   injuries                 Injury[]
@@ -48,19 +60,62 @@ model User {
   blockedBy                User[]                    @relation("UserBlocks")
   createdGroups            Conversation[]            @relation("GroupCreator")
   conversations            Conversation[]
+  motmVotesCast            MotmVote[]                @relation("MotmVoter")
+  motmVotesReceived        MotmVote[]                @relation("MotmNominee")
+  ridesOffered             Ride[]
+  rideSeats                RidePassenger[]
+  pushSubscriptions        PushSubscription[]
 
   @@map("user")
 }
 
+/// A club: owns its sections, members (club roles), the club chat channel and the subscription.
+model Club {
+  id               String         @id @default(cuid())
+  name             String
+  description      String?
+  logoUrl          String?
+  visibility       ClubVisibility @default(PUBLIC)
+  createdAt        DateTime       @default(now())
+  /// Billing belongs to the club (paid by the OWNER).
+  plan             Plan           @default(free)
+  stripeCustomerId String?        @unique
+  sections         Team[]
+  members          ClubMember[]
+  events           Event[]
+  conversation     Conversation?
+  subscription     Subscription?
+
+  @@map("club")
+}
+
+/// Club role of a user (one club per user for now: `userId` is unique).
+model ClubMember {
+  id                 String       @id @default(cuid())
+  role               ClubRole     @default(MEMBER)
+  joinedAt           DateTime     @default(now())
+  clubId             String
+  userId             String       @unique
+  club               Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sectionMemberships TeamMember[]
+
+  @@unique([clubId, userId])
+  /// Exactly one OWNER per club.
+  @@unique([clubId], map: "club_member_one_owner_key", where: { role: "OWNER" })
+  @@map("club_member")
+}
+
+/// A SECTION of a club (e.g. "Seniors A"). The model keeps its historical name (`Team`, table `equipe`).
 model Team {
-  id           String         @id @default(cuid())
-  name         String         @map("nom")
-  description  String?
-  logoUrl      String?
-  createdAt    DateTime       @default(now()) @map("dateCreation")
-  inviteCode   String?        @map("codeInvitation")
-  visibility   TeamVisibility @default(PUBLIC) @map("statut")
-  level        TeamLevel      @default(RECREATIONAL) @map("niveau")
+  id           String          @id @default(cuid())
+  name         String          @map("nom")
+  createdAt    DateTime        @default(now()) @map("dateCreation")
+  inviteCode   String?         @unique @map("codeInvitation")
+  level        TeamLevel       @default(RECREATIONAL) @map("niveau")
+  category     SectionCategory @default(SENIOR)
+  clubId       String
+  club         Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
   members      TeamMember[]
   injuries     Injury[]
   joinRequests JoinRequest[]
@@ -68,9 +123,11 @@ model Team {
   finances     Finance[]
   polls        Poll[]
   teamStats    TeamStat[]
-  favoritedBy  User[]         @relation("ClubsFavoris")
+  favoritedBy  User[]          @relation("ClubsFavoris")
   conversation Conversation?
 
+  @@unique([clubId, name])
+  @@index([clubId])
   @@map("equipe")
 }
 
@@ -82,10 +139,14 @@ model TeamMember {
   joinedAt   DateTime        @default(now())
   userId     String
   teamId     String          @map("equipeId")
+  /// Same club as the section: a section member is always a club member (composite FK).
+  clubId     String
   team       Team            @relation(fields: [teamId], references: [id], onDelete: Cascade)
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clubMember ClubMember      @relation(fields: [clubId, userId], references: [clubId, userId], onDelete: Cascade)
 
   @@unique([userId, teamId])
+  @@index([clubId, userId])
   @@map("MembreEquipe")
 }
 
@@ -151,28 +212,41 @@ model CallUp {
 }
 
 model Event {
-  id             String       @id @default(cuid())
-  title          String       @map("titre")
-  description    String?
-  location       String?      @map("lieu")
-  type           EventType    @default(TRAINING) @map("typeEvenement")
-  startDate      DateTime     @map("dateDebut")
-  createdAt      DateTime     @default(now()) @map("dateCreation")
-  opponent       String?      @map("adversaire")
-  locationData   Json?
-  weatherData    Json?
-  teamId         String       @map("equipeId")
+  id                 String          @id @default(cuid())
+  title              String          @map("titre")
+  description        String?
+  location           String?         @map("lieu")
+  type               EventType       @default(TRAINING) @map("typeEvenement")
+  startDate          DateTime        @map("dateDebut")
+  createdAt          DateTime        @default(now()) @map("dateCreation")
+  opponent           String?         @map("adversaire")
+  locationData       Json?
+  weatherData        Json?
+  clubId             String
+  /// null = club-wide event (visible in every section, no call-ups / attendance / stats).
+  teamId             String?         @map("equipeId")
   /// Shared by the occurrences of a weekly repeated training (null for a single event).
-  seriesId       String?
+  seriesId           String?
   /// Set when the reminder (notification + email, 24h before) has been sent: never sent twice.
-  reminderSentAt DateTime?
-  callUps        CallUp[]
-  team           Team         @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  attendances    Attendance[]
-  teamStat       TeamStat?
-  playerStats    PlayerStat[]
+  reminderSentAt     DateTime?
+  /// Home or away match (carpool is offered for away matches only). Trainings stay "home".
+  isHome             Boolean         @default(true)
+  /// Man of the match: set when the vote-open notification has been sent (claimed by the job).
+  motmOpenNotifiedAt DateTime?
+  /// Man of the match: set when the vote has been closed and the winner(s) notified (claimed by the job).
+  motmClosedAt       DateTime?
+  callUps            CallUp[]
+  motmVotes          MotmVote[]
+  rides              Ride[]
+  ridePassengers     RidePassenger[]
+  club               Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  team               Team?           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  attendances        Attendance[]
+  teamStat           TeamStat?
+  playerStats        PlayerStat[]
 
   @@index([teamId])
+  @@index([clubId, startDate])
   @@index([seriesId])
   @@map("evenement")
 }
@@ -208,16 +282,28 @@ model PollResponse {
   @@map("reponse_sondage")
 }
 
+/// Belongs to a club (`clubId`); legacy rows of users who owned no club keep `userId` instead.
 model Subscription {
   id        String             @id @default(cuid())
-  userId    String             @unique
+  clubId    String?            @unique
+  userId    String?            @unique
   plan      Plan
   period    SubscriptionPeriod @map("periode")
   startDate DateTime           @default(now()) @map("datedebut")
   endDate   DateTime           @updatedAt @map("datefin")
-  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  club      Club?              @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user      User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("abonnement")
+}
+
+/// Stripe webhook events already handled: Stripe retries deliveries, each event is processed once.
+model StripeEvent {
+  id          String   @id
+  type        String
+  processedAt DateTime @default(now())
+
+  @@map("stripe_event")
 }
 
 model Session {
@@ -278,21 +364,98 @@ model Attendance {
 }
 
 model PlayerStat {
-  id            String         @id @default(cuid())
-  goals         Int            @default(0) @map("buts")
-  assists       Int            @default(0) @map("passesdecisive")
-  rating        Float          @default(6.0) @map("note")
-  minutesPlayed Int            @default(0) @map("minutesJouees")
-  isStarter     Boolean        @default(false) @map("titulaire")
-  position      PlayerPosition @map("poste")
-  createdAt     DateTime       @default(now()) @map("dateCreation")
+  id            String          @id @default(cuid())
+  goals         Int             @default(0) @map("buts")
+  assists       Int             @default(0) @map("passesdecisive")
+  /// null = not rated yet (a row created from the playing-time sheet).
+  rating        Float?          @map("note")
+  /// 0..130 (extra time included), see features/stats/playing-time.ts.
+  minutesPlayed Int             @default(0) @map("minutesJouees")
+  isStarter     Boolean         @default(false) @map("titulaire")
+  /// null = not set (playing-time sheet for a member without a usual position).
+  position      PlayerPosition? @map("poste")
+  createdAt     DateTime        @default(now()) @map("dateCreation")
   userId        String
-  eventId       String         @map("evenementId")
-  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId       String          @map("evenementId")
+  event         Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@map("statistique_joueur")
+}
+
+/// One man-of-the-match vote per voter and per match (the vote can be changed while it is open).
+/// Window, eligibility and winners: features/motm/rules.ts.
+model MotmVote {
+  id        String   @id @default(cuid())
+  eventId   String
+  voterId   String
+  nomineeId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  voter     User     @relation("MotmVoter", fields: [voterId], references: [id], onDelete: Cascade)
+  nominee   User     @relation("MotmNominee", fields: [nomineeId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, voterId])
+  @@index([eventId, nomineeId])
+  @@index([nomineeId])
+  @@map("motm_vote")
+}
+
+/// A car going to an away match: one per driver and per match (features/carpool/rules.ts).
+model Ride {
+  id             String          @id @default(cuid())
+  eventId        String
+  driverId       String
+  seats          Int
+  departurePlace String
+  departureTime  DateTime
+  note           String?
+  createdAt      DateTime        @default(now())
+  event          Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  driver         User            @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  passengers     RidePassenger[]
+
+  @@unique([eventId, driverId])
+  @@map("ride")
+}
+
+/// A browser / device subscribed to Web Push (lot 6). Personal data: deleted with the user (cascade)
+/// and when the push service answers 404 / 410 (subscription expired or revoked).
+model PushSubscription {
+  id         String   @id @default(cuid())
+  userId     String
+  /// Push service URL (unique per browser subscription).
+  endpoint   String   @unique
+  /// Client public key (P-256 ECDH) and auth secret, used to encrypt the payload.
+  p256dh     String
+  auth       String
+  /// Short device label shown in the settings ("Chrome · Android"), never the raw user agent.
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  /// Last subscribe or successful delivery.
+  lastUsedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscription")
+}
+
+/// A booked seat. `eventId` is denormalized so that a user holds at most one seat per match.
+model RidePassenger {
+  id        String   @id @default(cuid())
+  rideId    String
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([rideId])
+  @@map("ride_passenger")
 }
 
 model TeamStat {
@@ -344,9 +507,12 @@ model Conversation {
   updatedAt    DateTime                  @updatedAt
   creatorId    String?
   creator      User?                     @relation("GroupCreator", fields: [creatorId], references: [id])
-  // Set only for TEAM conversations: one channel per team, members are synced automatically.
+  // Set only for TEAM conversations: one channel per section, members are synced automatically.
   teamId       String?                   @unique
   team         Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  // Set only for CLUB conversations: one channel per club (every club member).
+  clubId       String?                   @unique
+  club         Club?                     @relation(fields: [clubId], references: [id], onDelete: Cascade)
   participants ConversationParticipant[]
   messages     Message[]
   user         User?                     @relation(fields: [userId], references: [id])
@@ -413,6 +579,7 @@ enum ConversationType {
   PRIVATE
   GROUP
   TEAM
+  CLUB
 }
 
 enum ParticipantRole {
@@ -421,15 +588,17 @@ enum ParticipantRole {
 }
 
 enum NotificationType {
-  CALL_UP         @map("CONVOCATION_MATCH")
-  JOIN_REQUEST    @map("DEMANDE_ADHESION")
-  INJURY_REPORTED @map("BLESSURE_DECLAREE")
-  FINANCE_DUE     @map("FINANCE_ECHEANCE")
-  NEW_POLL        @map("SONDAGE_NOUVEAU")
-  EVENT_REMINDER  @map("EVENEMENT_RAPPEL")
-  JOINED_TEAM     @map("REJOINT_CLUB")
-  LEFT_TEAM       @map("QUITTER_CLUB")
+  CALL_UP          @map("CONVOCATION_MATCH")
+  JOIN_REQUEST     @map("DEMANDE_ADHESION")
+  INJURY_REPORTED  @map("BLESSURE_DECLAREE")
+  FINANCE_DUE      @map("FINANCE_ECHEANCE")
+  NEW_POLL         @map("SONDAGE_NOUVEAU")
+  EVENT_REMINDER   @map("EVENEMENT_RAPPEL")
+  JOINED_TEAM      @map("REJOINT_CLUB")
+  LEFT_TEAM        @map("QUITTER_CLUB")
   MESSAGE
+  MAN_OF_THE_MATCH
+  CARPOOL
 
   @@map("TypeNotification")
 }
@@ -511,7 +680,19 @@ enum Competition {
   @@map("competition")
 }
 
-enum TeamVisibility {
+enum ClubRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum SectionCategory {
+  SENIOR
+  VETERAN
+  LEISURE
+}
+
+enum ClubVisibility {
   PUBLIC
   PRIVATE    @map("PRIVE")
   INVITATION

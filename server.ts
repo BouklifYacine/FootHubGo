@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import next from "next";
+import { CLIENT_IP_HEADER, resolveClientIp } from "@/lib/client-ip";
 import { startJobs } from "@/server/jobs";
 import { attachRealtime } from "@/server/realtime";
 
@@ -11,9 +12,16 @@ const dev = process.env.NODE_ENV !== "production";
 const port = Number(process.env.PORT) || 3000;
 const app = next({ dev });
 const handler = app.getRequestHandler();
+const trustedIpHeader = process.env.TRUSTED_IP_HEADER;
 
 app.prepare().then(() => {
-  const httpServer = createServer(handler);
+  const httpServer = createServer((req, res) => {
+    // The only client IP the app trusts (rate limits, better-auth): see lib/client-ip.ts.
+    const ip = resolveClientIp({ headers: req.headers, remoteAddress: req.socket.remoteAddress, trustedHeader: trustedIpHeader });
+    if (ip) req.headers[CLIENT_IP_HEADER] = ip;
+    else delete req.headers[CLIENT_IP_HEADER];
+    return handler(req, res);
+  });
   const io = attachRealtime(httpServer);
   const stopJobs = startJobs();
 

@@ -80,7 +80,7 @@ export function RealtimeProvider({ userId, children }: { userId?: string | null;
     const onConnectError = (error: Error) => {
       if (socket.active) return;
       if (error.message === UNAUTHORIZED_ERROR) {
-        toast.error("Session expirée, reconnectez-vous", { id: "realtime-status" });
+        toast.error("Session expirée, reconnecte-toi", { id: "realtime-status" });
         return;
       }
       retryTimer = setTimeout(() => socket.connect(), retryDelay);

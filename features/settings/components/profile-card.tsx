@@ -1,5 +1,6 @@
 "use client";
 
+import { formatNumericDate as formatDate } from "@/lib/format";
 import { Calendar, Clock, CreditCard, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +8,6 @@ import { subscriptionPeriodLabels } from "@/lib/enum-labels";
 import type { Profile } from "../hooks/use-profile";
 import { AvatarUpload } from "./avatar-upload";
 
-const formatDate = (date: string) => new Date(date).toLocaleDateString("fr-FR");
 
 export function ProfileCard({ profile }: { profile: Profile }) {
   const { subscription } = profile;
@@ -30,11 +30,12 @@ export function ProfileCard({ profile }: { profile: Profile }) {
           <p className="flex items-center gap-2">
             <Mail className="size-4 text-muted-foreground" /> {profile.email}
           </p>
-          <p className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <CreditCard className="size-4 text-muted-foreground" />
             <Badge>{profile.plan === "pro" ? "Premium" : "Gratuit"}</Badge>
+            {profile.clubName && <span className="text-muted-foreground">abonnement du club {profile.clubName}</span>}
             {subscription && <Badge variant="outline">{subscriptionPeriodLabels[subscription.period]}</Badge>}
-          </p>
+          </div>
           {subscription && (
             <>
               <p className="flex items-center gap-2">

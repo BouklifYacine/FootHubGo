@@ -13,14 +13,17 @@ export async function sendEmail({
   to,
   subject,
   email,
+  headers,
 }: {
   to: string;
   subject: string;
   email: ReactElement;
+  /** Extra headers, e.g. List-Unsubscribe. */
+  headers?: Record<string, string>;
 }) {
   try {
     resend ??= new Resend(process.env.RESEND_API_KEY);
-    const { error } = await resend.emails.send({ from: FROM, to, subject, react: email });
+    const { error } = await resend.emails.send({ from: FROM, to, subject, react: email, headers });
     if (error) console.error("[email]", error);
     return !error;
   } catch (error) {

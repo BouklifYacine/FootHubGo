@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { Key, Mail, Trash2, User, UserCircle } from "lucide-react";
+import { Bell, Key, Mail, Trash2, User, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
+import { LoadingState } from "@/components/app/loading-state";
 import { cn } from "@/lib/utils";
 import { useProfile } from "../hooks/use-profile";
 import { EmailForm, NameForm, PasswordForm } from "./account-forms";
 import { DeleteAccountCard } from "./delete-account-card";
+import { NotificationsCard } from "./notifications-card";
 import { ProfileCard } from "./profile-card";
 
 const sections = [
@@ -16,6 +17,7 @@ const sections = [
   { id: "name", label: "Pseudo", icon: User },
   { id: "email", label: "Email", icon: Mail, passwordOnly: true },
   { id: "password", label: "Mot de passe", icon: Key, passwordOnly: true },
+  { id: "notifications", label: "Notifications", icon: Bell },
   { id: "delete", label: "Supprimer le compte", icon: Trash2, danger: true },
 ] as const;
 
@@ -23,10 +25,14 @@ type SectionId = (typeof sections)[number]["id"];
 
 /** Settings of the signed-in user (always the session user, never an id from the URL). */
 export function SettingsView() {
-  const [active, setActive] = useState<SectionId>("profile");
+  // `?section=notifications` opens a section directly (links from the home push card).
+  const [active, setActive] = useState<SectionId>(() => {
+    const wanted = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("section");
+    return sections.find((section) => section.id === wanted)?.id ?? "profile";
+  });
   const { data: profile, isPending, error } = useProfile();
 
-  if (isPending) return <Skeleton className="h-96 w-full" />;
+  if (isPending) return <LoadingState variant="detail" />;
   if (error) return <p className="text-destructive">{error.message}</p>;
 
   // Email and password can only be changed on accounts that have a password.
@@ -55,6 +61,9 @@ export function SettingsView() {
         {active === "name" && <NameForm currentName={profile.name} hasPassword={profile.hasPassword} />}
         {active === "email" && profile.hasPassword && <EmailForm />}
         {active === "password" && profile.hasPassword && <PasswordForm />}
+        {active === "notifications" && (
+          <NotificationsCard emailReminders={profile.emailReminders} pushMutedCategories={profile.pushMutedCategories} />
+        )}
         {active === "delete" && <DeleteAccountCard hasPassword={profile.hasPassword} />}
       </div>
     </div>

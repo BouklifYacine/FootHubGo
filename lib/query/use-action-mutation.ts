@@ -13,6 +13,8 @@ type Options<TInput, TData> = {
     update: (previous: unknown, input: TInput) => unknown;
   };
   onSuccess?: (data: TData, input: TInput) => void;
+  /** After success or failure (once the optimistic update is settled). */
+  onSettled?: (input: TInput) => void;
   /** Show the action message in a toast (default: true). "errors": only failures (silent success). */
   toast?: boolean | "errors";
 };
@@ -26,7 +28,7 @@ type Options<TInput, TData> = {
  */
 export function useActionMutation<TInput, TData>(
   action: (input: TInput) => Promise<ActionResult<TData>>,
-  { invalidate = [], optimistic, onSuccess, toast: showToast = true }: Options<TInput, TData> = {},
+  { invalidate = [], optimistic, onSuccess, onSettled, toast: showToast = true }: Options<TInput, TData> = {},
 ) {
   const queryClient = useQueryClient();
 
@@ -51,7 +53,9 @@ export function useActionMutation<TInput, TData>(
       if (showToast === true) toast.success(result.message);
       onSuccess?.(result.data, input);
     },
-    onSettled: () =>
-      Promise.all(invalidate.map((queryKey) => queryClient.invalidateQueries({ queryKey }))),
+    onSettled: (_data, _error, input) => {
+      onSettled?.(input);
+      return Promise.all(invalidate.map((queryKey) => queryClient.invalidateQueries({ queryKey })));
+    },
   });
 }

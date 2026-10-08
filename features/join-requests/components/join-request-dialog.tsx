@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ResponsiveDialog as Dialog,
+  ResponsiveDialogContent as DialogContent,
+  ResponsiveDialogDescription as DialogDescription,
+  ResponsiveDialogFooter as DialogFooter,
+  ResponsiveDialogHeader as DialogHeader,
+  ResponsiveDialogTitle as DialogTitle,
+} from "@/components/app/responsive-dialog";
 import { useAppForm } from "@/lib/form";
 import { playerPositionLabels, teamLevelLabels, toOptions } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
@@ -23,7 +23,7 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 } & (
-  | { mode: "create"; teamId: string }
+  | { mode: "create"; teamId: string; sectionName?: string }
   | { mode: "edit"; requestId: string; defaultValues: JoinRequestInput }
 );
 
@@ -36,13 +36,13 @@ export function JoinRequestDialog(props: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[550px]">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-primary">
-            {isEdit ? "Modifier la demande" : "Rejoindre le club"}
+          <DialogTitle>
+            {isEdit ? "Modifier la demande" : `Rejoindre ${props.mode === "create" && props.sectionName ? props.sectionName : "le club"}`}
           </DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Modifiez votre candidature avant qu'elle ne soit traitée."
-              : "Envoyez votre candidature à l'entraîneur."}
+              ? "Modifie ta candidature avant qu'elle ne soit traitée."
+              : "Ta candidature est envoyée aux entraîneurs de la section."}
           </DialogDescription>
         </DialogHeader>
         <JoinRequestForm {...props} onDone={() => onOpenChange(false)} />
@@ -85,17 +85,17 @@ function JoinRequestForm(props: Props & { onDone: () => void }) {
     >
       <form.AppField name="position">
         {(field) => (
-          <field.SelectField label="Poste souhaité *" options={positionOptions} placeholder="Sélectionnez votre poste" />
+          <field.SelectField label="Poste souhaité *" options={positionOptions} placeholder="Choisis ton poste" />
         )}
       </form.AppField>
       <form.AppField name="level">
         {(field) => (
-          <field.SelectField label="Votre niveau estimé *" options={levelOptions} placeholder="Sélectionnez votre niveau" />
+          <field.SelectField label="Ton niveau estimé *" options={levelOptions} placeholder="Choisis ton niveau" />
         )}
       </form.AppField>
       <form.AppField name="motivation">
         {(field) => (
-          <field.TextareaField label="Motivation *" placeholder="Pourquoi voulez-vous rejoindre ce club ?" />
+          <field.TextareaField label="Motivation *" placeholder="Présente-toi en quelques mots : pourquoi ce club ?" />
         )}
       </form.AppField>
       <DialogFooter>

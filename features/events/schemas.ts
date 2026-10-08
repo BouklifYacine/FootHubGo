@@ -13,6 +13,8 @@ const eventFields = z.object({
   location: z.string().trim().max(100, "Le lieu ne peut pas dépasser 100 caractères").optional(),
   opponent: z.string().trim().max(50, "Le nom de l'adversaire est trop long").optional(),
   description: z.string().trim().max(500, "La description ne peut pas dépasser 500 caractères").optional(),
+  /** Matches only: home (default) or away (away matches get a carpool). Ignored for a training. */
+  isHome: z.boolean().optional(),
 });
 
 /** A match (league / cup) needs an opponent; a training ignores it. */
@@ -28,7 +30,11 @@ function requireOpponentForMatches(event: z.infer<typeof eventFields>, ctx: z.Re
 
 /** Creation only: a training can be repeated every week until `repeatUntil` (one season at most). */
 export const eventSchema = eventFields
-  .extend({ repeatUntil: z.date({ error: "Date de fin invalide" }).optional() })
+  .extend({
+    repeatUntil: z.date({ error: "Date de fin invalide" }).optional(),
+    /** "CLUB" (club-wide event) or a section id; omitted = the active section. Checked on the server. */
+    scope: z.string().min(1).max(64).optional(),
+  })
   .superRefine(requireOpponentForMatches)
   .superRefine(({ type, startDate, repeatUntil }, ctx) => {
     if (!repeatUntil) return;

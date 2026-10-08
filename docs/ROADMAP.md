@@ -25,9 +25,29 @@ green CI required. Release: PR `dev` -> `main`, tag `v1.1.0`.
 0. Audits (read only): UX audit + security audit -> `docs/audits/ux.md`, `docs/audits/security.md`.
 1. Security fixes + launch blockers: audit findings, notification preferences + unsubscribe link,
    remove real club logos from the landing, French pricing section, tests on sensitive actions.
-2. Clubs & sections (foundation, data migration).
-3. UX refactor (mobile first) + onboarding tour.
-4. Playing time + man of the match.
-5. Carpool for away matches.
-6. PWA + push notifications.
-7. Release v1.1.0.
+2. Clubs & sections (foundation, data migration). **Done** (branch `feat/clubs-and-sections`): `Club` /
+   `ClubMember` (OWNER / ADMIN / MEMBER) above sections (`Team`, categories SENIOR / VETERAN / LEISURE), active
+   section cookie + switcher, club management page, invite code and join requests per section, club-wide
+   events, club chat channel, club subscription. One club per user for now. Audit L6 and L13 fixed.
+3. UX refactor (mobile first) + onboarding tour. **Done** (branch `feat/ux-mobile-and-onboarding`): bottom tabs +
+   top bar + Plus page, home per role (next event, à faire, coach checklist), Agenda (list + calendar) and the
+   event page as the hub, call-up answer changeable until 3h before, notifications deep-link, card lists on
+   phones, invite links with share sheet, auto sign-in, shared page building blocks and confirmations,
+   tutoiement, driver.js tours (seen flags per user). Status per audit item in `docs/audits/ux.md`.
+4. Playing time + man of the match. **Done** (branch `feat/match-day`): playing-time sheet on the match page
+   (present players, presets, 0-130'), season minutes in the player's stats and the coach's ranking; man of the
+   match voted 48h from kick-off + 3h by the present players and the coaches, results hidden until the end,
+   co-winners on a tie, notifications (vote open, winner), "À faire", awards in the stats.
+5. Carpool for away matches. **Done** (branch `feat/match-day`): home / away on events, rides (seats, departure
+   place and time, note), first come first served booking without overbooking, driver removes a passenger or
+   cancels (passengers notified), "À faire" for confirmed players without a seat. Details in `ARCHITECTURE.md`
+   ("Match day").
+6. PWA + push notifications. **Done** (branch `feat/pwa-push`): installable app (manifest, icons, hand-written
+   service worker with an offline page, install card in Plus and the settings, iPhone instructions), Web Push with
+   `web-push` (VAPID from the environment, push disabled without it), one `sendPush` called by `notifyUser` for
+   call-ups and answers, reminders, man of the match, carpool, join requests, polls, plus grouped chat pushes
+   when the recipient has no open tab; per-device switch and 5 categories in the settings, opt-in card on the
+   home (never asks on page load), `player-v2` tour with the home screen hint for iPhone Safari. Details in
+   `ARCHITECTURE.md` ("PWA and Web Push").
+7. Release v1.1.0. **Done**: version 1.1.0 in `package.json`, `CHANGELOG.md` section with the upgrade steps,
+   `dev` merged into `main` (the Release workflow creates the tag, the GitHub Release and the image).

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { AppError } from "@/lib/errors";
+import { AppError, loggableError } from "@/lib/errors";
 
 type RouteContext<P> = { params: Promise<P> };
 
@@ -33,6 +33,6 @@ export function errorResponse(error: unknown, where = "api") {
   if (error instanceof ZodError) {
     return NextResponse.json({ message: error.issues[0]?.message ?? "Paramètres invalides" }, { status: 400 });
   }
-  console.error(`[${where}]`, error);
+  console.error(`[${where}]`, loggableError(error));
   return NextResponse.json({ message: "Erreur serveur" }, { status: 500 });
 }

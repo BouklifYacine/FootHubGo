@@ -18,11 +18,15 @@ import { useMoveEvent } from "@/features/events/hooks/use-event-actions";
 import { useEvents } from "@/features/events/hooks/use-events";
 import { CalendarToolbar } from "./calendar-toolbar";
 import { EventDialog, type EventDialogState } from "./event-dialog";
+import type { ScopeOption } from "./event-form";
 
 const plugins = [breezyTheme, dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin];
 
-/** Team calendar. Coaches create (click a day / slot), edit and drag events; players only read. */
-export function EventCalendar({ canEdit }: { canEdit: boolean }) {
+/**
+ * Section calendar (its events + the club-wide ones). Coaches create (click a day / slot), edit and
+ * drag their section's events; club OWNER / ADMIN also manage club-wide events; players only read.
+ */
+export function EventCalendar({ canEdit, scopeOptions }: { canEdit: boolean; scopeOptions?: ScopeOption[] }) {
   const controller = useCalendarController();
   const [range, setRange] = useState<{ from?: string; to?: string }>({});
   const [types, setTypes] = useState<EventType[]>([]);
@@ -36,13 +40,13 @@ export function EventCalendar({ canEdit }: { canEdit: boolean }) {
         .filter((event) => types.length === 0 || types.includes(event.type))
         .map((event) => ({
           id: event.id,
-          title: event.opponent ? `${event.title} - ${event.opponent}` : event.title,
+          title: `${event.isClubEvent ? "[Club] " : ""}${event.opponent ? `${event.title} - ${event.opponent}` : event.title}`,
           start: event.startDate,
           color: EVENT_TYPES[event.type].color,
           // Events with match stats are locked (also enforced by the server actions)
-          startEditable: canEdit && !event.hasStats,
+          startEditable: event.canEdit && !event.hasStats,
         })),
-    [events, types, canEdit],
+    [events, types],
   );
 
   const openEvent = (eventId: string) => {
@@ -56,7 +60,7 @@ export function EventCalendar({ canEdit }: { canEdit: boolean }) {
         controller={controller}
         types={types}
         onTypesChange={setTypes}
-        onCreate={canEdit ? () => setDialog({ mode: "create", start: setHours(new Date(), 18) }) : undefined}
+        // "Nouvel événement" is in the Agenda header; a click on a day also creates one.
       />
       <FullCalendar
         controller={controller}
@@ -72,6 +76,7 @@ export function EventCalendar({ canEdit }: { canEdit: boolean }) {
         scrollTime="08:00"
         nowIndicator
         dayMaxEvents
+        eventDisplay="list-item"
         editable={canEdit}
         eventDurationEditable={false}
         eventClick={(info) => openEvent(info.event.id)}
@@ -85,7 +90,7 @@ export function EventCalendar({ canEdit }: { canEdit: boolean }) {
           moveEvent.mutate({ eventId: info.event.id, startDate: info.event.start }, { onError: () => info.revert() });
         }}
       />
-      <EventDialog state={dialog} canEdit={canEdit} onClose={() => setDialog(null)} />
+      <EventDialog state={dialog} scopeOptions={scopeOptions} onClose={() => setDialog(null)} />
     </div>
   );
 }

@@ -6,27 +6,46 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { DialogFooter } from "@/components/ui/dialog";
+import { LoadingState } from "@/components/app/loading-state";
+import { ErrorState } from "@/components/app/error-state";
+import {
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogFooter,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/app/responsive-dialog";
 import { callUpStatusLabels, playerPositionLabels } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { sendCallUps } from "../actions";
+import { participationInvalidation } from "../invalidation";
 import { CALL_UP_RULES } from "../server/rules";
 import { useEventCallUps } from "../hooks/use-event-call-ups";
 
-type Props = { eventId: string; onBack: () => void };
+type Props = {
+  eventId: string;
+  /** "Retour" (calendar dialog) or "Annuler" (closes the dialog). */
+  onBack: () => void;
+  backLabel?: string;
+  onSent?: () => void;
+};
 
-/** Coach: select several players of a match and call them up at once (calendar dialog). */
-export function CallUpPicker({ eventId, onBack }: Props) {
-  const { data, isPending, error } = useEventCallUps(eventId);
+/** Coach: select several players of a match and call them up at once. */
+export function CallUpPicker({ eventId, onBack, backLabel = "Retour", onSent }: Props) {
+  const { data, isPending, error, refetch } = useEventCallUps(eventId);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const send = useActionMutation(sendCallUps, {
-    invalidate: [queryKeys.events.callUps(eventId), queryKeys.me.callUps],
-    onSuccess: () => setSelected(new Set()),
+    invalidate: [queryKeys.events.callUps(eventId), ...participationInvalidation],
+    onSuccess: () => {
+      setSelected(new Set());
+      onSent?.();
+    },
   });
 
-  if (isPending) return <p className="text-sm text-muted-foreground">Chargement des joueurs...</p>;
-  if (error) return <p className="text-sm text-destructive">{error.message}</p>;
+  if (isPending) return <LoadingState rows={3} />;
+  if (error) return <ErrorState error={error} onRetry={refetch} />;
 
   const available = data.players.filter((player) => !player.callUp && !player.isInjured).map((p) => p.userId);
   const allSelected = available.length > 0 && available.every((id) => selected.has(id));
@@ -46,7 +65,7 @@ export function CallUpPicker({ eventId, onBack }: Props) {
         </p>
       )}
       {data.canSend && available.length > 0 && (
-        <label className="flex items-center gap-2 text-sm font-medium">
+        <label className="flex min-h-11 items-center gap-3 rounded-md border px-3 text-sm font-medium">
           <Checkbox
             checked={allSelected}
             onCheckedChange={(checked) => setSelected(checked === true ? new Set(available) : new Set())}
@@ -55,13 +74,13 @@ export function CallUpPicker({ eventId, onBack }: Props) {
         </label>
       )}
 
-      <ul className="max-h-80 divide-y overflow-y-auto rounded-md border">
+      <ul className="max-h-[45dvh] divide-y overflow-y-auto rounded-md border md:max-h-80">
         {data.players.length === 0 && <li className="p-3 text-sm text-muted-foreground">Aucun joueur dans l&apos;équipe</li>}
         {data.players.map((player) => {
           const selectable = data.canSend && !player.callUp && !player.isInjured;
           return (
             <li key={player.userId}>
-              <label className="flex items-center gap-3 p-2">
+              <label className="flex min-h-12 items-center gap-3 px-3 py-2">
                 <Checkbox
                   disabled={!selectable}
                   checked={selected.has(player.userId)}
@@ -78,9 +97,9 @@ export function CallUpPicker({ eventId, onBack }: Props) {
                   )}
                 </span>
                 {player.callUp ? (
-                  <Badge variant="outline">{callUpStatusLabels[player.callUp.status]}</Badge>
+                  <Badge variant="outline">Convoqué · {callUpStatusLabels[player.callUp.status]}</Badge>
                 ) : (
-                  player.isInjured && <Badge variant="destructive">Blessé</Badge>
+                  player.isInjured && <Badge variant="danger">Blessé</Badge>
                 )}
               </label>
             </li>
@@ -88,9 +107,9 @@ export function CallUpPicker({ eventId, onBack }: Props) {
         })}
       </ul>
 
-      <DialogFooter className="gap-2">
+      <ResponsiveDialogFooter className="gap-2 sm:flex-row sm:justify-end">
         <Button variant="outline" onClick={onBack}>
-          Retour
+          {backLabel}
         </Button>
         <Button
           disabled={selected.size === 0 || send.isPending}
@@ -98,7 +117,36 @@ export function CallUpPicker({ eventId, onBack }: Props) {
         >
           <Send /> Convoquer{selected.size > 0 && ` (${selected.size})`}
         </Button>
-      </DialogFooter>
+      </ResponsiveDialogFooter>
     </>
+  );
+}
+
+/** The picker in its own dialog / bottom sheet (home, agenda, event page). */
+export function CallUpPickerDialog({
+  eventId,
+  title,
+  open,
+  onOpenChange,
+}: {
+  eventId: string;
+  title: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="sm:max-w-lg">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Convoquer pour {title}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>
+            Les joueurs sont prévenus tout de suite et répondent depuis leur téléphone.
+          </ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        {open && (
+          <CallUpPicker eventId={eventId} backLabel="Annuler" onBack={() => onOpenChange(false)} onSent={() => onOpenChange(false)} />
+        )}
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

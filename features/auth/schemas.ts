@@ -4,13 +4,15 @@ import { z } from "zod";
 export const emailSchema = z
   .string()
   .trim()
-  .min(1, "Vous devez mettre un email")
+  .toLowerCase()
+  .min(1, "Indique ton email")
   .pipe(z.email("Format d'email invalide"));
 
+/** Same bounds as better-auth (auth.ts). Existing shorter passwords still sign in. */
 export const passwordSchema = z
   .string()
-  .min(6, "Le mot de passe doit faire au minimum 6 caractères")
-  .max(35, "Le mot de passe doit faire au maximum 35 caractères");
+  .min(8, "Le mot de passe doit faire au minimum 8 caractères")
+  .max(128, "Le mot de passe doit faire au maximum 128 caractères");
 
 export const nameSchema = z
   .string()
@@ -25,7 +27,7 @@ export const codeSchema = z
 
 export const signInSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Vous devez mettre un mot de passe"),
+  password: z.string().min(1, "Indique ton mot de passe"),
 });
 
 export const signUpSchema = z.object({

@@ -8,14 +8,17 @@ import {
   toMessageDto,
   type BlockLists,
 } from "./dto";
-import { ensureTeamChannelMembership } from "./team-conversation";
+import { ensureClubChannelMembership, ensureTeamChannelMembership } from "./team-conversation";
 
 export const MESSAGES_PAGE_SIZE = 50;
 
-/** The user's conversations (team channel included), most recently active first. */
+/** The user's conversations (club and section channels included), most recently active first. */
 export async function getConversations(userId: string) {
   const membership = await findMembership(userId);
-  if (membership) await ensureTeamChannelMembership(userId, membership.teamId);
+  if (membership) {
+    await ensureClubChannelMembership(userId, membership.clubId);
+    for (const section of membership.sections) await ensureTeamChannelMembership(userId, section.teamId);
+  }
 
   const conversations = await prisma.conversation.findMany({
     where: { participants: { some: { userId } } },

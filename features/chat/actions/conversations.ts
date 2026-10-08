@@ -2,6 +2,7 @@
 
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
+import { enforceRateLimit, rateLimiter } from "@/lib/rate-limit";
 import { requireMember, requireUser } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
 import { emitToUsers, leaveConversationRoom } from "@/server/realtime/emitter";
@@ -15,12 +16,15 @@ import { assertNotBlocked, assertTeammates, requireParticipant } from "../server
 import { conversationInclude, toConversationDto } from "../server/dto";
 
 /** Opens (or reuses) a private conversation, or creates a group, with members of the caller's team. */
+const conversationBudget = rateLimiter("conversations", { max: 20, windowMs: 60 * 60_000 });
+
 export const createConversation = action(createConversationSchema, async (input) => {
   const { user, membership } = await requireMember();
+  enforceRateLimit([[conversationBudget, user.id]], "Trop de conversations créées. Réessaie plus tard.");
   const otherIds = input.type === "PRIVATE" ? [input.userId] : [...new Set(input.userIds)];
-  if (otherIds.includes(user.id)) throw new AppError("Vous ne pouvez pas vous ajouter vous-même");
+  if (otherIds.includes(user.id)) throw new AppError("Tu ne peux pas t'ajouter toi-même");
 
-  await assertTeammates(membership.teamId, otherIds);
+  await assertTeammates(membership.clubId, otherIds);
   await assertNotBlocked(user.id, otherIds);
 
   if (input.type === "PRIVATE") {
@@ -80,7 +84,7 @@ export const deleteConversation = action(conversationIdSchema, async (conversati
   const participant = await requireParticipant(user.id, conversationId);
   const { type } = participant.conversation;
 
-  if (type === "TEAM") throw forbidden("Le salon de l'équipe ne peut pas être supprimé");
+  if (type === "TEAM" || type === "CLUB") throw forbidden("Les salons du club et des sections ne peuvent pas être supprimés");
   if (type === "GROUP" && participant.role !== "ADMIN") {
     throw forbidden("Seul l'administrateur peut supprimer le groupe");
   }
@@ -99,7 +103,7 @@ export const deleteConversation = action(conversationIdSchema, async (conversati
 
 export const setUserBlocked = action(blockUserSchema, async ({ userId: targetId, blocked }) => {
   const user = await requireUser();
-  if (targetId === user.id) throw new AppError("Vous ne pouvez pas vous bloquer vous-même");
+  if (targetId === user.id) throw new AppError("Tu ne peux pas te bloquer toi-même");
 
   const target = await prisma.user.findUnique({ where: { id: targetId }, select: { id: true } });
   if (!target) throw notFound("Utilisateur introuvable");

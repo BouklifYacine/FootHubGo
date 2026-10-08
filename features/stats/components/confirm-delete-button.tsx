@@ -2,18 +2,8 @@
 
 import type { ReactNode } from "react";
 import { Trash2 } from "lucide-react";
+import { useConfirm } from "@/components/app/confirm-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
 type Props = {
   title: string;
@@ -24,30 +14,20 @@ type Props = {
   children?: ReactNode;
 };
 
+/** A delete button that asks first (shared ConfirmDialog). */
 export function ConfirmDeleteButton({ title, description, onConfirm, disabled, children }: Props) {
+  const confirm = useConfirm();
   return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button
-          className="bg-red-500 text-white hover:bg-red-600 cursor-pointer"
-          disabled={disabled}
-          aria-label={title}
-        >
-          {children ?? <Trash2 size={16} strokeWidth={2} aria-hidden="true" />}
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>Annuler</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm} className="bg-red-500 hover:bg-red-600 text-white">
-            Supprimer
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <Button
+      variant={children ? "destructive" : "outline"}
+      size={children ? "default" : "icon"}
+      disabled={disabled}
+      aria-label={title}
+      onClick={async () => {
+        if (await confirm({ title, description, confirmLabel: "Supprimer" })) onConfirm();
+      }}
+    >
+      {children ?? <Trash2 className="text-destructive" aria-hidden="true" />}
+    </Button>
   );
 }

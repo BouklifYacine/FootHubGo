@@ -4,21 +4,23 @@ import { useState } from "react";
 import { Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ResponsiveDialog as Dialog,
+  ResponsiveDialogClose as DialogClose,
+  ResponsiveDialogContent as DialogContent,
+  ResponsiveDialogDescription as DialogDescription,
+  ResponsiveDialogFooter as DialogFooter,
+  ResponsiveDialogHeader as DialogHeader,
+  ResponsiveDialogTitle as DialogTitle,
+  ResponsiveDialogTrigger as DialogTrigger,
+} from "@/components/app/responsive-dialog";
 import { useAppForm } from "@/lib/form";
 import { playerPositionLabels, toOptions } from "@/lib/enum-labels";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
 import { createPlayerStats, updatePlayerStats } from "../actions";
 import { statsInvalidation } from "../hooks/use-event-stats";
+import { MAX_MINUTES } from "../playing-time";
 import { playerStatsFormSchema, type PlayerStatsFormValues } from "../schemas";
+import { MinutePresets } from "./minute-presets";
 import type { EligiblePlayer, EventPlayerStat } from "../types";
 
 type Props =
@@ -44,12 +46,12 @@ export function PlayerStatsDialog(props: Props) {
           {isEdit ? <Pencil size={16} strokeWidth={2} /> : <Plus size={16} strokeWidth={2} />}
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
             {props.stat ? `Modifier les stats de ${props.stat.user.name}` : "Ajouter les stats joueur"}
           </DialogTitle>
-          <DialogDescription>Renseignez la performance du joueur sur ce match</DialogDescription>
+          <DialogDescription>Les statistiques du joueur sur ce match.</DialogDescription>
         </DialogHeader>
         {/* Mounted only while open: the form always starts from fresh values */}
         <PlayerStatsForm {...props} onSuccess={() => setOpen(false)} />
@@ -67,11 +69,12 @@ function PlayerStatsForm({ eventId, stat, players = [], onSuccess }: Props & { o
   const defaultValues: PlayerStatsFormValues = stat
     ? {
         userId: stat.userId,
-        position: stat.position,
+        // A row from the playing-time sheet may have no position yet: the coach picks one.
+        position: stat.position ?? (undefined as unknown as PlayerStatsFormValues["position"]),
         goals: stat.goals,
         assists: stat.assists,
         minutesPlayed: stat.minutesPlayed,
-        rating: stat.rating,
+        rating: stat.rating ?? undefined,
         isStarter: stat.isStarter,
       }
     : {
@@ -80,7 +83,7 @@ function PlayerStatsForm({ eventId, stat, players = [], onSuccess }: Props & { o
         goals: 0,
         assists: 0,
         minutesPlayed: 90,
-        rating: 6,
+        rating: undefined,
         isStarter: true,
       };
 
@@ -132,13 +135,18 @@ function PlayerStatsForm({ eventId, stat, players = [], onSuccess }: Props & { o
         <form.AppField name="assists">
           {(field) => <field.NumberField label="Passes décisives" min={0} max={99} />}
         </form.AppField>
-        <form.AppField name="minutesPlayed">
-          {(field) => <field.NumberField label="Minutes jouées" min={0} max={90} />}
-        </form.AppField>
         <form.AppField name="rating">
-          {(field) => <field.NumberField label="Note" min={0} max={10} step={0.1} />}
+          {(field) => <field.NumberField label="Note (sur 10)" min={0} max={10} step={0.1} placeholder="Pas notée" />}
+        </form.AppField>
+        <form.AppField name="minutesPlayed">
+          {(field) => <field.NumberField label="Minutes jouées" min={0} max={MAX_MINUTES} />}
         </form.AppField>
       </div>
+      <form.Subscribe selector={(state) => state.values.minutesPlayed}>
+        {(minutes) => (
+          <MinutePresets value={minutes} onChange={(value) => form.setFieldValue("minutesPlayed", value)} />
+        )}
+      </form.Subscribe>
       <form.AppField name="isStarter">{(field) => <field.CheckboxField label="Titulaire" />}</form.AppField>
 
       <DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">

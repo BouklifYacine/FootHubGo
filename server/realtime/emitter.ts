@@ -88,3 +88,19 @@ export async function isUserConnected(userId: string) {
   const sockets = await io.in(userRoom(userId)).fetchSockets();
   return sockets.length > 0;
 }
+
+/**
+ * Closes the user's open sockets: every tab (password / email change, account deletion),
+ * or only those opened with one session (sign-out). Closed by the server, the client does not
+ * reconnect on its own, so a revoked session stops receiving events at once.
+ */
+export async function disconnectUserSockets(userId: string, sessionId?: string) {
+  const io = getIO();
+  if (!io) return;
+  if (!sessionId) {
+    io.in(userRoom(userId)).disconnectSockets(true);
+    return;
+  }
+  const sockets = await io.in(userRoom(userId)).fetchSockets();
+  for (const socket of sockets) if (socket.data.sessionId === sessionId) socket.disconnect(true);
+}

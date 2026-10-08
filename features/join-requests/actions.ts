@@ -3,11 +3,13 @@
 import { z } from "zod";
 import { prisma } from "@/prisma";
 import { action } from "@/lib/actions/action";
-import { findMembership, requireCoach, requireUser } from "@/lib/auth/session";
+import { enforceRateLimit, rateLimiter } from "@/lib/rate-limit";
+import { requireMember, requireUser } from "@/lib/auth/session";
 import { AppError, forbidden, notFound } from "@/lib/errors";
 import { playerPositionLabels } from "@/lib/enum-labels";
 import { notifyUser, notifyUsers } from "@/features/notifications/server/notify-user";
-import { syncChatOnMemberJoined } from "@/features/team/server/team-chat";
+import { canManageSection, sectionDisplayName } from "@/features/clubs/rules";
+import { addToSection, sectionManagerIds } from "@/features/clubs/server/membership";
 import {
   reviewJoinRequestSchema,
   sendJoinRequestSchema,
@@ -23,17 +25,31 @@ async function findOwnRequest(requestId: string, userId: string) {
   return request;
 }
 
+/** Each request notifies the coaches: 10 per hour per user (send / cancel loops included). */
+const joinRequestBudget = rateLimiter("join-requests", { max: 10, windowMs: 60 * 60_000 });
+
 export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ...input }) => {
   const user = await requireUser();
+  enforceRateLimit([[joinRequestBudget, user.id]], "Trop de demandes envoyées. Réessaie plus tard.");
 
-  const team = await prisma.team.findUnique({
+  // The request targets one section of the club.
+  const section = await prisma.team.findUnique({
     where: { id: teamId },
-    select: { name: true, logoUrl: true, visibility: true },
+    select: { id: true, name: true, clubId: true, club: { select: { name: true, visibility: true } } },
   });
-  if (!team) throw notFound("Club introuvable");
-  if (team.visibility !== "PUBLIC") throw forbidden("Ce club n'accepte pas de demandes d'adhésion.");
-  if (await findMembership(user.id)) {
-    throw new AppError("Vous avez déjà un club. Quittez-le avant de postuler ailleurs.");
+  if (!section) throw notFound("Section introuvable");
+  if (section.club.visibility !== "PUBLIC") throw forbidden("Ce club n'accepte pas de demandes d'adhésion.");
+
+  // A member of a club can only apply to another section of their own club.
+  const clubMember = await prisma.clubMember.findUnique({
+    where: { userId: user.id },
+    select: { clubId: true, sectionMemberships: { select: { teamId: true } } },
+  });
+  if (clubMember && clubMember.clubId !== section.clubId) {
+    throw new AppError("Tu as déjà un club. Quitte-le avant de postuler ailleurs.");
+  }
+  if (clubMember?.sectionMemberships.some((m) => m.teamId === section.id)) {
+    throw new AppError("Tu fais déjà partie de cette section.");
   }
 
   const pending = await prisma.joinRequest.findMany({
@@ -41,30 +57,26 @@ export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ..
     select: { teamId: true },
   });
   if (pending.some((request) => request.teamId === teamId)) {
-    throw new AppError("Vous avez déjà une demande en cours pour ce club.");
+    throw new AppError("Tu as déjà une demande en cours pour cette section.");
   }
   if (pending.length >= MAX_PENDING_REQUESTS) {
-    throw new AppError(`Vous avez atteint la limite de ${MAX_PENDING_REQUESTS} demandes en attente.`);
+    throw new AppError(`Tu as atteint la limite de ${MAX_PENDING_REQUESTS} demandes en attente.`);
   }
 
   await prisma.joinRequest.create({ data: { ...input, teamId, userId: user.id } });
 
-  const coaches = await prisma.teamMember.findMany({
-    where: { teamId, role: "COACH" },
-    select: { userId: true },
+  // Reviewed by the section's coaches and the club OWNER / ADMIN.
+  const name = sectionDisplayName(section.club.name, section.name);
+  await notifyUsers(await sectionManagerIds(section.id, section.clubId, user.id), {
+    type: "JOIN_REQUEST",
+    title: "Nouvelle demande d'adhésion",
+    message: `${user.name} souhaite rejoindre ${name} au poste de ${playerPositionLabels[input.position]}.`,
+    url: "/app/join-requests",
+    fromUserName: user.name,
+    fromUserImage: user.image,
   });
-  await notifyUsers(
-    coaches.map((coach) => coach.userId),
-    {
-      type: "JOIN_REQUEST",
-      title: "Nouvelle demande d'adhésion",
-      message: `${user.name} souhaite rejoindre le club au poste de ${playerPositionLabels[input.position]}.`,
-      fromUserName: user.name,
-      fromUserImage: user.image,
-    },
-  );
 
-  return { message: `Votre demande pour rejoindre ${team.name} a été envoyée` };
+  return { message: `Ta demande pour rejoindre ${name} a été envoyée` };
 });
 
 export const updateJoinRequest = action(updateJoinRequestSchema, async ({ requestId, ...input }) => {
@@ -73,7 +85,7 @@ export const updateJoinRequest = action(updateJoinRequestSchema, async ({ reques
   if (request.status !== "PENDING") throw new AppError("Impossible de modifier une demande déjà traitée.");
 
   await prisma.joinRequest.update({ where: { id: request.id }, data: input });
-  return { message: "Votre demande a été mise à jour" };
+  return { message: "Ta demande a été mise à jour" };
 });
 
 export const cancelJoinRequest = action(z.string().min(1), async (requestId) => {
@@ -84,49 +96,57 @@ export const cancelJoinRequest = action(z.string().min(1), async (requestId) => 
   }
 
   await prisma.joinRequest.delete({ where: { id: request.id } });
-  return { message: "Votre demande a été supprimée" };
+  return { message: "Ta demande a été supprimée" };
 });
 
+/** By the section's coaches or the club OWNER / ADMIN; requests of other clubs are never visible. */
 export const reviewJoinRequest = action(reviewJoinRequestSchema, async ({ requestId, decision }) => {
-  const { membership } = await requireCoach();
-  const { team } = membership;
+  const { membership } = await requireMember();
 
-  // Scoped to the coach's team: a coach can only review requests sent to their own club.
-  const request = await prisma.joinRequest.findFirst({ where: { id: requestId, teamId: team.id } });
-  if (!request) throw notFound("Demande introuvable");
-
-  await prisma.$transaction(async (tx) => {
-    const updated = await tx.joinRequest.updateMany({
-      where: { id: request.id, status: "PENDING" },
-      data: { status: decision },
-    });
-    if (updated.count === 0) throw new AppError("Cette demande a déjà été traitée.");
-    if (decision === "REJECTED") return;
-
-    // Re-checked inside the transaction: the applicant may have joined another club meanwhile.
-    const existing = await tx.teamMember.findFirst({ where: { userId: request.userId } });
-    if (existing) throw new AppError("Ce joueur appartient déjà à un club.");
-
-    await tx.teamMember.create({
-      data: { userId: request.userId, teamId: team.id, role: "PLAYER", position: request.position },
-    });
-    await tx.joinRequest.deleteMany({
-      where: { userId: request.userId, status: "PENDING", id: { not: request.id } },
-    });
+  const request = await prisma.joinRequest.findFirst({
+    where: { id: requestId, team: { clubId: membership.clubId } },
+    include: { team: { select: { id: true, name: true, clubId: true } } },
   });
+  if (!request) throw notFound("Demande introuvable");
+  if (!canManageSection(membership, request.teamId)) {
+    throw forbidden("Réservé aux entraîneurs de la section et aux administrateurs du club");
+  }
+
+  // Claimed first: a concurrent review cannot handle it twice.
+  const claimed = await prisma.joinRequest.updateMany({
+    where: { id: request.id, status: "PENDING" },
+    data: { status: decision },
+  });
+  if (claimed.count === 0) throw new AppError("Cette demande a déjà été traitée.");
 
   const accepted = decision === "ACCEPTED";
-  if (accepted) await syncChatOnMemberJoined(team.id, request.userId);
+  if (accepted) {
+    try {
+      // One club per user and once per section are enforced by unique indexes (audit L13).
+      await addToSection({
+        userId: request.userId,
+        section: { id: request.team.id, clubId: request.team.clubId },
+        role: "PLAYER",
+        position: request.position,
+        conflictMessage: "Ce joueur appartient déjà à un autre club ou à cette section.",
+      });
+    } catch (error) {
+      await prisma.joinRequest.update({ where: { id: request.id }, data: { status: "PENDING" } });
+      throw error;
+    }
+  }
 
+  const name = sectionDisplayName(membership.club.name, request.team.name);
   await notifyUser({
     userId: request.userId,
     type: accepted ? "JOINED_TEAM" : "JOIN_REQUEST",
-    title: accepted ? "Bienvenue dans l'équipe !" : "Réponse à votre demande",
+    title: accepted ? "Bienvenue dans l'équipe !" : "Réponse à ta demande",
     message: accepted
-      ? `L'entraîneur a accepté votre demande pour rejoindre ${team.name}.`
-      : `L'entraîneur de ${team.name} n'a pas retenu votre candidature pour le moment.`,
-    fromUserName: team.name,
-    fromUserImage: team.logoUrl,
+      ? `Ta demande pour rejoindre ${name} a été acceptée.`
+      : `${name} n'a pas retenu ta candidature pour le moment.`,
+    url: accepted ? "/app" : "/app/join-requests",
+    fromUserName: membership.club.name,
+    fromUserImage: membership.club.logoUrl,
   });
 
   return { message: accepted ? "Demande acceptée" : "Demande refusée" };

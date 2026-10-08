@@ -1,24 +1,39 @@
 import { createElement } from "react";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware, isAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { emailOTP } from "better-auth/plugins";
 import { prisma } from "./prisma";
 import { hashPassword, verifyPassword } from "./lib/argon2";
+import { CLIENT_IP_HEADER } from "./lib/client-ip";
+import { rateLimiter } from "./lib/rate-limit";
+import { disconnectUserSockets } from "./server/realtime/emitter";
 import { sendEmail } from "./emails/send-email";
 import { WelcomeEmail } from "./emails/account-emails";
 import { VerificationCodeEmail } from "./emails/verification-code-email";
 
 const OTP_EXPIRES_IN_MINUTES = 10;
+export const PASSWORD_MIN_LENGTH = 8;
+export const PASSWORD_MAX_LENGTH = 128;
+
+/**
+ * Per-account lockout: 10 password sign-ins in 15 minutes without a success lock the account for the
+ * rest of the window. Counted before the check (parallel attempts can't exceed it), reset on success.
+ */
+const signInFailures = rateLimiter("sign-in-failures", { max: 10, windowMs: 15 * 60_000 });
+const signInEmailOf = (body: unknown) =>
+  String((body as { email?: unknown } | undefined)?.email ?? "").trim().toLowerCase();
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 6,
-    maxPasswordLength: 35,
-    autoSignIn: false,
+    minPasswordLength: PASSWORD_MIN_LENGTH,
+    maxPasswordLength: PASSWORD_MAX_LENGTH,
+    // Signed in right after sign-up (no second login). There is no email verification yet
+    // (security audit L2, deferred): when it comes, sign-up will have to wait for it.
+    autoSignIn: true,
     revokeSessionsOnPasswordReset: true,
     password: { hash: hashPassword, verify: verifyPassword },
   },
@@ -34,10 +49,40 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
+  // In memory (one process). The IP is the one resolved by server.ts, never a raw client header.
   rateLimit: { enabled: true, window: 10, max: 100 },
+  advanced: { ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] } },
+  // Unused by the app and weaker than its own actions (no password check, no notification, any
+  // avatar URL): profile, email and password changes only go through features/settings/actions.ts.
+  disabledPaths: ["/update-user", "/change-password", "/change-email"],
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-in/email") return;
+      const email = signInEmailOf(ctx.body);
+      if (email && !signInFailures.hit(email).ok) {
+        throw APIError.from("TOO_MANY_REQUESTS", {
+          code: "ACCOUNT_LOCKED",
+          message: "Trop de tentatives sur ce compte, réessaie dans 15 minutes",
+        });
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-in/email") return;
+      const email = signInEmailOf(ctx.body);
+      if (email && !isAPIError(ctx.context.returned)) signInFailures.reset(email);
+    }),
+  },
   // OAuth errors (e.g. account not linked) land on a French page instead of better-auth's default.
   onAPIError: { errorURL: "/auth/error" },
   databaseHooks: {
+    session: {
+      delete: {
+        // Sign-out (or an expired session): its open sockets stop receiving events at once.
+        after: async (session) => {
+          await disconnectUserSockets(session.userId, session.id).catch(() => undefined);
+        },
+      },
+    },
     user: {
       create: {
         // `name` is unique in the database: reject a taken name on sign-up,

@@ -21,10 +21,11 @@ export function ChatAvatar({
       </Avatar>
       {isOnline !== undefined && (
         <span
+          role="img"
           aria-label={isOnline ? "En ligne" : "Hors ligne"}
           className={cn(
             "absolute bottom-0 right-0 size-3 rounded-full border-2 border-background",
-            isOnline ? "bg-green-500" : "bg-zinc-400",
+            isOnline ? "bg-success" : "bg-muted-foreground",
           )}
         />
       )}

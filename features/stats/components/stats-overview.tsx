@@ -4,28 +4,42 @@ import { useMyTeam, type MyTeam } from "@/features/team/hooks/use-my-team";
 import { useProfile } from "@/features/settings/hooks/use-profile";
 import { usePlayerStats } from "../hooks/use-player-stats";
 import { useTeamStats } from "../hooks/use-team-stats";
+import { BarChart3 } from "lucide-react";
+import { EmptyState } from "@/components/app/empty-state";
+import { ErrorState } from "@/components/app/error-state";
+import { Page, PageHeader } from "@/components/app/page-header";
 import { normalize, StatList, StatsHeader, StatsRadar, StatsSkeleton } from "./stats-display";
+import { TeamPlayingTime } from "./team-playing-time";
 
 type Team = NonNullable<MyTeam["team"]>;
 
-const layout = "min-h-screen flex flex-col lg:flex-row justify-evenly gap-4 items-center";
+const layout = "grid items-start gap-6 lg:grid-cols-3";
 
 /** /app/stats: the team's season for the coach, the player's own season for a player. */
 export function StatsOverview() {
   const { data: myTeam, isLoading } = useMyTeam();
 
   if (isLoading) return <StatsSkeleton />;
-  if (!myTeam?.team) return <p className="text-center text-4xl">Aucune équipe trouvée pour ce club</p>;
+  if (!myTeam?.team) return null;
+  const isPlayer = myTeam.role === "PLAYER";
 
-  return myTeam.role === "PLAYER" ? <PlayerStatsView team={myTeam.team} /> : <TeamStatsView team={myTeam.team} />;
+  return (
+    <Page>
+      <PageHeader
+        title="Statistiques"
+        description={isPlayer ? "Ta saison, match après match." : `La saison de ${myTeam.team.displayName}.`}
+      />
+      {isPlayer ? <PlayerStatsView team={myTeam.team} /> : <TeamStatsView team={myTeam.team} />}
+    </Page>
+  );
 }
 
 function TeamStatsView({ team }: { team: Team }) {
-  const { data: stats, isLoading, error } = useTeamStats(team.id);
+  const { data: stats, isLoading, error, refetch } = useTeamStats(team.id);
   const { data: profile } = useProfile();
 
   if (isLoading) return <StatsSkeleton />;
-  if (error || !stats) return <p className="text-center text-red-500">{error?.message}</p>;
+  if (error || !stats) return <ErrorState error={error} onRetry={refetch} />;
 
   return (
     <div className={layout}>
@@ -89,18 +103,25 @@ function TeamStatsView({ team }: { team: Team }) {
           ],
         ]}
       />
+      <TeamPlayingTime teamId={team.id} className="lg:col-span-3" />
     </div>
   );
 }
 
 function PlayerStatsView({ team }: { team: Team }) {
-  const { data: stats, isLoading, error } = usePlayerStats();
+  const { data: stats, isLoading, error, refetch } = usePlayerStats();
   const { data: profile } = useProfile();
 
   if (isLoading) return <StatsSkeleton />;
-  if (error || !stats) return <p className="text-center text-red-500">{error?.message}</p>;
+  if (error || !stats) return <ErrorState error={error} onRetry={refetch} />;
   if (stats.matches === 0) {
-    return <p className={layout}>Participez à un match pour voir vos statistiques</p>;
+    return (
+      <EmptyState
+        icon={BarChart3}
+        title="Pas encore de statistiques"
+        description="Elles apparaîtront après ton premier match, quand ton coach aura saisi les stats."
+      />
+    );
   }
 
   const name = profile?.name ?? "";
@@ -134,8 +155,11 @@ function PlayerStatsView({ team }: { team: Team }) {
             { label: "Total buts", value: stats.goals },
             { label: "Passes décisives", value: stats.assists },
             { label: "Buts + passes D.", value: stats.goalContributions },
-            { label: "Note moyenne", value: stats.avgRating.toFixed(1) },
+            { label: "Note moyenne", value: stats.avgRating ? stats.avgRating.toFixed(1) : "—" },
             { label: "Matchs titulaire", value: stats.starts },
+            { label: "Minutes jouées", value: stats.minutes },
+            { label: "Minutes / match", value: stats.avgMinutes },
+            { label: "Homme du match", value: stats.motmAwards },
           ],
           [
             { label: "Titulaire", value: `${stats.startRate}%` },

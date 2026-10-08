@@ -2,21 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  ArrowLeftRight,
-  Calendar,
-  CalendarCheck,
-  CalendarDays,
-  ChartNoAxesCombined,
-  Fan,
-  Hospital,
-  House,
-  LayoutDashboard,
-  MessageCircle,
-  UsersRound,
-  Vote,
-  type LucideIcon,
-} from "lucide-react";
+import { Fan, House, LayoutDashboard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -29,86 +15,88 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  useSidebar,
 } from "@/components/ui/sidebar";
-import type { TeamRole } from "@/generated/prisma/browser";
-import { useUnreadMessagesCount } from "@/features/chat/hooks/use-conversations";
-import { useMyTeam } from "@/features/team/hooks/use-my-team";
+import { MORE_NAV, PRIMARY_NAV, isActive, visibleItems, type NavItem } from "@/lib/navigation";
+import { SectionSwitcher } from "@/features/clubs/components/section-switcher";
 import { NavUser } from "./nav-user";
+import { badgeLabel, badgeText, useNavigation } from "./use-navigation";
 
-type NavItem = { title: string; url: string; icon: LucideIcon; roles?: TeamRole[] };
-
-const appItems: NavItem[] = [
-  { title: "Accueil", url: "/app", icon: House },
-  { title: "Transfert", url: "/app/transfers", icon: ArrowLeftRight, roles: ["NO_CLUB", "COACH"] },
-  { title: "Effectif", url: "/app/squad", icon: UsersRound, roles: ["COACH", "PLAYER"] },
-  { title: "Événements", url: "/app/events", icon: Calendar, roles: ["COACH", "PLAYER"] },
-  { title: "Statistiques", url: "/app/stats", icon: ChartNoAxesCombined, roles: ["COACH", "PLAYER"] },
-  { title: "Convocations", url: "/app/call-ups", icon: CalendarCheck, roles: ["PLAYER"] },
-  { title: "Blessures", url: "/app/injuries", icon: Hospital, roles: ["COACH", "PLAYER"] },
-  { title: "Calendrier", url: "/app/calendar", icon: CalendarDays, roles: ["COACH", "PLAYER"] },
-  { title: "Sondages", url: "/app/polls", icon: Vote, roles: ["COACH", "PLAYER"] },
-  { title: "Messages", url: "/app/chat", icon: MessageCircle, roles: ["COACH", "PLAYER"] },
+const ADMIN_NAV: NavItem[] = [
+  { title: "Utilisateurs", href: "/dashboard", icon: LayoutDashboard },
+  { title: "Retour à l'application", href: "/app", icon: House },
 ];
 
-const adminItems: NavItem[] = [
-  { title: "Utilisateurs", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Retour à l'application", url: "/app", icon: House },
-];
-
+/** Desktop navigation (md+), built from the same config as the bottom tabs (`lib/navigation.ts`). */
 export function AppSidebar({ variant }: { variant: "app" | "admin" }) {
-  const pathname = usePathname();
-  const { data } = useMyTeam();
-  const role = data?.role ?? "NO_CLUB";
-  const unreadMessages = useUnreadMessagesCount(variant === "app" && role !== "NO_CLUB");
-
-  const items =
-    variant === "admin" ? adminItems : appItems.filter((item) => !item.roles || item.roles.includes(role));
+  const { context, counts } = useNavigation();
+  const isApp = variant === "app";
+  const groups = isApp
+    ? [
+        { label: "Mon club", items: visibleItems(PRIMARY_NAV, context) },
+        { label: "Plus", items: visibleItems(MORE_NAV, context) },
+      ]
+    : [{ label: "Administration", items: ADMIN_NAV }];
 
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <Link href="/">
-                <Fan className="size-4" />
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">FootHubGo</span>
-                  <span className="truncate text-xs">
-                    {variant === "admin" ? "Administration" : (data?.team?.name ?? "Sans club")}
-                  </span>
-                </div>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        {isApp ? (
+          <SectionSwitcher />
+        ) : (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton size="lg" asChild>
+                <Link href="/">
+                  <Fan className="size-4" />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">FootHubGo</span>
+                    <span className="truncate text-xs text-muted-foreground">Administration</span>
+                  </div>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>{variant === "admin" ? "Administration" : "Mon club"}</SidebarGroupLabel>
-          <SidebarMenu>
-            {items.map((item) => (
-              <SidebarMenuItem key={item.url}>
-                <SidebarMenuButton asChild tooltip={item.title} isActive={pathname === item.url}>
-                  <Link href={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
-                {item.url === "/app/chat" && unreadMessages > 0 && (
-                  <SidebarMenuBadge aria-label={`${unreadMessages} messages non lus`}>
-                    {unreadMessages > 99 ? "99+" : unreadMessages}
-                  </SidebarMenuBadge>
-                )}
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {groups.map((group) =>
+          group.items.length === 0 ? null : (
+            <SidebarGroup key={group.label}>
+              {/* The "Plus" group is where the tour's last step points on desktop (mobile: the Plus tab). */}
+              <SidebarGroupLabel data-tour={group.label === "Plus" ? "nav-more" : undefined}>{group.label}</SidebarGroupLabel>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarLink key={item.href} item={item} count={item.badge ? counts[item.badge] : 0} />
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
+          ),
+        )}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
+  );
+}
+
+function SidebarLink({ item, count }: { item: NavItem; count: number }) {
+  const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild tooltip={item.title} isActive={isActive(item, pathname)}>
+        {/* The mobile sheet (admin area) closes once a page is chosen. */}
+        <Link href={item.href} onClick={() => setOpenMobile(false)} data-tour={item.tour}>
+          <item.icon />
+          <span>{item.title}</span>
+        </Link>
+      </SidebarMenuButton>
+      {count > 0 && item.badge && (
+        <SidebarMenuBadge aria-label={badgeLabel(item.badge, count)}>{badgeText(count)}</SidebarMenuBadge>
+      )}
+    </SidebarMenuItem>
   );
 }

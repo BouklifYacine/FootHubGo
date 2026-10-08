@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { Competition, MatchResult, PlayerPosition } from "@/generated/prisma/browser";
+import { MAX_MINUTES } from "./playing-time";
 
 const count = (label: string) =>
   z
-    .number({ error: `Renseignez ${label}` })
+    .number({ error: `Indique ${label}` })
     .int("Nombre entier attendu")
     .min(0, "Minimum 0")
     .max(99, "Maximum 99");
@@ -18,13 +19,13 @@ const optionalCount = z
 /** Team stats of a match: same schema for the create and edit forms and actions. */
 export const teamStatsSchema = z
   .object({
-    result: z.enum(MatchResult, { error: "Choisissez un résultat" }),
+    result: z.enum(MatchResult, { error: "Choisis un résultat" }),
     goalsFor: count("les buts marqués"),
     goalsAgainst: count("les buts encaissés"),
     totalShots: optionalCount,
     shotsOnTarget: optionalCount,
     isHome: z.boolean(),
-    competition: z.enum(Competition, { error: "Choisissez une compétition" }),
+    competition: z.enum(Competition, { error: "Choisis une compétition" }),
   })
   .superRefine((stats, ctx) => {
     const issue = (path: keyof typeof stats, message: string) =>
@@ -55,24 +56,43 @@ export type TeamStatsValues = z.input<typeof teamStatsSchema>;
 
 /** Stats of one player in a match. */
 export const playerStatsSchema = z.object({
-  position: z.enum(PlayerPosition, { error: "Choisissez un poste" }),
+  position: z.enum(PlayerPosition, { error: "Choisis un poste" }),
   goals: count("les buts"),
   assists: count("les passes décisives"),
   minutesPlayed: z
-    .number({ error: "Renseignez les minutes jouées" })
+    .number({ error: "Indique les minutes jouées" })
     .int("Nombre entier attendu")
     .min(0, "Minimum 0")
-    .max(90, "Maximum 90 minutes"),
-  rating: z
-    .number({ error: "Renseignez une note" })
-    .min(0, "Minimum 0")
-    .max(10, "La note maximale est 10"),
+    .max(MAX_MINUTES, `Maximum ${MAX_MINUTES} minutes (prolongations comprises)`),
+  /** Optional: empty = not rated (left out of the average rating). */
+  rating: z.number().min(0, "Minimum 0").max(10, "La note maximale est 10").optional(),
   isStarter: z.boolean(),
 });
 
 /** The form also picks the player when adding stats. */
 export const playerStatsFormSchema = playerStatsSchema.extend({
-  userId: z.string().min(1, "Choisissez un joueur"),
+  userId: z.string().min(1, "Choisis un joueur"),
 });
 
 export type PlayerStatsFormValues = z.input<typeof playerStatsFormSchema>;
+
+/** The coach's playing-time sheet of a match (every present player at once). */
+export const playingTimeSchema = z.object({
+  eventId: z.string().min(1),
+  entries: z
+    .array(
+      z.object({
+        userId: z.string().min(1),
+        minutes: z
+          .number({ error: "Indique les minutes jouées" })
+          .int("Nombre entier attendu")
+          .min(0, "Minimum 0")
+          .max(MAX_MINUTES, `Maximum ${MAX_MINUTES} minutes`),
+        isStarter: z.boolean(),
+      }),
+    )
+    .min(1, "Aucun joueur")
+    .max(60, "Trop de joueurs"),
+});
+
+export type PlayingTimeInput = z.input<typeof playingTimeSchema>;

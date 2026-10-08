@@ -6,8 +6,8 @@ import { AuthLayout } from "@/features/auth/components/auth-layout";
 // better-auth redirects here (`onAPIError.errorURL` in auth.ts) with `?error=<code>`.
 const messages: Record<string, string> = {
   account_not_linked:
-    "Un compte existe déjà avec cet email. Connectez-vous avec la méthode utilisée lors de votre inscription.",
-  unable_to_create_user: "Impossible de créer votre compte. Réessayez plus tard.",
+    "Un compte existe déjà avec cet email. Connecte-toi avec la méthode utilisée lors de ton inscription.",
+  unable_to_create_user: "Impossible de créer ton compte. Réessaie plus tard.",
 };
 
 export default async function AuthErrorPage({

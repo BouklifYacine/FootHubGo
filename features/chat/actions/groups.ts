@@ -41,7 +41,7 @@ export const addGroupMembers = action(addGroupMembersSchema, async ({ conversati
     throw new AppError(`Un groupe ne peut pas dépasser ${GROUP_MAX_MEMBERS} membres`);
   }
 
-  await assertTeammates(membership.teamId, newIds);
+  await assertTeammates(membership.clubId, newIds);
   await assertNotBlocked(user.id, newIds);
   await prisma.conversationParticipant.createMany({
     data: newIds.map((userId) => ({ userId, conversationId, role: "MEMBER" as const })),
@@ -60,7 +60,7 @@ export const removeGroupMember = action(removeGroupMemberSchema, async ({ conver
 
   const isSelf = targetId === user.id;
   if (isSelf && me.role === "ADMIN") {
-    throw new AppError("L'administrateur ne peut pas quitter le groupe. Supprimez-le à la place.");
+    throw new AppError("L'administrateur ne peut pas quitter le groupe. Supprime-le à la place.");
   }
   if (!isSelf && me.role !== "ADMIN") throw forbidden("Seul l'administrateur peut retirer des membres");
 
@@ -72,5 +72,5 @@ export const removeGroupMember = action(removeGroupMemberSchema, async ({ conver
   emitToUser(targetId, "chat:conversation_removed", { conversationId });
   leaveConversationRoom([targetId], conversationId);
   await notifyUpdated(conversationId);
-  return { message: isSelf ? "Vous avez quitté le groupe" : "Membre retiré" };
+  return { message: isSelf ? "Tu as quitté le groupe" : "Membre retiré" };
 });

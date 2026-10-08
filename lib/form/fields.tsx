@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts();
@@ -56,8 +57,15 @@ function FieldShell({
 export function TextField({
   type = "text",
   placeholder,
+  inputMode,
+  autoComplete,
   ...props
-}: BaseProps & { type?: "text" | "email" | "password" | "url"; placeholder?: string }) {
+}: BaseProps & {
+  type?: "text" | "email" | "password" | "url";
+  placeholder?: string;
+  inputMode?: "numeric" | "email" | "text";
+  autoComplete?: string;
+}) {
   const field = useFieldContext<string>();
   return (
     <FieldShell {...props}>
@@ -66,6 +74,8 @@ export function TextField({
         name={field.name}
         type={type}
         placeholder={placeholder}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
         value={field.state.value ?? ""}
         onBlur={field.handleBlur}
         onChange={(e) => field.handleChange(e.target.value)}
@@ -132,7 +142,7 @@ export type Option<T extends string = string> = { value: T; label: string };
 
 export function SelectField({
   options,
-  placeholder = "Sélectionner",
+  placeholder = "Choisir",
   ...props
 }: BaseProps & { options: readonly Option[]; placeholder?: string }) {
   const field = useFieldContext<string | undefined>();
@@ -173,14 +183,58 @@ export function CheckboxField(props: BaseProps) {
   );
 }
 
+const pad = (value: number) => String(value).padStart(2, "0");
+const toDateInput = (date?: Date) => (date ? `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` : "");
+const toTimeInput = (date?: Date) => (date ? `${pad(date.getHours())}:${pad(date.getMinutes())}` : "");
+
+/** "2026-10-12" + "15:00" (local time) -> Date, or undefined while incomplete. */
+function fromInputs(day: string, time: string) {
+  const [year, month, date] = day.split("-").map(Number);
+  if (!year || !month || !date) return undefined;
+  const [hours = 0, minutes = 0] = time ? time.split(":").map(Number) : [];
+  return new Date(year, month - 1, date, hours, minutes);
+}
+
+/**
+ * Date (and time) field. Phones get the native date / time inputs (the system wheel, no popover
+ * inside a sheet); desktops keep the calendar popover.
+ */
 export function DateField({ withTime = false, ...props }: BaseProps & { withTime?: boolean }) {
   const field = useFieldContext<Date | undefined>();
+  const isMobile = useIsMobile();
+  const value = field.state.value;
+
+  if (isMobile) {
+    return (
+      <FieldShell {...props}>
+        <div className={withTime ? "grid grid-cols-[1fr_auto] gap-2" : undefined}>
+          <Input
+            id={field.name}
+            name={field.name}
+            type="date"
+            value={toDateInput(value)}
+            onBlur={field.handleBlur}
+            onChange={(e) => field.handleChange(fromInputs(e.target.value, withTime ? toTimeInput(value) || "18:00" : ""))}
+          />
+          {withTime && (
+            <Input
+              aria-label={`${props.label} : heure`}
+              type="time"
+              value={toTimeInput(value)}
+              onChange={(e) => field.handleChange(fromInputs(toDateInput(value ?? new Date()), e.target.value))}
+            />
+          )}
+        </div>
+      </FieldShell>
+    );
+  }
+
   return (
     <FieldShell {...props}>
       {withTime ? (
-        <DateTimePicker value={field.state.value} onChange={(date) => field.handleChange(date)} />
+        <DateTimePicker id={field.name} value={value} onChange={(date) => field.handleChange(date)} />
       ) : (
-        <DatePicker date={field.state.value} onSelect={(date) => field.handleChange(date)} />
+        <DatePicker id={field.name} date={value} onSelect={(date) => field.handleChange(date)} />
       )}
     </FieldShell>
   );

@@ -26,7 +26,7 @@ export function DeleteAccountCard({ hasPassword }: { hasPassword: boolean }) {
     <SettingsCard
       danger
       title="Supprimer le compte"
-      description="Cette action est irréversible. Toutes vos données seront définitivement supprimées."
+      description="Cette action est irréversible. Toutes tes données seront définitivement supprimées."
     >
       <AlertDialog onOpenChange={() => setPassword("")}>
         <AlertDialogTrigger asChild>
@@ -34,9 +34,9 @@ export function DeleteAccountCard({ hasPassword }: { hasPassword: boolean }) {
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+            <AlertDialogTitle>Supprimer ton compte ?</AlertDialogTitle>
             <AlertDialogDescription>
-              Votre compte, votre abonnement et toutes vos données seront supprimés.
+              Ton compte et toutes tes données seront supprimés définitivement.
             </AlertDialogDescription>
           </AlertDialogHeader>
           {hasPassword && (

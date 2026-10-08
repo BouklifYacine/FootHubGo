@@ -14,13 +14,26 @@ export const queryKeys = {
     joinRequests: ["me", "join-requests"] as const,
     callUps: ["me", "call-ups"] as const,
     attendances: ["me", "attendances"] as const,
+    /** Navigation badges (call-ups to answer, join requests to review). */
+    badges: ["me", "badges"] as const,
+    /** Onboarding tours already seen. */
+    tours: ["me", "tours"] as const,
+    /** Web Push: VAPID public key + number of subscribed devices. */
+    push: ["me", "push"] as const,
   },
 
+  /** Club directory (clubs and their sections). */
   teams: {
     all: ["teams"] as const,
-    detail: (teamId: string) => ["teams", teamId] as const,
-    members: (teamId: string) => ["teams", teamId, "members"] as const,
-    joinRequests: (teamId: string) => ["teams", teamId, "join-requests"] as const,
+  },
+
+  /** The caller's club: management page and the join requests they review. */
+  club: {
+    all: ["club"] as const,
+    admin: ["club", "admin"] as const,
+    joinRequests: ["club", "join-requests"] as const,
+    /** Every member of the club (chat). */
+    members: ["club", "members"] as const,
   },
 
   events: {
@@ -29,12 +42,19 @@ export const queryKeys = {
     calendar: ["events", "calendar"] as const,
     detail: (eventId: string) => ["events", "detail", eventId] as const,
     callUps: (eventId: string) => ["events", "detail", eventId, "call-ups"] as const,
+    /** Man-of-the-match vote of a match. */
+    motm: (eventId: string) => ["events", "detail", eventId, "motm"] as const,
+    /** Carpool of an away match. */
+    carpool: (eventId: string) => ["events", "detail", eventId, "carpool"] as const,
   },
 
   stats: {
     all: ["stats"] as const,
     teams: ["stats", "teams"] as const,
     team: (teamId: string) => ["stats", "teams", teamId] as const,
+    /** Season playing time (and man-of-the-match awards) of the section's players. */
+    teamPlayers: (teamId: string) => ["stats", "teams", teamId, "players"] as const,
+    event: (eventId: string) => ["stats", "events", eventId] as const,
     players: ["stats", "players"] as const,
   },
 
@@ -52,6 +72,11 @@ export const queryKeys = {
 
   notifications: {
     all: ["notifications"] as const,
+  },
+
+  /** This browser (not the server): push permission / subscription, install state. */
+  device: {
+    push: ["device", "push"] as const,
   },
 
   polls: {

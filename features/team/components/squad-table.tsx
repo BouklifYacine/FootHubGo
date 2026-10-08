@@ -1,44 +1,28 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { CircleCheck, CircleX, LogOut, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { CircleAlert, MoreVertical, UserMinus } from "lucide-react";
+import { useConfirm } from "@/components/app/confirm-dialog";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogDescription,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from "@/components/app/responsive-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuPortal,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { authClient } from "@/lib/auth-client";
-import { playerPositionLabels, teamRoleLabels, toOptions } from "@/lib/enum-labels";
+import { formatNumericDate } from "@/lib/format";
+import { clubRoleLabels, playerPositionLabels, teamRoleLabels, toOptions } from "@/lib/enum-labels";
 import { queryKeys } from "@/lib/query/keys";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
+import { removeMemberError, sectionRoleChangeError } from "@/features/clubs/rules";
 import type { PlayerPosition } from "@/generated/prisma/browser";
-import {
-  leaveTeam,
-  removeMember,
-  updateMemberPosition,
-  updateMemberRole,
-} from "../actions";
+import { removeMember, updateMemberPosition, updateMemberRole } from "../actions";
 import type { MyTeam, MyTeamMember } from "../hooks/use-my-team";
 import { InitialsAvatar } from "./initials-avatar";
 
@@ -51,199 +35,234 @@ function patchMember(previous: unknown, memberId: string, patch: (m: MyTeamMembe
   return { ...data, members: data.members.flatMap((m) => (m.id === memberId ? (patch(m) ?? []) : [m])) };
 }
 
-export function SquadTable({ data }: { data: MyTeam }) {
-  const router = useRouter();
-  const { data: session } = authClient.useSession();
-  const [memberToKick, setMemberToKick] = useState<MyTeamMember | null>(null);
-  const isCoach = data.role === "COACH";
+/** Status chips, icon + text, only for what deserves attention (injured, not licensed). */
+function MemberStatus({ member }: { member: MyTeamMember }) {
+  const isLicensed = member.role === "COACH" || member.isLicensed;
+  return (
+    <>
+      {member.isInjured && (
+        <Badge variant="danger">
+          <CircleAlert aria-hidden /> Blessé
+        </Badge>
+      )}
+      {!isLicensed && <Badge variant="muted">Non licencié</Badge>}
+    </>
+  );
+}
 
+function RoleBadges({ member }: { member: MyTeamMember }) {
+  return (
+    <>
+      {member.role === "COACH" && <Badge variant="info">{teamRoleLabels.COACH}</Badge>}
+      {member.clubRole !== "MEMBER" && <Badge variant="outline">{clubRoleLabels[member.clubRole]}</Badge>}
+    </>
+  );
+}
+
+/**
+ * The squad: a list of member cards on phones, a table on md+. Managers open a member's actions
+ * (role, position, remove) in a sheet: no sub-menus.
+ */
+export function SquadTable({ data }: { data: MyTeam }) {
+  const { data: session } = authClient.useSession();
+  // An id, so the sheet shows the live (optimistically updated) member.
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const selected = data.members.find((member) => member.id === selectedId);
+  const myId = session?.user.id;
+
+  const actionsButton = (member: MyTeamMember) =>
+    data.canManage && member.userId !== myId ? (
+      <Button variant="ghost" size="icon" aria-label={`Actions pour ${member.user.name}`} onClick={() => setSelectedId(member.id)}>
+        <MoreVertical />
+      </Button>
+    ) : null;
+
+  const coaches = data.members.filter((member) => member.role === "COACH");
+  const players = data.members.filter((member) => member.role === "PLAYER");
+
+  return (
+    <>
+      <div className="space-y-4 md:hidden">
+        {[
+          { title: coaches.length > 1 ? "Entraîneurs" : "Entraîneur", members: coaches },
+          { title: `Joueurs (${players.length})`, members: players },
+        ].map(
+          (group) =>
+            group.members.length > 0 && (
+              <section key={group.title} className="space-y-2">
+                <h2 className="px-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{group.title}</h2>
+                <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+                  {group.members.map((member) => (
+                    <li key={member.id} className="flex items-center gap-3 px-4 py-2.5">
+                      <InitialsAvatar name={member.user.name} src={member.user.image} className="size-10" />
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <p className="truncate text-sm font-medium">
+                          {member.user.name}
+                          {member.userId === myId && <span className="text-muted-foreground"> (toi)</span>}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {member.position ? playerPositionLabels[member.position] : "Poste non renseigné"}
+                        </p>
+                        <div className="flex flex-wrap gap-1 empty:hidden">
+                          <RoleBadges member={member} />
+                          <MemberStatus member={member} />
+                        </div>
+                      </div>
+                      {actionsButton(member)}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ),
+        )}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-xl border bg-card md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Membre</TableHead>
+              <TableHead>Rôle</TableHead>
+              <TableHead>Poste</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Arrivé le</TableHead>
+              <TableHead className="w-12">
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.members.map((member) => (
+              <TableRow key={member.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <InitialsAvatar name={member.user.name} src={member.user.image} className="size-9" />
+                    <span className="font-medium">
+                      {member.user.name}
+                      {member.userId === myId && <span className="text-muted-foreground"> (toi)</span>}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {member.role === "PLAYER" && <span className="text-sm">{teamRoleLabels.PLAYER}</span>}
+                    <RoleBadges member={member} />
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {member.position ? playerPositionLabels[member.position] : "-"}
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    <MemberStatus member={member} />
+                  </div>
+                </TableCell>
+                <TableCell className="text-muted-foreground">{formatNumericDate(member.joinedAt)}</TableCell>
+                <TableCell>{actionsButton(member)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {selected && <MemberActionsDialog data={data} member={selected} onClose={() => setSelectedId(null)} />}
+    </>
+  );
+}
+
+/** A member's actions, allowed by the same rules as the server actions (features/clubs/rules.ts). */
+function MemberActionsDialog({ data, member, onClose }: { data: MyTeam; member: MyTeamMember; onClose: () => void }) {
+  const { data: session } = authClient.useSession();
+  const confirm = useConfirm();
+  const me = { userId: session?.user.id ?? "", clubRole: data.club?.role ?? "MEMBER" };
+  const target = { userId: member.userId, clubRole: member.clubRole };
+  const canChangeRole = sectionRoleChangeError(me, target) === null;
+  const canRemove =
+    removeMemberError({ ...me, coachesSection: data.role === "COACH" }, { ...target, sectionRole: member.role }) === null;
+
+  const options = { invalidate: [queryKeys.me.team, queryKeys.home] };
   const updateRole = useActionMutation(updateMemberRole, {
-    invalidate: [queryKeys.me.team],
+    ...options,
     optimistic: {
       queryKey: queryKeys.me.team,
       update: (previous, { memberId, role }) => patchMember(previous, memberId, (m) => ({ ...m, role })),
     },
   });
   const updatePosition = useActionMutation(updateMemberPosition, {
-    invalidate: [queryKeys.me.team],
+    ...options,
     optimistic: {
       queryKey: queryKeys.me.team,
-      update: (previous, { memberId, position }) =>
-        patchMember(previous, memberId, (m) => ({ ...m, position })),
+      update: (previous, { memberId, position }) => patchMember(previous, memberId, (m) => ({ ...m, position })),
     },
   });
-  const kick = useActionMutation(removeMember, {
-    invalidate: [queryKeys.me.team, queryKeys.home],
-    optimistic: {
-      queryKey: queryKeys.me.team,
-      update: (previous, memberId) => patchMember(previous, memberId, () => null),
-    },
+  const remove = useActionMutation(removeMember, {
+    ...options,
+    onSuccess: onClose,
+    optimistic: { queryKey: queryKeys.me.team, update: (previous, memberId) => patchMember(previous, memberId, () => null) },
   });
-  const leave = useActionMutation(leaveTeam, {
-    invalidate: [queryKeys.me.all, queryKeys.home, queryKeys.teams.all],
-    onSuccess: () => router.push("/app"),
-  });
-
-  if (data.members.length === 0) return <p>Pas de joueurs dans l&apos;effectif</p>;
 
   return (
-    <>
-      <div className="mt-10 overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Avatar</TableHead>
-              <TableHead>Nom</TableHead>
-              <TableHead>Rôle</TableHead>
-              <TableHead>Poste</TableHead>
-              <TableHead>Blessé</TableHead>
-              <TableHead>Licencié</TableHead>
-              <TableHead>Arrivé le</TableHead>
-              <TableHead>Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.members.map((member) => {
-              const isMe = member.userId === session?.user.id;
-              const isLicensed = member.role === "COACH" || member.isLicensed;
-              return (
-                <TableRow key={member.id}>
-                  <TableCell>
-                    <InitialsAvatar name={member.user.name} src={member.user.image} className="size-9" />
-                  </TableCell>
-                  <TableCell>{member.user.name}</TableCell>
-                  <TableCell>
-                    <Badge
-                      className={member.role === "COACH" ? "bg-emerald-500 text-white" : "bg-sky-500 text-white"}
-                    >
-                      {teamRoleLabels[member.role]}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{member.position ? playerPositionLabels[member.position] : "Sans poste"}</TableCell>
-                  <TableCell>
-                    <StatusBadge ok={!member.isInjured} label={member.isInjured ? "Oui" : "Non"} />
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge ok={isLicensed} label={isLicensed ? "Oui" : "Non"} />
-                  </TableCell>
-                  <TableCell>{new Date(member.joinedAt).toLocaleDateString("fr-FR")}</TableCell>
-                  <TableCell>
-                    {isMe ? (
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => leave.mutate()}
-                        disabled={leave.isPending}
-                      >
-                        <LogOut className="size-4" />
-                        Quitter le club
-                      </Button>
-                    ) : isCoach && member.role !== "COACH" ? (
-                      <MemberActions
-                        disabled={updateRole.isPending || updatePosition.isPending || kick.isPending}
-                        onRoleChange={(role) => updateRole.mutate({ memberId: member.id, role })}
-                        onPositionChange={(position) =>
-                          updatePosition.mutate({ memberId: member.id, position })
-                        }
-                        onKick={() => setMemberToKick(member)}
-                      />
-                    ) : null}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </div>
-
-      <AlertDialog open={!!memberToKick} onOpenChange={(open) => !open && setMemberToKick(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Exclure ce joueur ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir exclure <strong>{memberToKick?.user.name}</strong> du club ? Le
-              joueur sera immédiatement retiré.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => memberToKick && kick.mutate(memberToKick.id)}
-              className="bg-red-500 hover:bg-red-600"
+    <ResponsiveDialog open onOpenChange={(open) => !open && onClose()}>
+      <ResponsiveDialogContent className="sm:max-w-md">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>{member.user.name}</ResponsiveDialogTitle>
+          <ResponsiveDialogDescription>Rôle et poste dans la section.</ResponsiveDialogDescription>
+        </ResponsiveDialogHeader>
+        <div className="space-y-4">
+          {canChangeRole && (
+            <div className="space-y-2">
+              <Label htmlFor="member-role">Rôle</Label>
+              <Select
+                value={member.role}
+                onValueChange={(role) => updateRole.mutate({ memberId: member.id, role: role as "COACH" | "PLAYER" })}
+              >
+                <SelectTrigger id="member-role" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PLAYER">{teamRoleLabels.PLAYER}</SelectItem>
+                  <SelectItem value="COACH">{teamRoleLabels.COACH}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="space-y-2">
+            <Label htmlFor="member-position">Poste</Label>
+            <Select
+              value={member.position ?? undefined}
+              onValueChange={(position) => updatePosition.mutate({ memberId: member.id, position: position as PlayerPosition })}
             >
-              Exclure
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-}
-
-function StatusBadge({ ok, label }: { ok: boolean; label: string }) {
-  return (
-    <Badge
-      className={`rounded-md border ${
-        ok ? "border-emerald-800 bg-emerald-100 text-emerald-800" : "border-red-800 bg-red-200 text-red-800"
-      }`}
-    >
-      {ok ? <CircleCheck size={16} className="mr-1" /> : <CircleX size={16} className="mr-1" />}
-      {label}
-    </Badge>
-  );
-}
-
-type MemberActionsProps = {
-  disabled: boolean;
-  onRoleChange: (role: "COACH" | "PLAYER") => void;
-  onPositionChange: (position: PlayerPosition) => void;
-  onKick: () => void;
-};
-
-function MemberActions({ disabled, onRoleChange, onPositionChange, onKick }: MemberActionsProps) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-8" disabled={disabled} aria-label="Actions">
-          <MoreVertical className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Pencil className="mr-2 size-4" />
-            Modifier le rôle
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              <DropdownMenuItem onClick={() => onRoleChange("PLAYER")}>Joueur</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onRoleChange("COACH")}>Entraîneur</DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <Pencil className="mr-2 size-4" />
-            Modifier le poste
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent>
-              {positionOptions.map((option) => (
-                <DropdownMenuItem key={option.value} onClick={() => onPositionChange(option.value)}>
-                  {option.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={onKick}>
-          <Trash2 className="mr-2 size-4" />
-          Exclure du club
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+              <SelectTrigger id="member-position" className="w-full">
+                <SelectValue placeholder="Choisir un poste" />
+              </SelectTrigger>
+              <SelectContent>
+                {positionOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {canRemove && (
+            <Button
+              variant="outline"
+              className="w-full text-destructive"
+              disabled={remove.isPending}
+              onClick={async () => {
+                const ok = await confirm({
+                  title: `Retirer ${member.user.name} de la section ?`,
+                  description: "Il est retiré tout de suite (et du club si c'est sa seule section). Il sera prévenu.",
+                  confirmLabel: "Retirer",
+                });
+                if (ok) remove.mutate(member.id);
+              }}
+            >
+              <UserMinus /> Retirer de la section
+            </Button>
+          )}
+        </div>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   );
 }

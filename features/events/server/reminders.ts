@@ -3,6 +3,12 @@ import { prisma } from "@/prisma";
 import { EventReminderEmail } from "@/emails/event-reminder-email";
 import { sendEmail } from "@/emails/send-email";
 import { notifyUser } from "@/features/notifications/server/notify-user";
+import {
+  createUnsubscribeToken,
+  listUnsubscribeHeaders,
+  unsubscribePageUrl,
+} from "@/features/notifications/unsubscribe";
+import { appSecret } from "@/lib/signed-token";
 import { TEAM_TIME_ZONE } from "../recurrence";
 import { reminderRecipients } from "../reminder-recipients";
 
@@ -42,8 +48,14 @@ export async function sendDueReminders(now = new Date()) {
         select: {
           members: {
             where: { role: "PLAYER" },
-            select: { userId: true, user: { select: { name: true, email: true } } },
+            select: { userId: true, user: { select: { name: true, email: true, emailReminders: true } } },
           },
+        },
+      },
+      // Club-wide events (no section) remind every club member.
+      club: {
+        select: {
+          members: { select: { userId: true, user: { select: { name: true, email: true, emailReminders: true } } } },
         },
       },
       attendances: { select: { userId: true, status: true } },
@@ -63,35 +75,52 @@ export async function sendDueReminders(now = new Date()) {
 
     const recipients = reminderRecipients({
       type: event.type,
-      players: event.team.members.map((m) => ({ userId: m.userId, name: m.user.name, email: m.user.email })),
+      isClubEvent: event.team === null,
+      players: (event.team ?? event.club).members.map((m) => ({
+        userId: m.userId,
+        name: m.user.name,
+        email: m.user.email,
+        emailReminders: m.user.emailReminders,
+      })),
       attendances: event.attendances,
       callUps: event.callUps,
     });
     const when = formatWhen(event.startDate);
     const url = `${appUrl}/app/events/${event.id}`;
 
-    // One failing recipient must not stop the others
+    // One failing recipient must not stop the others. The in-app notification always goes out,
+    // the email only to players who kept the reminder emails on.
     await Promise.allSettled(
-      recipients.flatMap((r) => [
-        notifyUser({
-          userId: r.userId,
-          type: "EVENT_REMINDER",
-          title: `Rappel : ${event.title}`,
-          message: `${when}. ${r.action}`,
-        }),
-        sendEmail({
-          to: r.email,
-          subject: `Rappel : ${event.title} ${when}`,
-          email: createElement(EventReminderEmail, {
-            name: r.name,
-            title: event.title,
-            when,
-            location: event.location,
-            action: r.action,
-            url,
+      recipients.flatMap((r) => {
+        const token = createUnsubscribeToken(r.userId, appSecret());
+        return [
+          notifyUser({
+            userId: r.userId,
+            type: "EVENT_REMINDER",
+            title: `Rappel : ${event.title}`,
+            message: `${when}. ${r.action}`,
+            url: `/app/events/${event.id}`,
           }),
-        }),
-      ]),
+          ...(r.emailReminders
+            ? [
+                sendEmail({
+                  to: r.email,
+                  subject: `Rappel : ${event.title} ${when}`,
+                  headers: listUnsubscribeHeaders(appUrl, token),
+                  email: createElement(EventReminderEmail, {
+                    name: r.name,
+                    title: event.title,
+                    when,
+                    location: event.location,
+                    action: r.action,
+                    url,
+                    unsubscribeUrl: unsubscribePageUrl(appUrl, token),
+                  }),
+                }),
+              ]
+            : []),
+        ];
+      }),
     );
     sent += recipients.length;
   }

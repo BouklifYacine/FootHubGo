@@ -5,15 +5,15 @@ import { Pencil, Plus } from "lucide-react";
 import type { Competition } from "@/generated/prisma/browser";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+  ResponsiveDialog as Dialog,
+  ResponsiveDialogClose as DialogClose,
+  ResponsiveDialogContent as DialogContent,
+  ResponsiveDialogDescription as DialogDescription,
+  ResponsiveDialogFooter as DialogFooter,
+  ResponsiveDialogHeader as DialogHeader,
+  ResponsiveDialogTitle as DialogTitle,
+  ResponsiveDialogTrigger as DialogTrigger,
+} from "@/components/app/responsive-dialog";
 import { useAppForm } from "@/lib/form";
 import { competitionLabels, matchResultLabels, toOptions } from "@/lib/enum-labels";
 import { useActionMutation } from "@/lib/query/use-action-mutation";
@@ -27,6 +27,8 @@ type Props = {
   /** Edit mode when set. */
   teamStat?: EventTeamStat | null;
   defaultCompetition: Competition;
+  /** Home / away of the event (the form's default for a new score). */
+  defaultIsHome?: boolean;
 };
 
 /** "Add" or "Edit" button opening the team stats form of a match. */
@@ -38,26 +40,21 @@ export function TeamStatsDialog(props: Props) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {isEdit ? (
-          <Button className="cursor-pointer">
-            Modifier stats
-            <Pencil size={16} strokeWidth={2} />
+          <Button variant="outline">
+            <Pencil aria-hidden /> Modifier le score
           </Button>
         ) : (
-          <Button
-            variant="outline"
-            className="dark:bg-white text-black border border-gray-400 cursor-pointer"
-          >
-            Ajouter stats équipe
-            <Plus className="opacity-60" size={16} strokeWidth={2} aria-hidden="true" />
+          <Button>
+            <Plus aria-hidden /> Saisir le score
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-md sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? "Modifier les statistiques d'équipe" : "Ajouter des statistiques d'équipe"}
+            {isEdit ? "Modifier le score" : "Saisir le score"}
           </DialogTitle>
-          <DialogDescription>Renseignez la performance de votre équipe sur ce match</DialogDescription>
+          <DialogDescription>Le score et les statistiques de ton équipe sur ce match.</DialogDescription>
         </DialogHeader>
         {/* Mounted only while open: the form always starts from fresh values */}
         <TeamStatsForm {...props} onSuccess={() => setOpen(false)} />
@@ -66,7 +63,7 @@ export function TeamStatsDialog(props: Props) {
   );
 }
 
-function TeamStatsForm({ eventId, teamStat, defaultCompetition, onSuccess }: Props & { onSuccess: () => void }) {
+function TeamStatsForm({ eventId, teamStat, defaultCompetition, defaultIsHome = true, onSuccess }: Props & { onSuccess: () => void }) {
   const mutation = useActionMutation(teamStat ? updateTeamStats : createTeamStats, {
     invalidate: statsInvalidation,
     onSuccess,
@@ -88,7 +85,7 @@ function TeamStatsForm({ eventId, teamStat, defaultCompetition, onSuccess }: Pro
         goalsAgainst: 0,
         totalShots: undefined,
         shotsOnTarget: undefined,
-        isHome: true,
+        isHome: defaultIsHome,
         competition: defaultCompetition,
       };
 

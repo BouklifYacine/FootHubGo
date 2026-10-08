@@ -10,7 +10,7 @@ import { z } from "zod";
 // DTOs (JSON shapes sent over the wire and returned by the chat / notification GET routes)
 // ---------------------------------------------------------------------------
 
-export type ConversationType = "PRIVATE" | "GROUP" | "TEAM";
+export type ConversationType = "PRIVATE" | "GROUP" | "TEAM" | "CLUB";
 export type ParticipantRole = "ADMIN" | "MEMBER";
 
 export type ParticipantDto = {
@@ -57,6 +57,8 @@ export type NotificationDto = {
   createdAt: string;
   fromUserName: string | null;
   fromUserImage: string | null;
+  /** Page the notification opens (a path of the app, e.g. /app/events/<id>), null for none. */
+  url: string | null;
 };
 
 // ---------------------------------------------------------------------------
@@ -87,7 +89,7 @@ export type ClientToServerEvents = {
   "chat:typing": (payload: TypingPayload) => void;
 };
 
-export type SocketData = { userId: string; userName: string };
+export type SocketData = { userId: string; userName: string; sessionId: string };
 
 /** Error message sent by the auth middleware when the session cookie is missing / invalid. */
 export const UNAUTHORIZED_ERROR = "unauthorized";
