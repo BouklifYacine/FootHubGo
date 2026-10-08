@@ -29,7 +29,7 @@ async function resolveScope(membership: Membership, scope: string | undefined): 
     throw forbidden(
       teamId === null
         ? "Seuls le propriétaire et les administrateurs créent des événements pour tout le club"
-        : "Vous devez être entraîneur de la section",
+        : "Tu dois être entraîneur de la section",
     );
   }
   return { clubId: membership.clubId, teamId };
@@ -61,7 +61,7 @@ async function findEditableEvent(eventId: string, membership: Membership) {
   });
   if (!event) throw notFound("Événement introuvable");
   if (!canManageSection(membership, event.teamId)) {
-    throw forbidden(event.teamId ? "Vous devez être entraîneur de la section" : "Réservé au propriétaire et aux administrateurs du club");
+    throw forbidden(event.teamId ? "Tu dois être entraîneur de la section" : "Réservé au propriétaire et aux administrateurs du club");
   }
   if (event.teamStat) {
     throw new AppError("Cet événement a des statistiques enregistrées : il ne peut plus être modifié ni supprimé", 409);

@@ -101,7 +101,7 @@ export function rateLimiter(name: string, options: { max: number; windowMs: numb
   return limiter;
 }
 
-export const tooManyRequests = (message = "Trop de tentatives. Réessayez dans quelques minutes.") =>
+export const tooManyRequests = (message = "Trop de tentatives. Réessaie dans quelques minutes.") =>
   new AppError(message, 429);
 
 /** Counts one hit on each `[limiter, key]` pair and throws a 429 AppError if one is over budget. */

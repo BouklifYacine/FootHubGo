@@ -18,7 +18,7 @@ export default function NotFound() {
           </div>
           
           <p className="text-muted-foreground">
-            La page que vous recherchez n&apos;existe pas ou a été déplacée.
+            La page que tu cherches n&apos;existe pas ou a été déplacée.
           </p>
           
           <div className="flex justify-center pt-4">

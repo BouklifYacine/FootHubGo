@@ -27,7 +27,7 @@ export const sendMessage = action(sendMessageSchema, async ({ conversationId, co
       membership !== null &&
       (await prisma.clubMember.count({ where: { clubId: membership.clubId, userId: { in: otherIds } } })) ===
         otherIds.length;
-    if (!stillTeammates) throw forbidden("Vous ne faites plus partie du même club que ce joueur");
+    if (!stillTeammates) throw forbidden("Tu ne fais plus partie du même club que ce joueur");
   }
   await assertCanSendMessage(user.id);
 

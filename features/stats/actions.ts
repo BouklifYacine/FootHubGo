@@ -124,7 +124,7 @@ export const createPlayerStats = action(
     const { membership } = await requireCoach();
     const event = await findTeamMatch(eventId, membership.teamId);
     assertOpen(event.startDate);
-    if (!event.teamStat) throw new AppError("Saisissez d'abord les statistiques de l'équipe");
+    if (!event.teamStat) throw new AppError("Saisis d'abord le score du match");
 
     const [player, callUp, existing] = await Promise.all([
       prisma.teamMember.findFirst({
@@ -134,7 +134,7 @@ export const createPlayerStats = action(
       prisma.callUp.findUnique({ where: { userId_eventId: { userId, eventId: event.id } } }),
       prisma.playerStat.findUnique({ where: { userId_eventId: { userId, eventId: event.id } } }),
     ]);
-    if (!player) throw notFound("Joueur introuvable dans votre équipe");
+    if (!player) throw notFound("Joueur introuvable dans ton équipe");
     if (callUp?.status !== "CONFIRMED") {
       throw new AppError("Le joueur n'a pas été convoqué ou n'a pas confirmé sa convocation");
     }
@@ -163,7 +163,7 @@ export const updatePlayerStats = action(
     const stat = await findTeamPlayerStat(statId, membership.teamId);
     const event = await findTeamMatch(stat.eventId, membership.teamId);
     assertEditable(event.startDate);
-    if (!event.teamStat) throw new AppError("Saisissez d'abord les statistiques de l'équipe");
+    if (!event.teamStat) throw new AppError("Saisis d'abord le score du match");
     await assertPlayerTotals(event.id, event.teamStat.goalsFor, values, stat.id);
 
     await prisma.playerStat.update({ where: { id: stat.id }, data: values });

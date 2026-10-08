@@ -23,7 +23,7 @@ export const reportInjury = action(injurySchema, async (values) => {
     where: { userId: user.id, endDate: { gt: startOfDay(new Date()) } },
     select: { id: true },
   });
-  if (activeInjury) throw new AppError("Vous avez déjà une blessure en cours");
+  if (activeInjury) throw new AppError("Tu as déjà une blessure en cours");
 
   await prisma.injury.create({
     data: { ...values, startDate: new Date(), userId: user.id, teamId: membership.teamId },

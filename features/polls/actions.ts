@@ -24,7 +24,7 @@ const pollBudget = rateLimiter("polls", { max: 20, windowMs: 60 * 60_000 });
 
 export const createPoll = action(createPollSchema, async ({ question, options, isMulti, expiresAt }) => {
   const { user, membership } = await requireCoach();
-  enforceRateLimit([[pollBudget, user.id]], "Trop de sondages créés. Réessayez plus tard.");
+  enforceRateLimit([[pollBudget, user.id]], "Trop de sondages créés. Réessaie plus tard.");
   await prisma.poll.create({
     data: { question, options, isMulti, expiresAt, creatorId: user.id, teamId: membership.teamId },
   });

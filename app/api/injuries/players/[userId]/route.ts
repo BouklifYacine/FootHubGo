@@ -14,6 +14,6 @@ export const GET = route<{ userId: string }>(async ({ params }) => {
     where: { userId_teamId: { userId: params.userId, teamId: membership.teamId } },
     select: { id: true },
   });
-  if (!player) throw forbidden("Ce joueur n'appartient pas à votre équipe");
+  if (!player) throw forbidden("Ce joueur n'appartient pas à ton équipe");
   return getPlayerInjuries(params.userId, membership.teamId);
 });

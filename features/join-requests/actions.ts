@@ -30,7 +30,7 @@ const joinRequestBudget = rateLimiter("join-requests", { max: 10, windowMs: 60 *
 
 export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ...input }) => {
   const user = await requireUser();
-  enforceRateLimit([[joinRequestBudget, user.id]], "Trop de demandes envoyées. Réessayez plus tard.");
+  enforceRateLimit([[joinRequestBudget, user.id]], "Trop de demandes envoyées. Réessaie plus tard.");
 
   // The request targets one section of the club.
   const section = await prisma.team.findUnique({
@@ -46,10 +46,10 @@ export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ..
     select: { clubId: true, sectionMemberships: { select: { teamId: true } } },
   });
   if (clubMember && clubMember.clubId !== section.clubId) {
-    throw new AppError("Vous avez déjà un club. Quittez-le avant de postuler ailleurs.");
+    throw new AppError("Tu as déjà un club. Quitte-le avant de postuler ailleurs.");
   }
   if (clubMember?.sectionMemberships.some((m) => m.teamId === section.id)) {
-    throw new AppError("Vous faites déjà partie de cette section.");
+    throw new AppError("Tu fais déjà partie de cette section.");
   }
 
   const pending = await prisma.joinRequest.findMany({
@@ -57,10 +57,10 @@ export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ..
     select: { teamId: true },
   });
   if (pending.some((request) => request.teamId === teamId)) {
-    throw new AppError("Vous avez déjà une demande en cours pour cette section.");
+    throw new AppError("Tu as déjà une demande en cours pour cette section.");
   }
   if (pending.length >= MAX_PENDING_REQUESTS) {
-    throw new AppError(`Vous avez atteint la limite de ${MAX_PENDING_REQUESTS} demandes en attente.`);
+    throw new AppError(`Tu as atteint la limite de ${MAX_PENDING_REQUESTS} demandes en attente.`);
   }
 
   await prisma.joinRequest.create({ data: { ...input, teamId, userId: user.id } });
@@ -76,7 +76,7 @@ export const sendJoinRequest = action(sendJoinRequestSchema, async ({ teamId, ..
     fromUserImage: user.image,
   });
 
-  return { message: `Votre demande pour rejoindre ${name} a été envoyée` };
+  return { message: `Ta demande pour rejoindre ${name} a été envoyée` };
 });
 
 export const updateJoinRequest = action(updateJoinRequestSchema, async ({ requestId, ...input }) => {
@@ -85,7 +85,7 @@ export const updateJoinRequest = action(updateJoinRequestSchema, async ({ reques
   if (request.status !== "PENDING") throw new AppError("Impossible de modifier une demande déjà traitée.");
 
   await prisma.joinRequest.update({ where: { id: request.id }, data: input });
-  return { message: "Votre demande a été mise à jour" };
+  return { message: "Ta demande a été mise à jour" };
 });
 
 export const cancelJoinRequest = action(z.string().min(1), async (requestId) => {
@@ -96,7 +96,7 @@ export const cancelJoinRequest = action(z.string().min(1), async (requestId) => 
   }
 
   await prisma.joinRequest.delete({ where: { id: request.id } });
-  return { message: "Votre demande a été supprimée" };
+  return { message: "Ta demande a été supprimée" };
 });
 
 /** By the section's coaches or the club OWNER / ADMIN; requests of other clubs are never visible. */

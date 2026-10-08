@@ -5,7 +5,7 @@ export const MESSAGE_MAX_LENGTH = 2000;
 export const GROUP_MAX_MEMBERS = 30;
 
 const id = z.string().min(1).max(64);
-const userIds = z.array(id).min(1, "Sélectionnez au moins un membre").max(GROUP_MAX_MEMBERS - 1);
+const userIds = z.array(id).min(1, "Choisis au moins un membre").max(GROUP_MAX_MEMBERS - 1);
 const groupName = z
   .string()
   .trim()

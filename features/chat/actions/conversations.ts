@@ -20,9 +20,9 @@ const conversationBudget = rateLimiter("conversations", { max: 20, windowMs: 60 
 
 export const createConversation = action(createConversationSchema, async (input) => {
   const { user, membership } = await requireMember();
-  enforceRateLimit([[conversationBudget, user.id]], "Trop de conversations créées. Réessayez plus tard.");
+  enforceRateLimit([[conversationBudget, user.id]], "Trop de conversations créées. Réessaie plus tard.");
   const otherIds = input.type === "PRIVATE" ? [input.userId] : [...new Set(input.userIds)];
-  if (otherIds.includes(user.id)) throw new AppError("Vous ne pouvez pas vous ajouter vous-même");
+  if (otherIds.includes(user.id)) throw new AppError("Tu ne peux pas t'ajouter toi-même");
 
   await assertTeammates(membership.clubId, otherIds);
   await assertNotBlocked(user.id, otherIds);
@@ -103,7 +103,7 @@ export const deleteConversation = action(conversationIdSchema, async (conversati
 
 export const setUserBlocked = action(blockUserSchema, async ({ userId: targetId, blocked }) => {
   const user = await requireUser();
-  if (targetId === user.id) throw new AppError("Vous ne pouvez pas vous bloquer vous-même");
+  if (targetId === user.id) throw new AppError("Tu ne peux pas te bloquer toi-même");
 
   const target = await prisma.user.findUnique({ where: { id: targetId }, select: { id: true } });
   if (!target) throw notFound("Utilisateur introuvable");

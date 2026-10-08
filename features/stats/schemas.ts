@@ -3,7 +3,7 @@ import { Competition, MatchResult, PlayerPosition } from "@/generated/prisma/bro
 
 const count = (label: string) =>
   z
-    .number({ error: `Renseignez ${label}` })
+    .number({ error: `Indique ${label}` })
     .int("Nombre entier attendu")
     .min(0, "Minimum 0")
     .max(99, "Maximum 99");
@@ -18,13 +18,13 @@ const optionalCount = z
 /** Team stats of a match: same schema for the create and edit forms and actions. */
 export const teamStatsSchema = z
   .object({
-    result: z.enum(MatchResult, { error: "Choisissez un résultat" }),
+    result: z.enum(MatchResult, { error: "Choisis un résultat" }),
     goalsFor: count("les buts marqués"),
     goalsAgainst: count("les buts encaissés"),
     totalShots: optionalCount,
     shotsOnTarget: optionalCount,
     isHome: z.boolean(),
-    competition: z.enum(Competition, { error: "Choisissez une compétition" }),
+    competition: z.enum(Competition, { error: "Choisis une compétition" }),
   })
   .superRefine((stats, ctx) => {
     const issue = (path: keyof typeof stats, message: string) =>
@@ -55,16 +55,16 @@ export type TeamStatsValues = z.input<typeof teamStatsSchema>;
 
 /** Stats of one player in a match. */
 export const playerStatsSchema = z.object({
-  position: z.enum(PlayerPosition, { error: "Choisissez un poste" }),
+  position: z.enum(PlayerPosition, { error: "Choisis un poste" }),
   goals: count("les buts"),
   assists: count("les passes décisives"),
   minutesPlayed: z
-    .number({ error: "Renseignez les minutes jouées" })
+    .number({ error: "Indique les minutes jouées" })
     .int("Nombre entier attendu")
     .min(0, "Minimum 0")
     .max(90, "Maximum 90 minutes"),
   rating: z
-    .number({ error: "Renseignez une note" })
+    .number({ error: "Indique une note" })
     .min(0, "Minimum 0")
     .max(10, "La note maximale est 10"),
   isStarter: z.boolean(),
@@ -72,7 +72,7 @@ export const playerStatsSchema = z.object({
 
 /** The form also picks the player when adding stats. */
 export const playerStatsFormSchema = playerStatsSchema.extend({
-  userId: z.string().min(1, "Choisissez un joueur"),
+  userId: z.string().min(1, "Choisis un joueur"),
 });
 
 export type PlayerStatsFormValues = z.input<typeof playerStatsFormSchema>;

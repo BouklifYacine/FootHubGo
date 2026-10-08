@@ -73,10 +73,10 @@ export const updateName = action(updateNameSchema, async ({ name, password }) =>
  */
 export const requestEmailChange = action(updateEmailSchema, async ({ email, password }) => {
   const user = await requireUser();
-  enforceRateLimit([[emailChangeRequests, user.id]], "Trop de demandes. Réessayez dans une heure.");
+  enforceRateLimit([[emailChangeRequests, user.id]], "Trop de demandes. Réessaie dans une heure.");
   await verifyCurrentPassword(user.id, password);
 
-  if (email === user.email.toLowerCase()) throw new AppError("C'est déjà votre email");
+  if (email === user.email.toLowerCase()) throw new AppError("C'est déjà ton email");
   const taken = await prisma.user.findFirst({
     where: { email: { equals: email, mode: "insensitive" } },
     select: { id: true },
@@ -103,11 +103,11 @@ export const requestEmailChange = action(updateEmailSchema, async ({ email, pass
 
   await sendEmail({
     to: email,
-    subject: "Confirmez votre nouvel email",
+    subject: "Confirme ton nouvel email",
     email: createElement(VerificationCodeEmail, {
       code,
       name: user.name,
-      title: "Confirmez votre nouvel email",
+      title: "Confirme ton nouvel email",
       expiresInMinutes: EMAIL_CHANGE_TTL_MINUTES,
     }),
   });
@@ -150,10 +150,10 @@ export const confirmEmailChange = action(confirmEmailChangeSchema, async ({ code
   // Both addresses are told, so a hijacked account is noticed.
   const notice = createElement(EmailChangedEmail, { name: user.name, oldEmail: user.email, newEmail: pending.email });
   await Promise.all([
-    sendEmail({ to: user.email, subject: "Changement de votre email", email: notice }),
-    sendEmail({ to: pending.email, subject: "Votre nouvel email est confirmé", email: notice }),
+    sendEmail({ to: user.email, subject: "Changement de ton email", email: notice }),
+    sendEmail({ to: pending.email, subject: "Ton nouvel email est confirmé", email: notice }),
   ]);
-  return { message: "Email modifié, reconnectez-vous" };
+  return { message: "Email modifié, reconnecte-toi" };
 });
 
 export const updatePassword = action(updatePasswordSchema, async ({ currentPassword, newPassword }) => {
@@ -168,7 +168,7 @@ export const updatePassword = action(updatePasswordSchema, async ({ currentPassw
     subject: "Changement de mot de passe",
     email: createElement(PasswordChangedEmail, { name: user.name }),
   });
-  return { message: "Mot de passe modifié, reconnectez-vous" };
+  return { message: "Mot de passe modifié, reconnecte-toi" };
 });
 
 export const deleteAccount = action(deleteAccountSchema, async ({ password }) => {
@@ -183,7 +183,7 @@ export const deleteAccount = action(deleteAccountSchema, async ({ password }) =>
     select: { role: true, clubId: true, sectionMemberships: { select: { teamId: true } } },
   });
   if (clubMember?.role === "OWNER") {
-    throw new AppError("Vous êtes propriétaire d'un club : transférez-en la propriété ou supprimez-le avant de supprimer votre compte");
+    throw new AppError("Tu es propriétaire d'un club : transfère-le ou supprime-le avant de supprimer ton compte");
   }
 
   const dbUser = await prisma.user.findUniqueOrThrow({
@@ -228,7 +228,7 @@ const avatarSchema = z
 
 export const uploadAvatar = action(avatarSchema, async (file) => {
   const user = await requireUser();
-  enforceRateLimit([[avatarUploads, user.id]], "Trop d'envois de photo. Réessayez plus tard.");
+  enforceRateLimit([[avatarUploads, user.id]], "Trop d'envois de photo. Réessaie plus tard.");
 
   const body = Buffer.from(await file.arrayBuffer());
   const type = detectImageType(body);

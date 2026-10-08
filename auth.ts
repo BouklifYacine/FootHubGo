@@ -62,7 +62,7 @@ export const auth = betterAuth({
       if (email && !signInFailures.hit(email).ok) {
         throw APIError.from("TOO_MANY_REQUESTS", {
           code: "ACCOUNT_LOCKED",
-          message: "Trop de tentatives sur ce compte, réessayez dans 15 minutes",
+          message: "Trop de tentatives sur ce compte, réessaie dans 15 minutes",
         });
       }
     }),

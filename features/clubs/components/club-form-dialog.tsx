@@ -36,8 +36,8 @@ export function ClubFormDialog({ open, onOpenChange, club }: Props) {
           <DialogTitle>{club ? "Modifier le club" : "Créer un club"}</DialogTitle>
           <DialogDescription>
             {club
-              ? "Mettez à jour les informations de votre club."
-              : "Créez votre club et sa première section. Vous en serez le propriétaire et l'entraîneur."}
+              ? "Mets à jour les informations de ton club."
+              : "Crée ton club et sa première équipe (section). Tu en seras le propriétaire et l'entraîneur."}
           </DialogDescription>
         </DialogHeader>
         {/* Mounted only while open, so the form starts fresh every time. */}
@@ -97,7 +97,7 @@ function CreateClubForm({ onDone }: { onDone: () => void }) {
         )}
       </form.AppField>
       <form.AppField name="description">
-        {(field) => <field.TextareaField label="Description" placeholder="Présentez votre club" rows={2} />}
+        {(field) => <field.TextareaField label="Description" placeholder="Présente ton club en quelques mots" rows={2} />}
       </form.AppField>
       <p className="pt-2 text-sm font-medium">Première section</p>
       <form.AppField name="sectionName">
@@ -153,7 +153,7 @@ function EditClubForm({ club, onDone }: { club: ClubInput; onDone: () => void })
         )}
       </form.AppField>
       <form.AppField name="description">
-        {(field) => <field.TextareaField label="Description" placeholder="Présentez votre club" rows={3} />}
+        {(field) => <field.TextareaField label="Description" placeholder="Présente ton club en quelques mots" rows={3} />}
       </form.AppField>
       <DialogFooter>
         <form.AppForm>

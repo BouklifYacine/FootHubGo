@@ -30,7 +30,7 @@ export function EventReminderEmail({ name, title, when, location, action, url, u
       </Button>
       <Text style={mutedStyle}>L&apos;équipe FootHubGo</Text>
       <Text style={{ ...mutedStyle, fontSize: 12 }}>
-        Vous recevez cet email car les rappels d&apos;événements sont activés.{" "}
+        Tu reçois cet email car les rappels d&apos;événements sont activés.{" "}
         <Link href={unsubscribeUrl} style={{ color: "#888", textDecoration: "underline" }}>
           Ne plus recevoir ces rappels
         </Link>

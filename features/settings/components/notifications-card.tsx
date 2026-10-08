@@ -19,12 +19,12 @@ export function NotificationsCard({ emailReminders }: { emailReminders: boolean 
   });
 
   return (
-    <SettingsCard title="Notifications" description="Choisissez les emails que vous recevez">
+    <SettingsCard title="Notifications" description="Choisis les emails que tu reçois">
       <div className="flex items-start justify-between gap-4">
         <div className="grid gap-1">
           <Label htmlFor="email-reminders">Rappels d&apos;événements par email</Label>
           <p className="text-sm text-muted-foreground">
-            La veille d&apos;un entraînement ou d&apos;un match où vous êtes attendu. Le rappel dans l&apos;application
+            La veille d&apos;un entraînement ou d&apos;un match où tu es attendu. Le rappel dans l&apos;application
             est toujours envoyé.
           </p>
         </div>

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { codeSchema, emailSchema, nameSchema, passwordSchema } from "@/features/auth/schemas";
 
 /** Current password, asked before every sensitive change (verified server side). */
-const currentPasswordSchema = z.string().min(1, "Vous devez mettre votre mot de passe actuel");
+const currentPasswordSchema = z.string().min(1, "Indique ton mot de passe actuel");
 
 /** Social-only accounts have no password: `password` is then empty and ignored. */
 export const updateNameSchema = z.object({ name: nameSchema, password: z.string() });

@@ -47,7 +47,7 @@ export async function verifyCurrentPassword(
   if (!valid) {
     if (attempt.remaining === 0) {
       await revokeSessions(userId);
-      throw tooManyRequests("Trop de mots de passe incorrects : vous avez été déconnecté par sécurité.");
+      throw tooManyRequests("Trop de mots de passe incorrects : tu as été déconnecté par sécurité.");
     }
     throw new AppError("Mot de passe incorrect");
   }

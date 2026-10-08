@@ -14,7 +14,7 @@ import { clubLosingItsOwner } from "./rules";
 
 export const changeUserRole = action(changeUserRoleSchema, async ({ userId, role }) => {
   const admin = await requireAdmin();
-  if (userId === admin.id) throw new AppError("Vous ne pouvez pas modifier votre propre rôle");
+  if (userId === admin.id) throw new AppError("Tu ne peux pas modifier ton propre rôle");
 
   await prisma.user.update({ where: { id: userId }, data: { role } });
   return { message: `Rôle ${userRoleLabels[role]} attribué` };
@@ -22,7 +22,7 @@ export const changeUserRole = action(changeUserRoleSchema, async ({ userId, role
 
 export const deleteUsers = action(deleteUsersSchema, async (ids) => {
   const admin = await requireAdmin();
-  if (ids.includes(admin.id)) throw new AppError("Vous ne pouvez pas supprimer votre propre compte ici");
+  if (ids.includes(admin.id)) throw new AppError("Tu ne peux pas supprimer ton propre compte ici");
 
   // A club must keep its owner (subscription, deletion): they hand it over first.
   const owners = await prisma.clubMember.findMany({

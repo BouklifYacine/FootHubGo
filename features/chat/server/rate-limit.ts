@@ -13,6 +13,6 @@ export async function assertCanSendMessage(userId: string) {
     where: { senderId: userId, createdAt: { gt: new Date(Date.now() - WINDOW_MS) } },
   });
   if (recent >= MAX_MESSAGES) {
-    throw new AppError("Vous envoyez trop de messages. Patientez une minute.", 429);
+    throw new AppError("Tu envoies trop de messages. Patiente une minute.", 429);
   }
 }

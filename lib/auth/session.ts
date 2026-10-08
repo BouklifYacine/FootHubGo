@@ -82,15 +82,15 @@ export type Membership = NonNullable<Awaited<ReturnType<typeof findMembership>>>
 export async function requireMember(teamId?: string) {
   const user = await requireUser();
   const membership = await findMembership(user.id);
-  if (!membership) throw forbidden("Vous n'appartenez à aucun club");
-  if (teamId && membership.teamId !== teamId) throw forbidden("Vous n'appartenez pas à cette section");
+  if (!membership) throw forbidden("Tu n'appartiens à aucun club");
+  if (teamId && membership.teamId !== teamId) throw forbidden("Tu n'appartiens pas à cette section");
   return { user, membership };
 }
 
 /** Same as `requireMember` but the user must be a coach of the active section. */
 export async function requireCoach(teamId?: string) {
   const { user, membership } = await requireMember(teamId);
-  if (membership.role !== "COACH") throw forbidden("Vous devez être entraîneur de la section");
+  if (membership.role !== "COACH") throw forbidden("Tu dois être entraîneur de la section");
   return { user, membership };
 }
 

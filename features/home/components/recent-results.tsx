@@ -21,7 +21,7 @@ export function RecentResults({ results, isPlayer }: { results: HomeData["recent
         <span id="results-title">Derniers résultats</span>
       </SectionTitle>
       {results.length === 0 ? (
-        <EmptyState icon={Activity} title="Aucun match joué" description="Les résultats s'afficheront ici après vos premiers matchs." />
+        <EmptyState icon={Activity} title="Aucun match joué" description="Les résultats s'afficheront ici après les premiers matchs." />
       ) : (
         <ul className="divide-y overflow-hidden rounded-xl border bg-card">
           {results.map((match) => {

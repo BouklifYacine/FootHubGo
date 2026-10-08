@@ -127,7 +127,7 @@ export async function handleCheckoutCompleted(event: Stripe.CheckoutSessionCompl
 
   await sendEmail({
     to: payer.email,
-    subject: "Confirmation de votre abonnement",
+    subject: "Confirmation de ton abonnement",
     email: createElement(SubscriptionStartedEmail, { name: payer.name, plan: planLabel(period) }),
   });
 }
@@ -146,7 +146,7 @@ export async function handleSubscriptionUpdated(event: Stripe.CustomerSubscripti
     await prisma.subscription.updateMany({ where: subscriptionWhere(payer), data: { endDate } });
     await sendEmail({
       to: payer.email,
-      subject: "Confirmation de résiliation de votre abonnement",
+      subject: "Confirmation de résiliation de ton abonnement",
       email: createElement(SubscriptionCanceledEmail, { name: payer.name, endDate }),
     });
     return;
@@ -167,7 +167,7 @@ export async function handleSubscriptionUpdated(event: Stripe.CustomerSubscripti
 
   await sendEmail({
     to: payer.email,
-    subject: "Confirmation du changement de votre abonnement",
+    subject: "Confirmation du changement de ton abonnement",
     email: createElement(SubscriptionChangedEmail, {
       name: payer.name,
       oldPlan: planLabel(previous.period),
@@ -187,7 +187,7 @@ export async function handleSubscriptionDeleted(event: Stripe.CustomerSubscripti
 
   await sendEmail({
     to: payer.email,
-    subject: "Votre abonnement est terminé",
+    subject: "Ton abonnement est terminé",
     email: createElement(SubscriptionCanceledEmail, { name: payer.name }),
   });
 }

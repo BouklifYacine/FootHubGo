@@ -16,7 +16,7 @@ export const injurySchema = z.object({
     .min(10, "La description doit contenir au moins 10 caractères")
     .max(500, "La description ne peut pas dépasser 500 caractères"),
   endDate: z
-    .date({ error: "Choisissez une date de retour" })
+    .date({ error: "Choisis une date de retour" })
     .refine(
       (date) => !isBefore(date, addDays(startOfDay(new Date()), MIN_INJURY_DAYS)),
       `Une blessure doit durer au minimum ${MIN_INJURY_DAYS} jours`,

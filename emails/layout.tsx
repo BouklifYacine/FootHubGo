@@ -46,7 +46,7 @@ export function Greeting({ name }: { name?: string | null }) {
 export function SecurityNotice() {
   return (
     <Text style={textStyle}>
-      Si ce changement n&apos;est pas de votre fait, <b>sécurisez votre compte</b> immédiatement.
+      Si ce changement n&apos;est pas de ton fait, <b>sécurise ton compte</b> immédiatement.
     </Text>
   );
 }

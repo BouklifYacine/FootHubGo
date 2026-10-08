@@ -5,7 +5,7 @@ export const emailSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .min(1, "Vous devez mettre un email")
+  .min(1, "Indique ton email")
   .pipe(z.email("Format d'email invalide"));
 
 /** Same bounds as better-auth (auth.ts). Existing shorter passwords still sign in. */
@@ -27,7 +27,7 @@ export const codeSchema = z
 
 export const signInSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, "Vous devez mettre un mot de passe"),
+  password: z.string().min(1, "Indique ton mot de passe"),
 });
 
 export const signUpSchema = z.object({

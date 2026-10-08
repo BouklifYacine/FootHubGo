@@ -16,8 +16,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "FootHubGo",
-  description: "Avec FootHubGo, gérez votre club de football amateur de manière professionnelle",
+  title: { default: "FootHubGo", template: "%s · FootHubGo" },
+  description: "FootHubGo : matchs, entraînements, convocations et messages de ton club de foot amateur, sur ton téléphone.",
 };
 
 export const viewport: Viewport = {
