@@ -39,15 +39,15 @@ export function HomeDashboard() {
         <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{firstName ? `Salut ${firstName} !` : "Accueil"}</h1>
         <p className="text-sm text-muted-foreground max-md:hidden">{data.team.name}</p>
       </header>
-      <div className="grid gap-6 lg:grid-cols-5">
-        <div className="flex flex-col gap-6 lg:col-span-3">
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-5">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-3">
           <NextEventCard event={data.nextEvent} canManage={data.canManage} />
           <PushOptInCard />
           <TodoList todo={data.todo} />
           {data.checklist && <FirstRunChecklist checklist={data.checklist} teamLabel={data.team.name} />}
           <RecentResults results={data.recentResults} isPlayer={data.role === "PLAYER"} />
         </div>
-        <div className="flex flex-col gap-6 lg:col-span-2">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-2">
           <KeyStats teamStats={data.teamStats} playerStats={data.playerStats} />
           <Leaderboard topScorers={data.topScorers} topAssists={data.topAssists} />
         </div>
