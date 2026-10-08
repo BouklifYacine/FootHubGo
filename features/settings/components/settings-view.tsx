@@ -25,7 +25,11 @@ type SectionId = (typeof sections)[number]["id"];
 
 /** Settings of the signed-in user (always the session user, never an id from the URL). */
 export function SettingsView() {
-  const [active, setActive] = useState<SectionId>("profile");
+  // `?section=notifications` opens a section directly (links from the home push card).
+  const [active, setActive] = useState<SectionId>(() => {
+    const wanted = typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("section");
+    return sections.find((section) => section.id === wanted)?.id ?? "profile";
+  });
   const { data: profile, isPending, error } = useProfile();
 
   if (isPending) return <LoadingState variant="detail" />;
@@ -57,7 +61,9 @@ export function SettingsView() {
         {active === "name" && <NameForm currentName={profile.name} hasPassword={profile.hasPassword} />}
         {active === "email" && profile.hasPassword && <EmailForm />}
         {active === "password" && profile.hasPassword && <PasswordForm />}
-        {active === "notifications" && <NotificationsCard emailReminders={profile.emailReminders} />}
+        {active === "notifications" && (
+          <NotificationsCard emailReminders={profile.emailReminders} pushMutedCategories={profile.pushMutedCategories} />
+        )}
         {active === "delete" && <DeleteAccountCard hasPassword={profile.hasPassword} />}
       </div>
     </div>

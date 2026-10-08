@@ -11,7 +11,8 @@ import { useHome } from "@/features/home/hooks/use-home";
 import { useProfile } from "@/features/settings/hooks/use-profile";
 import { useMyTeam } from "@/features/team/hooks/use-my-team";
 import { markOnboardingSeen } from "../actions";
-import { TOUR_KEYS, buildTour, sideFor, type TourRole } from "../tours";
+import { useDevicePush } from "@/features/push/hooks/use-push";
+import { buildTour, sideFor, tourKey, type TourRole } from "../tours";
 
 /** The visible element of an anchor (the bottom tab on phones, the sidebar link on desktop). */
 function findVisible(anchor: string) {
@@ -37,16 +38,22 @@ export function TourLauncher() {
   const markSeen = useActionMutation(markOnboardingSeen, { toast: false, invalidate: [queryKeys.me.profile] });
   const running = useRef(false);
 
+  const { data: device } = useDevicePush();
+  // iPhone in Safari, app not on the home screen: the player tour shows the install hint.
+  const iosInstallHint = !!device && device.iosSafari && !device.standalone;
   const role: TourRole | null = team?.team ? (team.canManage ? "coach" : "player") : null;
-  const seen = role !== null && (profile?.onboardingSeen ?? []).includes(TOUR_KEYS[role]);
-  const ready = onHome && !!profile && !!role && !!home && (replay || !seen);
+  const key = role ? tourKey(role, iosInstallHint) : null;
+  // v2 includes v1: a player who saw it in Safari doesn't see v1 again once the app is installed.
+  const seenKeys: string[] = key === "player-v1" ? ["player-v1", "player-v2"] : key ? [key] : [];
+  const seen = seenKeys.some((value) => (profile?.onboardingSeen ?? []).includes(value));
+  const ready = onHome && !!profile && !!role && !!home && !!device && (replay || !seen);
 
   useEffect(() => {
     if (!ready || !role || running.current) return;
     running.current = true;
     // Let the home finish its layout (cards, bottom tabs) before measuring the anchors.
     const timer = window.setTimeout(() => {
-      const steps = buildTour(role, { sectionCount: team?.sections.length ?? 1, find: findVisible });
+      const steps = buildTour(role, { sectionCount: team?.sections.length ?? 1, find: findVisible, iosInstallHint });
       if (steps.length === 0) {
         running.current = false;
         return;
@@ -69,7 +76,7 @@ export function TourLauncher() {
         smoothScroll: true,
         onDestroyed: () => {
           running.current = false;
-          markSeen.mutate(TOUR_KEYS[role]);
+          markSeen.mutate(tourKey(role, iosInstallHint));
           if (replay) router.replace("/app", { scroll: false });
         },
       });

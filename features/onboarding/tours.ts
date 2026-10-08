@@ -17,6 +17,21 @@ export type TourStepDef = {
 
 export const TOUR_KEYS: Record<TourRole, OnboardingKey> = { coach: "coach-v1", player: "player-v1" };
 
+/**
+ * Players on an iPhone in Safari (app not on the home screen) get "player-v2": the same tour with
+ * the "Ajouter à l'écran d'accueil" hint instead of the bell step (push needs the installed app on
+ * iOS). A new key, so iPhone players who saw v1 see it once more; everyone else keeps v1.
+ */
+export function tourKey(role: TourRole, iosInstallHint: boolean): OnboardingKey {
+  return role === "player" && iosInstallHint ? "player-v2" : TOUR_KEYS[role];
+}
+
+export const IOS_INSTALL_STEP: TourStepDef = {
+  anchor: "notification-bell",
+  title: "Ajoute l'app à ton écran d'accueil",
+  text: "Sur iPhone, touche Partager puis « Sur l'écran d'accueil » : FootHubGo s'ouvre comme une app et tu reçois tes convocations en notification.",
+};
+
 /** At most this many steps per tour (an extra step is dropped from the end of the optional ones). */
 export const MAX_TOUR_STEPS = 6;
 
@@ -91,13 +106,21 @@ export const TOURS: Record<TourRole, TourStepDef[]> = {
 
 /** Steps that can go first when space is needed (the first and the last ones always stay). */
 const OPTIONAL_ANCHORS = ["nav-messages", "notification-bell", "home-callup-summary"];
+// (the iOS hint shares the bell's anchor; with several sections it is kept and "nav-messages" goes first)
 
 /**
  * The steps to show: the section switcher first for members of several sections, only the steps
  * whose element exists (`find`), at most MAX_TOUR_STEPS.
  */
-export function buildTour<E>(role: TourRole, { sectionCount, find }: { sectionCount: number; find: (anchor: string) => E | null }) {
-  const defs = sectionCount > 1 ? [SECTION_STEP, ...TOURS[role]] : TOURS[role];
+export function buildTour<E>(
+  role: TourRole,
+  { sectionCount, find, iosInstallHint = false }: { sectionCount: number; find: (anchor: string) => E | null; iosInstallHint?: boolean },
+) {
+  const roleSteps =
+    role === "player" && iosInstallHint
+      ? TOURS.player.map((step) => (step.anchor === IOS_INSTALL_STEP.anchor ? IOS_INSTALL_STEP : step))
+      : TOURS[role];
+  const defs = sectionCount > 1 ? [SECTION_STEP, ...roleSteps] : roleSteps;
   let steps = defs.flatMap((def) => {
     const element = find(def.anchor);
     return element ? [{ ...def, element }] : [];

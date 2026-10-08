@@ -18,6 +18,8 @@ export const queryKeys = {
     badges: ["me", "badges"] as const,
     /** Onboarding tours already seen. */
     tours: ["me", "tours"] as const,
+    /** Web Push: VAPID public key + number of subscribed devices. */
+    push: ["me", "push"] as const,
   },
 
   /** Club directory (clubs and their sections). */
@@ -70,6 +72,11 @@ export const queryKeys = {
 
   notifications: {
     all: ["notifications"] as const,
+  },
+
+  /** This browser (not the server): push permission / subscription, install state. */
+  device: {
+    push: ["device", "push"] as const,
   },
 
   polls: {

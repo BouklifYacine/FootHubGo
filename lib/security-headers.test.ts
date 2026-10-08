@@ -16,6 +16,8 @@ describe("securityHeaders", () => {
     expect(csp).toContain("object-src 'none'");
     expect(csp).toContain("connect-src 'self' wss://app.example.fr");
     expect(csp).not.toContain("unsafe-eval");
+    expect(csp).toContain("worker-src 'self'");
+    expect(csp).toContain("manifest-src 'self'");
   });
 
   test("development: no HSTS, eval allowed for React Refresh, ws socket", () => {

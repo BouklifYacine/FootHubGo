@@ -16,7 +16,11 @@ export default function ChatPage() {
   const { data: session } = useSession();
   const myId = session?.user.id;
   const { data: conversations = [], isLoading } = useConversations();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // `?c=<id>` opens a conversation (push notification of a message). Read once: the list is still
+  // loading on the server render, so this never changes the hydrated markup.
+  const [selectedId, setSelectedId] = useState<string | null>(() =>
+    typeof window === "undefined" ? null : new URLSearchParams(window.location.search).get("c"),
+  );
   // Derived from the live list, so a removed conversation closes by itself.
   const selected = conversations.find((c) => c.id === selectedId);
 

@@ -13,6 +13,7 @@ import { useChatRealtime } from "@/features/chat/hooks/use-chat-realtime";
 import { TitleWithSectionSwitcher } from "@/features/clubs/components/section-switcher";
 import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { TourLauncher } from "@/features/onboarding/components/tour-launcher";
+import { PwaSetup } from "@/features/push/components/pwa-setup";
 import { AppSidebar } from "./app-sidebar";
 import { BottomNav } from "./bottom-nav";
 import { useNavigation } from "./use-navigation";
@@ -42,6 +43,7 @@ export function AppShell({ variant, children }: { variant: "app" | "admin"; chil
   return (
     <SidebarProvider>
       {isApp && <ChatRealtime />}
+      {isApp && <PwaSetup />}
       <AppSidebar variant={variant} />
       <SidebarInset className="min-w-0">
         <header className="sticky top-0 z-30 border-b bg-background/95 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-background/80 md:border-b-0">

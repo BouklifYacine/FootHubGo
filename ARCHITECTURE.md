@@ -206,6 +206,46 @@ Socket.IO runs in the same process as Next (`server.ts`). The protocol (event na
 is shared in `lib/realtime/protocol.ts`. Server code emits through `server/realtime/emitter.ts`;
 the client uses a single socket from `RealtimeProvider`.
 
+## PWA and Web Push (lot 6)
+
+- **Installable app**: `app/manifest.ts` (`/manifest.webmanifest`, start `/app`, standalone, icons in
+  `public/icons/`: regular + maskable 192/512, `apple-touch-icon`, monochrome `badge-96`; sources `icon.svg`,
+  `icon-maskable.svg`, `badge.svg`, PNGs rendered once with sharp). iOS meta (`appleWebApp`) in the root layout.
+- **Service worker** `public/sw.js` (hand-written, no build step; bump `VERSION` to drop old caches), registered
+  by `PwaSetup` in the **app shell only** (scope `/`, `updateViaCache: "none"`; `/sw.js` is served `no-cache`, see
+  `serviceWorkerHeaders`). Navigations: network, offline -> `public/offline.html` ("Tu es hors ligne",
+  self-contained). Cache-first only for `/_next/static/*` (hashed) and `/icons/*` (150 entries max). API, auth,
+  server actions, RSC payloads and Socket.IO are never touched; the HTML of the app is never cached. `push` shows
+  the notification (tag = replaces the previous one); `notificationclick` focuses a tab on the URL, navigates an
+  open tab, or opens one (only `/app` paths).
+- **Sending** (`features/push`): `notifyUser` / `notifyUsers` are the ONLY entry point for notifications: they
+  store, emit to sockets, then call `sendPush(userIds, category, payload)` (not awaited, never throws). Which type
+  pushes and under which preference is the table in `categories.ts` (`pushCategoryOf`): CALL_UP + EVENT_REMINDER
+  -> `callUps`, MAN_OF_THE_MATCH -> `motm`, CARPOOL -> `carpool`, JOIN_REQUEST / JOINED_TEAM / NEW_POLL -> `club`;
+  LEFT_TEAM, INJURY_REPORTED, FINANCE_DUE never push (vote changes create no notification, so never push).
+  `payload.ts` builds `{ title, body, url, tag }` from what the notification already shows. `sendPush` skips users
+  who muted the category (`User.pushMutedCategories`), deletes subscriptions answered 404 / 410, updates
+  `lastUsedAt`, logs counts and status codes only. TTL 12h (24h club, 1h chat), urgency high for call-ups / chat.
+- **Chat** (`server/chat-push.ts`, called by `sendMessage`): only participants with **no connected socket**
+  (`isUserConnected`), never someone who blocked the sender; one push per recipient and conversation every 3
+  minutes (`chat-throttle.ts`, in memory), the next one says "N nouveaux messages", tag `chat:<conversation>`;
+  it opens `/app/chat?c=<id>`.
+- **Subscriptions**: `PushSubscription` (endpoint unique, p256dh, auth, device label "Chrome · Android",
+  `createdAt`, `lastUsedAt`), cascade on user deletion. `subscribePush` (upsert on the endpoint, 10 devices max:
+  the least recently used goes, 20 per hour), `unsubscribePush` (settings switch off, sign-out),
+  `setPushCategory`. `GET /api/push/config` gives the VAPID public key at runtime (`null` = push disabled), so
+  the Docker image needs no key at build time. Keys: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+  (`bunx web-push generate-vapid-keys`).
+- **Client** (`client/pwa.ts`, `hooks/use-push.ts`): state per device from `support.ts` (pure): `enabled`,
+  `disabled`, `denied` (explains how to re-allow), `unsupported`, `unconfigured`, `ios-needs-install` (iPhone /
+  iPad in a browser tab: Web Push needs the home screen app, iOS 16.4+). Permission is only asked on a tap: the
+  home card `PushOptInCard` ("Active les notifications...", "Plus tard" hides it 30 days on this device) and the
+  settings switch (`/app/settings?section=notifications`, + the 5 categories). `PwaSetup` re-syncs the device's
+  subscription once per visit (expired subscription or new server key). `InstallAppCard` (Plus, settings):
+  `beforeinstallprompt` on Chromium, Share -> "Sur l'écran d'accueil" steps on iOS, browser menu elsewhere.
+- **Onboarding**: iPhone Safari players (not installed) get tour `player-v2`, where the bell step becomes the
+  "Ajoute l'app à ton écran d'accueil" hint (still 6 steps max); `player-v2` counts as seen for `player-v1`.
+
 ## Background jobs
 
 `server/jobs.ts` runs in the same process as the server (every 10 minutes): event reminders

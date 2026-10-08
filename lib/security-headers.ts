@@ -24,6 +24,9 @@ export function contentSecurityPolicy({ dev, appUrl }: { dev: boolean; appUrl?: 
     "base-uri": ["'self'"],
     "form-action": ["'self'"],
     "frame-ancestors": ["'none'"],
+    // PWA: the service worker (/sw.js) and the web app manifest are same-origin only.
+    "worker-src": ["'self'"],
+    "manifest-src": ["'self'"],
     // No upgrade-insecure-requests: it would break a production build served over plain http
     // (Docker image tried on localhost). HSTS keeps real deployments on https.
   };
@@ -44,3 +47,10 @@ export function securityHeaders({ dev, appUrl }: { dev: boolean; appUrl?: string
     ...(dev ? [] : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]),
   ];
 }
+
+/** Headers of /sw.js: always revalidated (an old worker would keep serving old assets), root scope. */
+export const serviceWorkerHeaders = [
+  { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+  { key: "Content-Type", value: "application/javascript; charset=utf-8" },
+  { key: "Service-Worker-Allowed", value: "/" },
+];

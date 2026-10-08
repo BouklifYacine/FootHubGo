@@ -1,15 +1,19 @@
 import type { NextConfig } from "next";
-import { securityHeaders } from "./lib/security-headers";
+import { securityHeaders, serviceWorkerHeaders } from "./lib/security-headers";
 
 // Pas de output: "standalone" : l'app tourne via le serveur custom (server.ts + Socket.IO).
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  serverExternalPackages: ["@node-rs/argon2"],
+  serverExternalPackages: ["@node-rs/argon2", "web-push"],
   // Avatars are uploaded through a server action (max 2 Mo, checked in features/settings/actions.ts).
   experimental: { serverActions: { bodySizeLimit: "3mb" } },
   async headers() {
     const dev = process.env.NODE_ENV !== "production";
-    return [{ source: "/:path*", headers: securityHeaders({ dev, appUrl: process.env.NEXT_PUBLIC_URL }) }];
+    return [
+      { source: "/:path*", headers: securityHeaders({ dev, appUrl: process.env.NEXT_PUBLIC_URL }) },
+      // The service worker must never be served from a cache: browsers check it for updates.
+      { source: "/sw.js", headers: serviceWorkerHeaders },
+    ];
   },
   async redirects() {
     return [

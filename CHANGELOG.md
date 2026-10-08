@@ -13,6 +13,20 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 
 ### Ajouté
 
+- **Application installable (PWA)** : FootHubGo s'installe sur l'écran d'accueil (bouton « Installer
+  l'application » dans « Plus » et les réglages sur Android / Chrome / Edge, instructions « Partager → Sur l'écran
+  d'accueil » sur iPhone), s'ouvre en plein écran avec sa propre icône, et affiche « Tu es hors ligne » sans
+  réseau.
+- **Notifications push** : convocation reçue, réponse d'un joueur (pour l'entraîneur), rappel la veille, vote et
+  résultat de l'homme du match, covoiturage, demande d'adhésion reçue ou acceptée, nouveau sondage et nouveaux
+  messages (seulement quand l'application est fermée, regroupés par conversation). Activation en un geste
+  depuis la carte de l'accueil ou les réglages (jamais de demande au chargement de la page), réglage par
+  appareil et par catégorie (Convocations & rappels, Homme du match, Covoiturage, Messages, Club), explications
+  quand les notifications sont bloquées ou non disponibles. Sur iPhone (iOS 16.4 ou plus), il faut d'abord
+  ajouter l'app à l'écran d'accueil : le tutoriel du joueur le rappelle sur iPhone.
+- Hébergement : nouvelles variables facultatives `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`
+  (voir `README.Docker.md`) et migration `web_push` à appliquer.
+
 - **Temps de jeu** : sur la page d'un match, onglet « Temps de jeu » ; l'entraîneur saisit les minutes de tous
   les joueurs présents d'un coup (Titulaire = 90', Entré, Pas joué, minutes rapides, prolongations comprises
   jusqu'à 130'). Les minutes de la saison apparaissent dans les statistiques du joueur et, pour l'entraîneur,

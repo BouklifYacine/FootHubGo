@@ -18,6 +18,14 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: { default: "FootHubGo", template: "%s · FootHubGo" },
   description: "FootHubGo : matchs, entraînements, convocations et messages de ton club de foot amateur, sur ton téléphone.",
+  applicationName: "FootHubGo",
+  // iOS "Sur l'écran d'accueil": full screen app with its own icon and name.
+  appleWebApp: { capable: true, title: "FootHubGo", statusBarStyle: "default" },
+  icons: {
+    icon: [{ url: "/favicon.ico" }, { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+    apple: [{ url: "/icons/apple-touch-icon.png", sizes: "180x180" }],
+  },
+  formatDetection: { telephone: false },
 };
 
 export const viewport: Viewport = {
