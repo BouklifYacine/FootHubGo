@@ -2,15 +2,19 @@ import { prisma } from "@/prisma";
 import type { Membership } from "@/lib/auth/session";
 import { canManageSection } from "@/features/clubs/rules";
 import { callUpAnswerState, sendCallUpError } from "@/features/call-ups/server/rules";
+import { MOTM_MIN_NOMINEES, hasMotm, isMotmVoter, motmWindow } from "@/features/motm/rules";
+import { canSeeCarpool, seatsLeft } from "@/features/carpool/rules";
 
-type EventRef = { id: string; type: "TRAINING" | "LEAGUE" | "CUP"; startDate: Date; teamId: string | null };
+type EventRef = { id: string; type: "TRAINING" | "LEAGUE" | "CUP"; startDate: Date; teamId: string | null; isHome: boolean };
 
 /**
  * "Who is coming?" for a set of events, from the caller's point of view (home, agenda, event page):
  * - `myCallUp`: the caller's call-up to a match, whether they can still answer / change it, and until when;
  * - `myAttendance`: the caller's answer for a training of their section (players);
  * - `callUps`: answers summary of a match, for the people who manage its section (+ can they still send);
- * - `attendance`: present / absent counts of a training, for the people who manage its section.
+ * - `attendance`: present / absent counts of a training, for the people who manage its section;
+ * - `motmVote`: the man-of-the-match vote of a match the caller can vote for right now (and whether they did);
+ * - `carpool`: upcoming away match of one of the caller's sections: free seats and the caller's place.
  */
 export async function participationOf(events: EventRef[], membership: Membership, userId: string, now = new Date()) {
   const ids = events.map((event) => event.id);
@@ -19,7 +23,20 @@ export async function participationOf(events: EventRef[], membership: Membership
     .filter((event) => event.teamId !== null && canManageSection(membership, event.teamId))
     .map((event) => event.id);
 
-  const [myCallUps, myAttendances, callUpCounts, attendanceCounts, playerCounts] = await Promise.all([
+  /** The caller's role in an event's section (null: not a member of it). */
+  const sectionRole = (teamId: string | null) => {
+    const role = membership.sections.find((section) => section.teamId === teamId)?.role;
+    return role === "COACH" || role === "PLAYER" ? role : null;
+  };
+  const votingIds = events
+    .filter((event) => hasMotm(event) && motmWindow(event.startDate, now).state === "open")
+    .map((event) => event.id);
+
+  const carpoolIds = events
+    .filter((event) => event.startDate > now && canSeeCarpool(event, sectionRole(event.teamId)))
+    .map((event) => event.id);
+
+  const [myCallUps, myAttendances, callUpCounts, attendanceCounts, playerCounts, myVotes, presentCounts, rides] = await Promise.all([
     prisma.callUp.findMany({
       where: { userId, eventId: { in: ids } },
       select: { id: true, eventId: true, status: true, respondedAt: true },
@@ -38,6 +55,22 @@ export async function participationOf(events: EventRef[], membership: Membership
           _count: { _all: true },
         })
       : [],
+    votingIds.length
+      ? prisma.motmVote.findMany({ where: { voterId: userId, eventId: { in: votingIds } }, select: { eventId: true } })
+      : [],
+    votingIds.length
+      ? prisma.callUp.groupBy({
+          by: ["eventId"],
+          where: { eventId: { in: votingIds }, status: "CONFIRMED", user: { memberships: { some: { role: "PLAYER" } } } },
+          _count: { _all: true },
+        })
+      : [],
+    carpoolIds.length
+      ? prisma.ride.findMany({
+          where: { eventId: { in: carpoolIds } },
+          select: { eventId: true, driverId: true, seats: true, passengers: { select: { userId: true } } },
+        })
+      : [],
   ]);
 
   const count = (rows: { eventId: string; status: string; _count: { _all: number } }[], eventId: string, status: string) =>
@@ -51,6 +84,11 @@ export async function participationOf(events: EventRef[], membership: Membership
       const isOwnSectionTraining =
         !isMatch && event.teamId !== null && event.teamId === membership.teamId && membership.role === "PLAYER";
       const players = playerCounts.find((row) => row.teamId === event.teamId)?._count._all ?? 0;
+      const canVote =
+        votingIds.includes(event.id) &&
+        (presentCounts.find((row) => row.eventId === event.id)?._count._all ?? 0) >= MOTM_MIN_NOMINEES &&
+        isMotmVoter({ sectionRole: sectionRole(event.teamId), callUpStatus: callUp?.status ?? null });
+      const eventRides = rides.filter((ride) => ride.eventId === event.id);
 
       return [
         event.id,
@@ -83,6 +121,20 @@ export async function participationOf(events: EventRef[], membership: Membership
             isManaged && !isMatch
               ? { present: count(attendanceCounts, event.id, "PRESENT"), absent: count(attendanceCounts, event.id, "ABSENT"), players }
               : null,
+          motmVote: canVote
+            ? { closesAt: motmWindow(event.startDate, now).closesAt, hasVoted: myVotes.some((vote) => vote.eventId === event.id) }
+            : null,
+          carpool: carpoolIds.includes(event.id)
+            ? {
+                rides: eventRides.length,
+                seatsLeft: eventRides.reduce((total, ride) => total + seatsLeft({ seats: ride.seats, booked: ride.passengers.length }), 0),
+                myPlace: eventRides.some((ride) => ride.driverId === userId)
+                  ? ("driver" as const)
+                  : eventRides.some((ride) => ride.passengers.some((passenger) => passenger.userId === userId))
+                    ? ("passenger" as const)
+                    : null,
+              }
+            : null,
         },
       ] as const;
     }),

@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/app/empty-state";
 import { ErrorState } from "@/components/app/error-state";
 import { Page, PageHeader } from "@/components/app/page-header";
 import { normalize, StatList, StatsHeader, StatsRadar, StatsSkeleton } from "./stats-display";
+import { TeamPlayingTime } from "./team-playing-time";
 
 type Team = NonNullable<MyTeam["team"]>;
 
@@ -102,6 +103,7 @@ function TeamStatsView({ team }: { team: Team }) {
           ],
         ]}
       />
+      <TeamPlayingTime teamId={team.id} className="lg:col-span-3" />
     </div>
   );
 }
@@ -153,8 +155,11 @@ function PlayerStatsView({ team }: { team: Team }) {
             { label: "Total buts", value: stats.goals },
             { label: "Passes décisives", value: stats.assists },
             { label: "Buts + passes D.", value: stats.goalContributions },
-            { label: "Note moyenne", value: stats.avgRating.toFixed(1) },
+            { label: "Note moyenne", value: stats.avgRating ? stats.avgRating.toFixed(1) : "—" },
             { label: "Matchs titulaire", value: stats.starts },
+            { label: "Minutes jouées", value: stats.minutes },
+            { label: "Minutes / match", value: stats.avgMinutes },
+            { label: "Homme du match", value: stats.motmAwards },
           ],
           [
             { label: "Titulaire", value: `${stats.startRate}%` },

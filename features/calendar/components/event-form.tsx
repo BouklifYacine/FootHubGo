@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/app/segmented-control";
 import { ResponsiveDialogFooter } from "@/components/app/responsive-dialog";
 import { CALL_UP_RULES } from "@/features/call-ups/server/rules";
 import { EVENT_TYPE_KEYS, EVENT_TYPES } from "@/features/events/event-types";
@@ -13,7 +14,10 @@ import { useAppForm } from "@/lib/form";
 const typeOptions = EVENT_TYPE_KEYS.map((type) => ({ value: type, label: EVENT_TYPES[type].label }));
 
 /** What the form edits (an agenda item or the event page data both fit). */
-export type EditableEvent = Pick<EventListItem, "id" | "title" | "type" | "startDate" | "location" | "opponent" | "description">;
+export type EditableEvent = Pick<
+  EventListItem,
+  "id" | "title" | "type" | "startDate" | "location" | "opponent" | "description" | "isHome"
+>;
 
 /** "CLUB" (whole club) or a section id. */
 export type ScopeOption = { value: string; label: string };
@@ -44,6 +48,7 @@ export function EventForm({ event, defaultStart, scopeOptions, onDone, onCancel 
         location: event.location ?? "",
         opponent: event.opponent ?? "",
         description: event.description ?? "",
+        isHome: event.isHome,
       }
     : {
         repeat: false,
@@ -53,6 +58,7 @@ export function EventForm({ event, defaultStart, scopeOptions, onDone, onCancel 
         location: "",
         opponent: "",
         description: "",
+        isHome: true,
         scope: scopeOptions?.[0]?.value,
       };
 
@@ -116,9 +122,33 @@ export function EventForm({ event, defaultStart, scopeOptions, onDone, onCancel 
       <form.Subscribe selector={(state) => state.values.type}>
         {(type) =>
           type !== "TRAINING" && (
-            <form.AppField name="opponent">
-              {(field) => <field.TextField label="Adversaire" placeholder="Nom de l'équipe adverse" />}
-            </form.AppField>
+            <>
+              <form.AppField name="opponent">
+                {(field) => <field.TextField label="Adversaire" placeholder="Nom de l'équipe adverse" />}
+              </form.AppField>
+              <form.AppField name="isHome">
+                {(field) => (
+                  <div className="space-y-1.5">
+                    <span className="text-sm font-medium">
+                      Lieu du match
+                    </span>
+                    <SegmentedControl
+                      label="Lieu du match"
+                      className="w-full"
+                      value={field.state.value === false ? "away" : "home"}
+                      onChange={(venue) => field.handleChange(venue === "home")}
+                      options={[
+                        { value: "home", label: "Domicile" },
+                        { value: "away", label: "Extérieur" },
+                      ]}
+                    />
+                    {field.state.value === false && (
+                      <p className="text-xs text-muted-foreground">Le covoiturage s&apos;ouvre sur la page du match.</p>
+                    )}
+                  </div>
+                )}
+              </form.AppField>
+            </>
           )
         }
       </form.Subscribe>

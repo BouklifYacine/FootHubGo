@@ -13,6 +13,20 @@ Le workflow `Release` crée alors le tag `vX.Y.Z`, la release GitHub avec ces no
 
 ### Ajouté
 
+- **Temps de jeu** : sur la page d'un match, onglet « Temps de jeu » ; l'entraîneur saisit les minutes de tous
+  les joueurs présents d'un coup (Titulaire = 90', Entré, Pas joué, minutes rapides, prolongations comprises
+  jusqu'à 130'). Les minutes de la saison apparaissent dans les statistiques du joueur et, pour l'entraîneur,
+  le classement « Qui a le plus joué ». La note d'un joueur devient facultative.
+- **Homme du match** : 3h après le coup d'envoi, les joueurs présents et l'entraîneur votent pendant 48h (un
+  vote chacun, modifiable, pas pour soi-même). Les résultats restent secrets jusqu'à la fin du vote, puis le
+  gagnant s'affiche sur la page du match (ex aequo possible) et dans les statistiques. Notification à
+  l'ouverture du vote et au gagnant, rappel dans « À faire ».
+- **Covoiturage pour les matchs à l'extérieur** : nouveau choix « Domicile / Extérieur » dans le formulaire
+  d'un match. Sur la page du match, un conducteur propose sa voiture (places, lieu et heure de départ, note), ses
+  coéquipiers réservent une place (premier arrivé, premier servi, jamais plus de passagers que de places) ou la
+  libèrent ; le conducteur peut retirer un passager ou annuler sa voiture (les passagers sont prévenus).
+  Réservé aux membres de la section ; rappel dans « À faire » pour les joueurs convoqués sans place.
+
 - **Navigation mobile** : barre d'onglets en bas de l'écran (Accueil, Agenda, Équipe, Messages, Plus) avec
   pastilles (messages non lus, convocations à répondre, demandes d'adhésion), barre du haut avec le titre de la
   page, le club et la section (changement de section d'un geste) et la cloche. Sur ordinateur, le menu latéral

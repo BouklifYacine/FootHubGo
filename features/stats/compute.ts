@@ -73,19 +73,22 @@ export type TeamStatsSummary = ReturnType<typeof summarizeTeamStats>;
 type PlayerMatch = {
   goals: number;
   assists: number;
-  rating: number;
+  /** null = not rated (left out of the average). */
+  rating: number | null;
   minutesPlayed: number;
   isStarter: boolean;
 };
 
 export function summarizePlayerStats(matches: PlayerMatch[]) {
-  const sum = (key: "goals" | "assists" | "rating" | "minutesPlayed") =>
+  const sum = (key: "goals" | "assists" | "minutesPlayed") =>
     matches.reduce((total, match) => total + match[key], 0);
 
   const played = matches.length;
   const goals = sum("goals");
   const assists = sum("assists");
   const minutes = sum("minutesPlayed");
+  const rated = matches.flatMap((match) => (match.rating === null ? [] : [match.rating]));
+  const withMinutes = matches.filter((match) => match.minutesPlayed > 0).length;
   const starts = matches.filter((match) => match.isStarter).length;
   const per90 = (value: number) => round(ratio(value, minutes) * 90);
 
@@ -94,7 +97,10 @@ export function summarizePlayerStats(matches: PlayerMatch[]) {
     goals,
     assists,
     goalContributions: goals + assists,
-    avgRating: round(ratio(sum("rating"), played), 1),
+    avgRating: round(ratio(rated.reduce((total, rating) => total + rating, 0), rated.length), 1),
+    minutes,
+    /** Average over the matches actually played (minutes > 0). */
+    avgMinutes: Math.round(ratio(minutes, withMinutes)),
     starts,
     startRate: percent(starts, played),
     goalsPerMatch: round(ratio(goals, played)),
@@ -105,7 +111,8 @@ export function summarizePlayerStats(matches: PlayerMatch[]) {
   };
 }
 
-export type PlayerStatsSummary = ReturnType<typeof summarizePlayerStats>;
+/** The player's season (`motmAwards`: times elected man of the match, added by the query). */
+export type PlayerStatsSummary = ReturnType<typeof summarizePlayerStats> & { motmAwards: number };
 
 export type Standing = {
   team: { id: string; name: string; logoUrl: string | null };

@@ -1,6 +1,7 @@
 /**
  * Local development seed: a demo club with two sections, players, events (past and upcoming),
- * call-ups, stats, messages, a poll, an injury and a pending join request.
+ * call-ups, stats with playing time, man-of-the-match votes (closed and open), a carpool to an away
+ * match, messages, a poll, an injury and a pending join request.
  *
  *   bun run db:seed            # wipes the demo accounts (@foothub.test) then recreates them
  *
@@ -141,11 +142,15 @@ async function main() {
   const everyone = [player, ...others];
 
   // Past matches with stats.
+  // Past matches with stats. The last one was yesterday: its man-of-the-match vote is open.
+  // `motmWinner`: index in `everyone` who gets the most votes (closed votes only).
   const pastMatches = [
-    { days: -21, opponent: "US Valmont", goalsFor: 3, goalsAgainst: 1, result: "WIN" as const },
-    { days: -14, opponent: "FC Rivière", goalsFor: 1, goalsAgainst: 1, result: "DRAW" as const },
-    { days: -7, opponent: "AS Collines", goalsFor: 0, goalsAgainst: 2, result: "LOSS" as const },
+    { days: -21, opponent: "US Valmont", goalsFor: 3, goalsAgainst: 1, result: "WIN" as const, motmWinner: 0 },
+    { days: -14, opponent: "FC Rivière", goalsFor: 1, goalsAgainst: 1, result: "DRAW" as const, motmWinner: 1 },
+    { days: -7, opponent: "AS Collines", goalsFor: 0, goalsAgainst: 2, result: "LOSS" as const, motmWinner: 1 },
+    { days: -1, opponent: "Olympique Plaine", goalsFor: 2, goalsAgainst: 0, result: "WIN" as const, motmWinner: null },
   ];
+  let yesterdayMatchId = "";
   for (const match of pastMatches) {
     const event = await prisma.event.create({
       data: {
@@ -157,6 +162,10 @@ async function main() {
         clubId: club.id,
         teamId: seniors.id,
         reminderSentAt: at(match.days - 1, 15),
+        isHome: match.days !== -14,
+        // The vote of yesterday's match is open (notification sent), the older ones are closed.
+        motmOpenNotifiedAt: at(match.days, 18),
+        motmClosedAt: match.motmWinner === null ? null : at(match.days + 2, 18),
       },
     });
     await prisma.teamStat.create({
@@ -165,6 +174,7 @@ async function main() {
         goalsFor: match.goalsFor,
         goalsAgainst: match.goalsAgainst,
         cleanSheet: match.goalsAgainst === 0,
+        isHome: match.days !== -14,
         opponent: match.opponent,
         teamId: seniors.id,
         eventId: event.id,
@@ -180,10 +190,22 @@ async function main() {
         goals: index === 0 ? Math.min(match.goalsFor, 2) : index === 7 && match.goalsFor > 2 ? 1 : 0,
         assists: index === 6 && match.goalsFor > 0 ? 1 : 0,
         rating: 6 + (index % 4) * 0.5,
-        minutesPlayed: 90,
-        isStarter: true,
+        // Playing time: 8 starters (one replaced at 70'), 2 substitutes.
+        minutesPlayed: index < 8 ? (index === 5 ? 70 : 90) : index === 8 ? 20 + match.goalsFor * 5 : 15,
+        isStarter: index < 8,
         position: index === 0 ? "STRIKER" : squad[index - 1][2],
       })),
+    });
+    if (match.motmWinner === null) yesterdayMatchId = event.id;
+    // Man of the match: everyone votes for the winner except the winner (votes for the next player);
+    // yesterday's match: a few teammates voted, Lucas (joueur@) and the coach still have to.
+    const voters = match.motmWinner === null ? others.slice(2, 6) : [coach, ...everyone];
+    await prisma.motmVote.createMany({
+      data: voters.map((voter, index) => {
+        const winner = everyone[match.motmWinner ?? 0];
+        const nominee = voter.id === winner.id ? everyone[(everyone.indexOf(winner) + 1) % everyone.length] : match.motmWinner === null ? everyone[index % 2] : winner;
+        return { eventId: event.id, voterId: voter.id, nomineeId: nominee.id };
+      }),
     });
   }
 
@@ -201,6 +223,8 @@ async function main() {
       startDate: at(3, 15),
       location: "Stade des Pins, 12 rue du Stade",
       opponent: "FC Les Pins",
+      // Away: the carpool is open on the match page.
+      isHome: false,
       clubId: club.id,
       teamId: seniors.id,
     },
@@ -215,6 +239,29 @@ async function main() {
         respondedAt: index < 5 || index >= 7 ? new Date() : null,
       })),
     ],
+  });
+  // Carpool to the away match: Théo has 2 free seats out of 3, Nathan's car is full.
+  const departure = new Date(nextMatch.startDate.getTime() - 75 * 60_000);
+  await prisma.ride.create({
+    data: {
+      eventId: nextMatch.id,
+      driverId: others[1].id,
+      seats: 3,
+      departurePlace: "Parking du stade municipal",
+      departureTime: departure,
+      note: "Je peux passer par la gare si besoin.",
+      passengers: { create: { eventId: nextMatch.id, userId: others[0].id } },
+    },
+  });
+  await prisma.ride.create({
+    data: {
+      eventId: nextMatch.id,
+      driverId: others[2].id,
+      seats: 1,
+      departurePlace: "Place de la mairie",
+      departureTime: departure,
+      passengers: { create: { eventId: nextMatch.id, userId: others[4].id } },
+    },
   });
   await prisma.event.create({
     data: { title: "Coupe : FC Montagne", type: "CUP", startDate: at(10, 14), location: "Stade de la Montagne", opponent: "FC Montagne", clubId: club.id, teamId: seniors.id },
@@ -231,6 +278,16 @@ async function main() {
       message: `Tu es convoqué pour ${nextMatch.title}`,
       fromUserName: coach.name,
       data: { eventId: nextMatch.id, url: `/app/events/${nextMatch.id}` },
+    },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: player.id,
+      type: "MAN_OF_THE_MATCH",
+      title: "Homme du match",
+      message: "Vote pour l'homme du match contre Olympique Plaine.",
+      data: { url: `/app/events/${yesterdayMatchId}` },
     },
   });
 
@@ -267,7 +324,7 @@ async function main() {
 
   console.log(`Seed done. Accounts (password "${PASSWORD}"):`);
   console.log(`  coach@${DOMAIN}     owner + coach of Seniors A, player in Vétérans (site admin)`);
-  console.log(`  joueur@${DOMAIN}    player of Seniors A (a call-up to answer)`);
+  console.log(`  joueur@${DOMAIN}    player of Seniors A (a call-up to answer, a man-of-the-match vote open)`);
   console.log(`  nouveau@${DOMAIN}   no club`);
   console.log(`  candidat@${DOMAIN}  no club, pending join request to Seniors A`);
 }

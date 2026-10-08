@@ -50,7 +50,9 @@ export function TeamStatsPanel({ eventId }: { eventId: string }) {
               </ConfirmDeleteButton>
             </>
           ) : (
-            window.isOpen && <TeamStatsDialog eventId={eventId} defaultCompetition={defaultCompetition} />
+            window.isOpen && (
+              <TeamStatsDialog eventId={eventId} defaultCompetition={defaultCompetition} defaultIsHome={event.isHome} />
+            )
           )}
         </div>
       )}

@@ -75,7 +75,7 @@ export const TOURS: Record<TourRole, TourStepDef[]> = {
       title: "Tout le calendrier",
       text: "Tous les matchs et entraînements. Indique ta présence aux entraînements depuis l'Agenda.",
     },
-    { anchor: "notification-bell", title: "Ne rate rien", text: "Convocations, rappels et sondages arrivent ici." },
+    { anchor: "notification-bell", title: "Ne rate rien", text: "Convocations, rappels, sondages, vote de l'homme du match et covoiturage arrivent ici." },
     {
       anchor: "nav-messages",
       title: "Le vestiaire",

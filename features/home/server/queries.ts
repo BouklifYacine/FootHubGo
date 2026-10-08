@@ -5,6 +5,8 @@ import { CALL_UP_RULES } from "@/features/call-ups/server/rules";
 import { sectionEventsWhere } from "@/features/events/server/queries";
 import { participationOf } from "@/features/events/server/participation";
 import { STATS_OPEN_AFTER_HOURS } from "@/features/stats/compute";
+import { MOTM_MIN_NOMINEES, motmOpenRange, motmWindow } from "@/features/motm/rules";
+import { seatsLeft } from "@/features/carpool/rules";
 
 const LEADERBOARD_SIZE = 5;
 
@@ -135,9 +137,10 @@ async function getNextSteps(membership: Membership, userId: string, canManage: b
   const now = new Date();
   const section = sectionEventsWhere(membership);
   const teamId = membership.teamId;
-  const eventSelect = { id: true, title: true, type: true, startDate: true, location: true, opponent: true, teamId: true } as const;
+  const eventSelect = { id: true, title: true, type: true, startDate: true, location: true, opponent: true, teamId: true, isHome: true } as const;
 
-  const [next, pendingCallUps, trainings, matchesToCallUp, matchesWithoutStats, joinRequests, checklistData] = await Promise.all([
+  const voteRange = motmOpenRange(now);
+  const [next, pendingCallUps, trainings, matchesToCallUp, matchesWithoutStats, joinRequests, checklistData, votes, awayMatches] = await Promise.all([
     // An event that started less than 2h ago is still "the next one" (match in progress).
     prisma.event.findFirst({
       where: { ...section, startDate: { gte: new Date(now.getTime() - 2 * HOUR) } },
@@ -191,6 +194,34 @@ async function getNextSteps(membership: Membership, userId: string, canManage: b
       : [],
     canManage ? prisma.joinRequest.count({ where: { teamId, status: "PENDING" } }) : 0,
     canManage ? getChecklist(membership, userId) : null,
+    // Man-of-the-match votes waiting for the user (present at the match, or coach of the section).
+    prisma.event.findMany({
+      where: {
+        teamId,
+        type: { in: ["LEAGUE", "CUP"] },
+        startDate: { gte: voteRange.from, lte: voteRange.to },
+        motmVotes: { none: { voterId: userId } },
+        ...(membership.role === "COACH" ? {} : { callUps: { some: { userId, status: "CONFIRMED" } } }),
+      },
+      orderBy: { startDate: "desc" },
+      take: 3,
+      select: { ...eventSelect, _count: { select: { callUps: { where: { status: "CONFIRMED" } } } } },
+    }),
+    // Carpool: upcoming away matches (7 days) the user is coming to, without a car or a seat yet.
+    prisma.event.findMany({
+      where: {
+        teamId,
+        type: { in: ["LEAGUE", "CUP"] },
+        isHome: false,
+        startDate: { gt: now, lte: new Date(now.getTime() + 7 * DAY) },
+        callUps: { some: { userId, status: "CONFIRMED" } },
+        rides: { none: { driverId: userId } },
+        ridePassengers: { none: { userId } },
+      },
+      orderBy: { startDate: "asc" },
+      take: 3,
+      select: { ...eventSelect, rides: { select: { seats: true, _count: { select: { passengers: true } } } } },
+    }),
   ]);
 
   const participation = next ? await participationOf([next], membership, userId, now) : null;
@@ -204,6 +235,13 @@ async function getNextSteps(membership: Membership, userId: string, canManage: b
       matchesToCallUp: matchesToCallUp.filter((event) => event.id !== next?.id),
       matchesWithoutStats,
       joinRequests,
+      motmVotes: votes
+        .filter((event) => event._count.callUps >= MOTM_MIN_NOMINEES)
+        .map((event) => ({ ...event, _count: undefined, closesAt: motmWindow(event.startDate, now).closesAt })),
+      carpools: awayMatches.map(({ rides, ...event }) => ({
+        ...event,
+        seatsLeft: rides.reduce((total, ride) => total + seatsLeft({ seats: ride.seats, booked: ride._count.passengers }), 0),
+      })),
     },
     checklist: checklistData,
   };

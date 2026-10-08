@@ -57,6 +57,10 @@ model User {
   blockedBy                User[]                    @relation("UserBlocks")
   createdGroups            Conversation[]            @relation("GroupCreator")
   conversations            Conversation[]
+  motmVotesCast            MotmVote[]                @relation("MotmVoter")
+  motmVotesReceived        MotmVote[]                @relation("MotmNominee")
+  ridesOffered             Ride[]
+  rideSeats                RidePassenger[]
 
   @@map("user")
 }
@@ -204,29 +208,38 @@ model CallUp {
 }
 
 model Event {
-  id             String       @id @default(cuid())
-  title          String       @map("titre")
-  description    String?
-  location       String?      @map("lieu")
-  type           EventType    @default(TRAINING) @map("typeEvenement")
-  startDate      DateTime     @map("dateDebut")
-  createdAt      DateTime     @default(now()) @map("dateCreation")
-  opponent       String?      @map("adversaire")
-  locationData   Json?
-  weatherData    Json?
-  clubId         String
+  id                 String          @id @default(cuid())
+  title              String          @map("titre")
+  description        String?
+  location           String?         @map("lieu")
+  type               EventType       @default(TRAINING) @map("typeEvenement")
+  startDate          DateTime        @map("dateDebut")
+  createdAt          DateTime        @default(now()) @map("dateCreation")
+  opponent           String?         @map("adversaire")
+  locationData       Json?
+  weatherData        Json?
+  clubId             String
   /// null = club-wide event (visible in every section, no call-ups / attendance / stats).
-  teamId         String?      @map("equipeId")
+  teamId             String?         @map("equipeId")
   /// Shared by the occurrences of a weekly repeated training (null for a single event).
-  seriesId       String?
+  seriesId           String?
   /// Set when the reminder (notification + email, 24h before) has been sent: never sent twice.
-  reminderSentAt DateTime?
-  callUps        CallUp[]
-  club           Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  team           Team?        @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  attendances    Attendance[]
-  teamStat       TeamStat?
-  playerStats    PlayerStat[]
+  reminderSentAt     DateTime?
+  /// Home or away match (carpool is offered for away matches only). Trainings stay "home".
+  isHome             Boolean         @default(true)
+  /// Man of the match: set when the vote-open notification has been sent (claimed by the job).
+  motmOpenNotifiedAt DateTime?
+  /// Man of the match: set when the vote has been closed and the winner(s) notified (claimed by the job).
+  motmClosedAt       DateTime?
+  callUps            CallUp[]
+  motmVotes          MotmVote[]
+  rides              Ride[]
+  ridePassengers     RidePassenger[]
+  club               Club            @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  team               Team?           @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  attendances        Attendance[]
+  teamStat           TeamStat?
+  playerStats        PlayerStat[]
 
   @@index([teamId])
   @@index([clubId, startDate])
@@ -347,21 +360,77 @@ model Attendance {
 }
 
 model PlayerStat {
-  id            String         @id @default(cuid())
-  goals         Int            @default(0) @map("buts")
-  assists       Int            @default(0) @map("passesdecisive")
-  rating        Float          @default(6.0) @map("note")
-  minutesPlayed Int            @default(0) @map("minutesJouees")
-  isStarter     Boolean        @default(false) @map("titulaire")
-  position      PlayerPosition @map("poste")
-  createdAt     DateTime       @default(now()) @map("dateCreation")
+  id            String          @id @default(cuid())
+  goals         Int             @default(0) @map("buts")
+  assists       Int             @default(0) @map("passesdecisive")
+  /// null = not rated yet (a row created from the playing-time sheet).
+  rating        Float?          @map("note")
+  /// 0..130 (extra time included), see features/stats/playing-time.ts.
+  minutesPlayed Int             @default(0) @map("minutesJouees")
+  isStarter     Boolean         @default(false) @map("titulaire")
+  /// null = not set (playing-time sheet for a member without a usual position).
+  position      PlayerPosition? @map("poste")
+  createdAt     DateTime        @default(now()) @map("dateCreation")
   userId        String
-  eventId       String         @map("evenementId")
-  event         Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventId       String          @map("evenementId")
+  event         Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, eventId])
   @@map("statistique_joueur")
+}
+
+/// One man-of-the-match vote per voter and per match (the vote can be changed while it is open).
+/// Window, eligibility and winners: features/motm/rules.ts.
+model MotmVote {
+  id        String   @id @default(cuid())
+  eventId   String
+  voterId   String
+  nomineeId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  voter     User     @relation("MotmVoter", fields: [voterId], references: [id], onDelete: Cascade)
+  nominee   User     @relation("MotmNominee", fields: [nomineeId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, voterId])
+  @@index([eventId, nomineeId])
+  @@index([nomineeId])
+  @@map("motm_vote")
+}
+
+/// A car going to an away match: one per driver and per match (features/carpool/rules.ts).
+model Ride {
+  id             String          @id @default(cuid())
+  eventId        String
+  driverId       String
+  seats          Int
+  departurePlace String
+  departureTime  DateTime
+  note           String?
+  createdAt      DateTime        @default(now())
+  event          Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  driver         User            @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  passengers     RidePassenger[]
+
+  @@unique([eventId, driverId])
+  @@map("ride")
+}
+
+/// A booked seat. `eventId` is denormalized so that a user holds at most one seat per match.
+model RidePassenger {
+  id        String   @id @default(cuid())
+  rideId    String
+  eventId   String
+  userId    String
+  createdAt DateTime @default(now())
+  ride      Ride     @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+  @@index([rideId])
+  @@map("ride_passenger")
 }
 
 model TeamStat {
@@ -494,15 +563,17 @@ enum ParticipantRole {
 }
 
 enum NotificationType {
-  CALL_UP         @map("CONVOCATION_MATCH")
-  JOIN_REQUEST    @map("DEMANDE_ADHESION")
-  INJURY_REPORTED @map("BLESSURE_DECLAREE")
-  FINANCE_DUE     @map("FINANCE_ECHEANCE")
-  NEW_POLL        @map("SONDAGE_NOUVEAU")
-  EVENT_REMINDER  @map("EVENEMENT_RAPPEL")
-  JOINED_TEAM     @map("REJOINT_CLUB")
-  LEFT_TEAM       @map("QUITTER_CLUB")
+  CALL_UP          @map("CONVOCATION_MATCH")
+  JOIN_REQUEST     @map("DEMANDE_ADHESION")
+  INJURY_REPORTED  @map("BLESSURE_DECLAREE")
+  FINANCE_DUE      @map("FINANCE_ECHEANCE")
+  NEW_POLL         @map("SONDAGE_NOUVEAU")
+  EVENT_REMINDER   @map("EVENEMENT_RAPPEL")
+  JOINED_TEAM      @map("REJOINT_CLUB")
+  LEFT_TEAM        @map("QUITTER_CLUB")
   MESSAGE
+  MAN_OF_THE_MATCH
+  CARPOOL
 
   @@map("TypeNotification")
 }
